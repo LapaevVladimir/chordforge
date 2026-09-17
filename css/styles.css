@@ -211,6 +211,9 @@ body.site-ready .timeline-scroll { animation: stage-reveal 0.72s 0.63s cubic-bez
 .current-chord:hover { transform: translateY(-2px); border-color: rgba(var(--accent-rgb), 0.72); background: rgba(var(--accent-rgb), 0.14); }
 .current-chord:active { cursor: grabbing; }
 .current-chord.pointer-dragging, .timeline-clip.pointer-dragging { z-index: 20; opacity: 0.58; transform: scale(0.98); cursor: grabbing; }
+/* The chord identifier shows the same card, but it isn't draggable anywhere. */
+.current-chord.static { grid-template-columns: 1fr; cursor: default; }
+.current-chord.static:hover { transform: none; border-color: rgba(var(--accent-rgb), 0.32); background: rgba(var(--accent-rgb), 0.09); }
 .drag-grip { color: var(--muted); font-size: 1.2rem; }
 .drag-arrow { color: var(--accent); font-size: 1.35rem; }
 .chord-name { margin: 0; font-size: 2rem; line-height: 1; font-weight: 880; letter-spacing: -0.055em; }

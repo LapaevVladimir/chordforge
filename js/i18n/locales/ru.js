@@ -16,6 +16,20 @@ export default {
       title: 'ChordForge Tuner — настройка гитары',
       description: 'Настройте гитару по микрофону: любой строй, точность в центах',
     },
+    chords: {
+      title: 'ChordForge — определитель аккордов',
+      description: 'Определите аккорд по грифу или найдите аппликатуру по названию',
+    },
+  },
+  chords: {
+    sidebarAria: 'Панель определителя',
+    eyebrow: 'Аккорды',
+    title: 'Определитель аккордов',
+    subtitle: 'Зажмите лады на грифе — название определится само. Или найдите аппликатуру по названию аккорда.',
+    loader: {
+      ariaLabel: 'Определитель аккордов загружается',
+      status: 'раскладываем гриф',
+    },
   },
 
   common: {
@@ -61,6 +75,8 @@ export default {
     trainingLink: 'Учить интервалы',
     tunerLink: 'Тюнер',
     backToEditor: '← Редактор',
+    backToHome: '← Главная',
+    chordsLink: 'Аккорды',
   },
 
   chord: {

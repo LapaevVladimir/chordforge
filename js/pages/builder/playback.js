@@ -43,10 +43,13 @@ export function setCurrentPlaybackState(playing) {
   document.getElementById('playLabel').textContent = t(playing ? 'common.stop' : 'common.listen');
 }
 
+// No-ops on pages without a timeline (the chord identifier reuses this module).
 export function setTimelinePlaybackState(playing) {
-  document.getElementById('playTimeline').classList.toggle('playing', playing);
+  const button = document.getElementById('playTimeline');
+  if (!button) return;
+  button.classList.toggle('playing', playing);
   document.getElementById('timelinePlayLabel').textContent = t(playing ? 'common.stop' : 'builder.timeline.start');
-  document.getElementById('playTimeline').querySelector('span').textContent = playing ? '■' : '▶';
+  button.querySelector('span').textContent = playing ? '■' : '▶';
 }
 
 export function stopPlayback() {
@@ -57,8 +60,11 @@ export function stopPlayback() {
   timelineFrame = null;
   setCurrentPlaybackState(false);
   setTimelinePlaybackState(false);
-  document.getElementById('timelinePlayhead').hidden = true;
-  document.getElementById('timelinePlayhead').style.transform = 'translateX(0)';
+  const playhead = document.getElementById('timelinePlayhead');
+  if (playhead) {
+    playhead.hidden = true;
+    playhead.style.transform = 'translateX(0)';
+  }
   document.querySelectorAll('.timeline-clip.is-playing').forEach((clip) => clip.classList.remove('is-playing'));
 }
 

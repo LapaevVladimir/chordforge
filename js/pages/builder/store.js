@@ -121,8 +121,18 @@ export function normalizeTimeline() {
   if (!timeline.tracks.length) timeline.tracks.push(makeTrack());
 }
 
+// Which localStorage slot `persistState` writes to. The chord identifier points
+// this at its own key so that changing capo or tuning while identifying a chord
+// never rewrites the instrument the studio page has saved.
+let activeStateKey = STATE_KEY;
+
+export function useStateKey(key) {
+  activeStateKey = key;
+  store.state = readJson(key, clone(defaultState));
+}
+
 export function persistState() {
-  localStorage.setItem(STATE_KEY, JSON.stringify(store.state));
+  localStorage.setItem(activeStateKey, JSON.stringify(store.state));
 }
 
 export function persistTimeline() {

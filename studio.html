@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1015" />
+  <meta name="description" content="Интерактивный гитарный гриф и многодорожечный аккордовый секвенсор" data-i18n-attr='{"content":"meta.builder.description"}' />
+  <title data-i18n="meta.builder.title">ChordForge — гитарный секвенсор</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b1015'/%3E%3Cpath d='M12 17h40M12 28h40M12 39h40M12 50h40' stroke='%23f4bf69' stroke-width='2'/%3E%3Cpath d='M26 9v46M40 9v46' stroke='%237ce4d1' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="site-loading" data-theme="midnight">
+  <div class="site-loader" id="siteLoader" role="status" data-i18n-attr='{"aria-label":"builder.loader.ariaLabel"}' aria-label="ChordForge загружается">
+    <div class="loader-glow"></div>
+    <div class="loader-emblem" aria-hidden="true">
+      <span class="loader-orbit orbit-a"></span>
+      <span class="loader-orbit orbit-b"></span>
+      <div class="loader-neck">
+        <span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span>
+        <span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span>
+        <i class="loader-note note-a"></i><i class="loader-note note-b"></i><i class="loader-note note-c"></i>
+        <b class="loader-pick">CF</b>
+      </div>
+    </div>
+    <div class="loader-copy"><strong data-i18n="common.brand">ChordForge</strong><span data-i18n="builder.loader.status">настраиваем пространство</span></div>
+    <div class="loader-progress" aria-hidden="true"><i></i></div>
+  </div>
+
+  <div class="studio-shell">
+    <aside class="tool-panel card" data-i18n-attr='{"aria-label":"builder.sidebar.ariaLabel"}' aria-label="Панель инструментов">
+      <div class="sidebar-header">
+        <div class="brand"><span class="mark">♬</span><span data-i18n="common.brand">ChordForge<small>chord sequencer</small></span></div>
+        <span class="status-dot" data-i18n-attr='{"title":"common.autosaveOn"}' title="Автосохранение включено"></span>
+      </div>
+
+      <div class="sidebar-scroll">
+        <section class="tool-section current-section" aria-live="polite">
+          <div class="section-kicker"><span data-i18n="builder.current.heading">Текущий аккорд</span><span class="confidence exact" id="confidence">точное совпадение</span></div>
+          <div class="current-chord" id="currentChordDrag" draggable="true" tabindex="0" data-i18n-attr='{"aria-label":"builder.current.dragAriaLabel"}' aria-label="Перетащить текущий аккорд на таймлайн">
+            <span class="drag-grip" aria-hidden="true">⠿</span>
+            <div><p class="chord-name" id="chordName">Em</p><p class="result-desc" id="chordDesc">E минорное трезвучие</p></div>
+            <span class="drag-arrow" aria-hidden="true">→</span>
+          </div>
+          <div class="notes" id="notes"></div>
+          <button class="play-chord" id="playChord" data-i18n-attr='{"aria-label":"builder.play.chordAria"}' aria-label="Проиграть текущий аккорд"><span class="play-icon" aria-hidden="true">▶</span><span id="playLabel" data-i18n="common.listen">Прослушать</span></button>
+          <div class="sample-status" id="sampleStatus" data-state="loading"><i></i><span data-i18n="builder.sampleStatus.loading">семплы загружаются</span></div>
+          <button class="add-current" id="addCurrentToTimeline"><span aria-hidden="true">＋</span> <span data-i18n="builder.current.addToTimeline">Добавить на таймлайн</span></button>
+          <p class="drop-hint" data-i18n="builder.current.dropHint">Или перетащите карточку аккорда на любую дорожку</p>
+        </section>
+
+        <section class="tool-section">
+          <div class="section-kicker" data-i18n="builder.search.heading">Поиск аппликатуры</div>
+          <div class="search-row"><input id="chordSearch" data-i18n-attr='{"aria-label":"builder.search.inputAriaLabel","placeholder":"builder.search.placeholder"}' aria-label="Название аккорда" placeholder="Cmaj7, F♯m7, B♭9…" autocomplete="off" /><button id="findChord" data-i18n="builder.search.button">Найти</button></div>
+          <div class="shape-info" id="shapeInfo"></div>
+          <div class="alternatives"><div class="alt-title" data-i18n="builder.search.altTitle">Возможные прочтения</div><div id="alternatives"></div></div>
+        </section>
+
+        <section class="tool-section">
+          <div class="section-kicker" data-i18n="builder.instrument.heading">Инструмент</div>
+          <div class="group">
+            <div class="label-row"><label for="preset" data-i18n="builder.instrument.preset">Пресет</label></div>
+            <select id="preset">
+              <option value="standard" data-i18n="builder.presetOptions.standard">Гитара — стандарт</option>
+              <option value="dropd" data-i18n="builder.presetOptions.dropd">Гитара — Drop D</option>
+              <option value="dadgad" data-i18n="builder.presetOptions.dadgad">Гитара — DADGAD</option>
+              <option value="openg" data-i18n="builder.presetOptions.openg">Гитара — Open G</option>
+              <option value="bass" data-i18n="builder.presetOptions.bass">Бас — 4 струны</option>
+              <option value="seven" data-i18n="builder.presetOptions.seven">Гитара — 7 струн</option>
+            </select>
+          </div>
+          <div class="compact-settings">
+            <div class="group">
+              <div class="label-row"><label for="stringCount" data-i18n="builder.instrument.stringCount">Струны</label><span class="value" id="stringCountValue">6</span></div>
+              <input id="stringCount" type="range" min="4" max="12" value="6" />
+            </div>
+            <div class="group">
+              <div class="label-row"><label for="fretCount" data-i18n="builder.instrument.fretCount">Лады</label><span class="value" id="fretCountValue">15</span></div>
+              <input id="fretCount" type="range" min="8" max="24" value="15" />
+            </div>
+          </div>
+          <div class="group">
+            <div class="label-row"><label for="capo" data-i18n="builder.instrument.capo">Каподастр</label><span class="value" id="capoValue">нет</span></div>
+            <input id="capo" type="range" min="0" max="12" value="0" />
+          </div>
+          <div class="group">
+            <div class="label-row"><label for="strumInterval" data-i18n="builder.instrument.strumInterval">Разброс струн</label><output class="value" id="strumIntervalValue" for="strumInterval">30 мс</output></div>
+            <input id="strumInterval" type="range" min="0" max="300" step="5" value="30" />
+          </div>
+          <div class="group strum-editor">
+            <div class="label-row"><label for="strumStepCount" data-i18n="builder.instrument.strumPatternHeading">Бой · восьмые доли</label><select class="mini-select" id="strumStepCount" data-i18n-attr='{"aria-label":"builder.instrument.strumStepCountAria"}' aria-label="Количество шагов боя"><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="9">9</option><option value="12">12</option><option value="16">16</option></select></div>
+            <div class="strum-cycle-hint" data-i18n="builder.instrument.strumCycleHint">Нажимайте на шаг: ↓ → ↑ → × → пауза</div>
+            <div class="strum-count" id="strumCount" aria-hidden="true"></div>
+            <div class="strum-pattern" id="strumPattern" data-i18n-attr='{"aria-label":"builder.instrument.strumPatternHeading"}' aria-label="Редактор боя"></div>
+            <div class="strum-presets" data-i18n-attr='{"aria-label":"builder.instrument.strumPresetsAria"}' aria-label="Пресеты боя">
+              <button type="button" data-strum-preset="pop" data-i18n="builder.strumPresets.pop">Поп</button>
+              <button type="button" data-strum-preset="eighths" data-i18n="builder.strumPresets.eighths">Восьмые</button>
+              <button type="button" data-strum-preset="ballad" data-i18n="builder.strumPresets.ballad">Баллада</button>
+            </div>
+            <div class="strum-legend"><span data-i18n="builder.strumLegend.down">↓ вниз</span><span data-i18n="builder.strumLegend.up">↑ вверх</span><span data-i18n="builder.strumLegend.mute">× глушение</span><span data-i18n="builder.strumLegend.rest">· пауза</span></div>
+          </div>
+          <div class="group">
+            <div class="label-row"><label for="chordRelease" data-i18n="builder.instrument.release">Плавное затухание</label><output class="value" id="chordReleaseValue" for="chordRelease">0.45 с</output></div>
+            <input id="chordRelease" type="range" min="0.02" max="2" step="0.01" value="0.45" />
+          </div>
+          <div class="group tuning-group">
+            <div class="label-row"><span data-i18n="builder.tuning.heading">Строй</span><span class="tuning-actions"><button class="tuning-shift" id="tuningDown" type="button" data-i18n-attr='{"aria-label":"builder.tuning.downAria"}' aria-label="Понизить весь строй на полтона">↓</button><button class="tuning-shift" id="tuningUp" type="button" data-i18n-attr='{"aria-label":"builder.tuning.upAria"}' aria-label="Повысить весь строй на полтона">↑</button><button class="text-button" id="resetTuning" data-i18n="common.reset">Сбросить</button></span></div>
+            <div class="tuning" id="tuning"></div>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="sidebar-footer">
+        <span><i class="status-dot"></i> <span data-i18n="common.autosaveLabel">автосохранение</span></span>
+        <button class="text-button" id="copyLink" data-i18n="common.share">Поделиться</button>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <section class="work card">
+        <div class="work-top">
+          <div><span class="eyebrow" data-i18n="builder.work.eyebrow">Инструмент</span><h1 data-i18n="builder.work.title">Соберите аккорд на грифе</h1><p class="sub" data-i18n="builder.work.subtitle">Нажимайте на лады, затем перетащите готовый аккорд в аранжировку.</p></div>
+          <div class="work-header-actions">
+            <a class="training-entry" href="tuner.html"><span aria-hidden="true">🎙</span><strong data-i18n="nav.tunerLink">Тюнер</strong></a>
+            <a class="training-entry" href="training-learn.html"><span aria-hidden="true">◎</span><strong data-i18n="nav.trainingLink">Учить интервалы</strong></a>
+            <span class="pill" id="capoBadge" data-i18n="builder.capoBadge.none">без каподастра</span>
+          </div>
+        </div>
+        <div class="fret-scroll" id="fretScroll"><div class="fretboard" id="fretboard"></div></div>
+        <div class="fret-toolbar">
+          <div class="toolbar-actions"><button id="clear" data-i18n="builder.toolbar.clear">Очистить</button><button id="allOpen" data-i18n="builder.toolbar.allOpen">Все открытые</button><button id="muteAll" data-i18n="builder.toolbar.muteAll">Заглушить</button><button class="primary" id="saveShape" data-i18n="builder.toolbar.save">Сохранить</button></div>
+          <div class="legend"><span><b></b> <span data-i18n="builder.legend.note">нота</span></span><span><b class="root"></b> <span data-i18n="builder.legend.root">тоника</span></span></div>
+        </div>
+      </section>
+
+      <section class="timeline-panel card" data-i18n-attr='{"aria-label":"builder.timeline.ariaLabel"}' aria-label="Таймлайн аккордов">
+        <div class="timeline-header">
+          <div class="timeline-title"><span class="eyebrow" data-i18n="builder.timeline.eyebrow">Аранжировка</span><h2 data-i18n="builder.timeline.title">Таймлайн</h2></div>
+          <div class="transport">
+            <button class="transport-play" id="playTimeline"><span aria-hidden="true">▶</span><span id="timelinePlayLabel" data-i18n="builder.timeline.start">Запустить</span></button>
+            <div class="tempo"><label for="timelineBpm">BPM</label><input id="timelineBpm" type="number" min="40" max="240" step="1" value="100" /></div>
+            <div class="snap-control"><label for="timelineSnap" data-i18n="builder.timeline.snapLabel">Магнит</label><select id="timelineSnap"><option value="0" data-i18n="builder.snapOptions.off">выкл.</option><option value="1" data-i18n="builder.snapOptions.beat">1 доля</option><option value="0.5" data-i18n="builder.snapOptions.half">1/2</option><option value="0.25" data-i18n="builder.snapOptions.quarter">1/4</option><option value="0.125" data-i18n="builder.snapOptions.eighth">1/8</option></select></div>
+            <button id="pasteClip" type="button" disabled data-i18n="builder.timeline.paste">Вставить</button>
+            <button id="addTrack" data-i18n="builder.timeline.addTrack">＋ Дорожка</button>
+          </div>
+        </div>
+        <div class="timeline-help"><span data-i18n="builder.timeline.help1">Перетащите аккорд сюда · клик по аккорду открывает редактор</span><span data-i18n="builder.timeline.help2">Клик по линейке задаёт старт · магнит работает и при растягивании</span></div>
+        <div class="timeline-scroll" id="timelineScroll">
+          <div class="timeline-content" id="timelineContent">
+            <div class="timeline-ruler" id="timelineRuler"></div>
+            <div class="timeline-tracks" id="timelineTracks"></div>
+            <div class="start-marker" id="timelineStartMarker" role="slider" tabindex="0" data-i18n-attr='{"aria-label":"builder.timeline.startPointAria"}' aria-label="Точка старта" aria-valuemin="0" aria-valuenow="0"><span>START</span></div>
+            <div class="playhead" id="timelinePlayhead" hidden><span></span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="locale-dock" id="localeDock" role="group" data-i18n-attr='{"aria-label":"common.localeDockLabel"}' aria-label="Язык интерфейса">
+    <button type="button" class="locale-dot" data-locale-option="ru" data-i18n="common.localeName.ru" data-i18n-attr='{"aria-label":"common.localeAria.ru"}' aria-label="Русский язык">RU</button>
+    <button type="button" class="locale-dot" data-locale-option="en" data-i18n="common.localeName.en" data-i18n-attr='{"aria-label":"common.localeAria.en"}' aria-label="Английский язык">EN</button>
+  </div>
+  <div class="theme-dock" id="themeDock" role="group" data-i18n-attr='{"aria-label":"common.themeDockLabel"}' aria-label="Цветовая тема">
+    <span class="theme-dock-icon" aria-hidden="true">✦</span>
+    <button type="button" class="theme-dot midnight" data-theme-option="midnight" data-label="Midnight" data-i18n-attr='{"aria-label":"common.themeLabel.midnight"}' aria-label="Тема Midnight" style="--swatch-a:#0b1015;--swatch-b:#72dfcf"></button>
+    <button type="button" class="theme-dot sunset" data-theme-option="sunset" data-label="Sunset" data-i18n-attr='{"aria-label":"common.themeLabel.sunset"}' aria-label="Тема Sunset" style="--swatch-a:#6f1d3d;--swatch-b:#ff9b45"></button>
+    <button type="button" class="theme-dot forest" data-theme-option="forest" data-label="Forest" data-i18n-attr='{"aria-label":"common.themeLabel.forest"}' aria-label="Тема Forest" style="--swatch-a:#0d2f22;--swatch-b:#7ddd9c"></button>
+    <button type="button" class="theme-dot ultraviolet" data-theme-option="ultraviolet" data-label="Ultraviolet" data-i18n-attr='{"aria-label":"common.themeLabel.ultraviolet"}' aria-label="Тема Ultraviolet" style="--swatch-a:#29124f;--swatch-b:#f06dff"></button>
+    <button type="button" class="theme-dot ocean" data-theme-option="ocean" data-label="Deep Ocean" data-i18n-attr='{"aria-label":"common.themeLabel.ocean"}' aria-label="Тема Deep Ocean" style="--swatch-a:#061d3b;--swatch-b:#42bfff"></button>
+    <button type="button" class="theme-dot porcelain" data-theme-option="porcelain" data-label="Porcelain" data-i18n-attr='{"aria-label":"common.themeLabel.porcelain"}' aria-label="Тема Porcelain" style="--swatch-a:#f2eadf;--swatch-b:#d86e3d"></button>
+  </div>
+
+  <div class="modal-overlay" id="voicingModalOverlay" hidden>
+    <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="voicingModalTitle">
+      <div class="modal-header"><h3 id="voicingModalTitle" data-i18n="builder.voicing.title">Аппликатуры</h3><button class="modal-close" id="voicingModalClose" data-i18n-attr='{"aria-label":"builder.voicing.closeAria"}' aria-label="Закрыть окно">✕</button></div>
+      <p class="modal-hint" data-i18n="builder.voicing.hint">Выберите позицию, чтобы выставить её на грифе</p>
+      <div class="modal-body" id="voicingModalBody"></div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="clipEditorOverlay" hidden>
+    <div class="modal clip-editor-modal card" role="dialog" aria-modal="true" aria-labelledby="clipEditorTitle">
+      <div class="modal-header"><div><span class="eyebrow" data-i18n="builder.clipEditor.eyebrow">Редактор аккорда</span><h3 id="clipEditorTitle">Аккорд</h3></div><button class="modal-close" id="clipEditorClose" data-i18n-attr='{"aria-label":"builder.clipEditor.closeAria"}' aria-label="Закрыть редактор">✕</button></div>
+      <p class="modal-hint" data-i18n="builder.clipEditor.hint">Настройки относятся только к выбранному аккорду на таймлайне.</p>
+      <div class="clip-editor-grid">
+        <section class="clip-editor-section">
+          <div class="clip-editor-heading"><strong data-i18n="builder.clipEditor.envelopeHeading">Громкость и огибающая</strong><span id="clipEnvelopeSummary">100%</span></div>
+          <div class="envelope-graph" id="clipEnvelopeGraph" data-i18n-attr='{"aria-label":"builder.clipEditor.envelopeGraphAria"}' aria-label="График появления, громкости и затухания">
+            <svg viewBox="0 0 100 48" preserveAspectRatio="none" aria-hidden="true"><path class="envelope-fill" id="clipEnvelopeFill"></path><path class="envelope-line" id="clipEnvelopeLine"></path></svg>
+            <button class="envelope-handle attack" id="clipAttackHandle" type="button" data-i18n-attr='{"aria-label":"builder.clipEditor.handleAttackAria"}' aria-label="Регулировка появления"></button>
+            <button class="envelope-handle volume" id="clipVolumeHandle" type="button" data-i18n-attr='{"aria-label":"builder.clipEditor.handleVolumeAria"}' aria-label="Регулировка громкости"></button>
+            <button class="envelope-handle release" id="clipReleaseHandle" type="button" data-i18n-attr='{"aria-label":"builder.clipEditor.handleReleaseAria"}' aria-label="Регулировка затухания"></button>
+          </div>
+          <div class="envelope-axis" aria-hidden="true"><span data-i18n="builder.clipEditor.axisAttack">появление</span><span data-i18n="builder.clipEditor.axisLevel">уровень</span><span data-i18n="builder.clipEditor.axisRelease">затухание</span></div>
+          <label class="editor-control"><span><span data-i18n="builder.clipEditor.volumeLabel">Громкость</span> <output id="clipVolumeValue">100%</output></span><input id="clipVolume" type="range" min="0" max="100" step="1" value="100" /></label>
+          <label class="editor-control"><span><span data-i18n="builder.clipEditor.attackLabel">Появление</span> <output id="clipAttackValue">0.01 с</output></span><input id="clipAttack" type="range" min="0" max="2" step="0.01" value="0.01" /></label>
+          <label class="editor-control"><span><span data-i18n="builder.clipEditor.releaseLabel">Затухание</span> <output id="clipReleaseValue">0.45 с</output></span><input id="clipRelease" type="range" min="0.02" max="2" step="0.01" value="0.45" /></label>
+        </section>
+        <section class="clip-editor-section">
+          <div class="clip-editor-heading"><strong data-i18n="builder.clipEditor.durationHeading">Длина и бой</strong></div>
+          <label class="editor-number"><span data-i18n="builder.clipEditor.durationLabel">Длина аккорда</span><span><input id="clipDurationEditor" type="number" min="0.1" step="0.01" value="4" /> <span data-i18n="common.unit.beats">доли</span></span></label>
+          <label class="editor-number"><span data-i18n="builder.clipEditor.stepCountLabel">Шагов боя</span><select id="clipStrumStepCount"><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="9">9</option><option value="12">12</option><option value="16">16</option></select></label>
+          <div class="clip-strum-wrap">
+            <div class="strum-count" id="clipStrumCount" aria-hidden="true"></div>
+            <div class="strum-pattern" id="clipStrumPattern" data-i18n-attr='{"aria-label":"builder.clipEditor.strumAria"}' aria-label="Бой выбранного аккорда"></div>
+          </div>
+          <div class="strum-legend"><span data-i18n="builder.strumLegend.down">↓ вниз</span><span data-i18n="builder.strumLegend.up">↑ вверх</span><span data-i18n="builder.strumLegend.mute">× глушение</span><span data-i18n="builder.strumLegend.rest">· пауза</span></div>
+        </section>
+      </div>
+      <div class="clip-editor-actions"><button id="copyClip" type="button" data-i18n="common.copy">Копировать</button><button id="duplicateClip" type="button" data-i18n="common.duplicate">Дублировать</button><button class="danger-button" id="deleteClipEditor" type="button" data-i18n="common.delete">Удалить</button><button class="primary" id="clipEditorDone" type="button" data-i18n="common.done">Готово</button></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="js/pages/builder/main.js"></script>
+</body>
+</html>

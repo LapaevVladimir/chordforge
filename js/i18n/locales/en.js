@@ -16,6 +16,20 @@ export default {
       title: 'ChordForge Tuner — Guitar Tuner',
       description: 'Tune your guitar with your microphone: any tuning, cent-accurate',
     },
+    chords: {
+      title: 'ChordForge — Chord Identifier',
+      description: 'Identify a chord from the fretboard, or look up a shape by name',
+    },
+  },
+  chords: {
+    sidebarAria: 'Chord identifier panel',
+    eyebrow: 'Chords',
+    title: 'Chord identifier',
+    subtitle: 'Press frets on the neck and the name works itself out. Or look up a shape by chord name.',
+    loader: {
+      ariaLabel: 'Chord identifier is loading',
+      status: 'laying out the neck',
+    },
   },
 
   common: {
@@ -61,6 +75,8 @@ export default {
     trainingLink: 'Learn intervals',
     tunerLink: 'Tuner',
     backToEditor: '← Editor',
+    backToHome: '← Home',
+    chordsLink: 'Chords',
   },
 
   chord: {

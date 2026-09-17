@@ -147,7 +147,8 @@ export function updateResult() {
   const analysis = currentAnalysis();
   document.getElementById('chordName').textContent = analysis.name;
   document.getElementById('chordDesc').textContent = describeAnalysis(analysis);
-  document.getElementById('currentChordDrag').setAttribute('aria-label', t('builder.current.dragAriaLabelNamed', { name: analysis.name }));
+  // Only the studio page's card is draggable onto the timeline.
+  document.getElementById('currentChordDrag')?.setAttribute('aria-label', t('builder.current.dragAriaLabelNamed', { name: analysis.name }));
   document.getElementById('confidence').textContent = t(`builder.confidence.${analysis.confidence === 'exact' ? 'exact' : analysis.confidence === 'omitted' ? 'omitted' : 'analysis'}`);
   document.getElementById('confidence').className = `confidence ${analysis.confidence}`;
   document.getElementById('notes').innerHTML = analysis.tones.map((pitch) => `<span class="note-chip ${pitch === analysis.root ? 'root' : ''}">${Engine.noteName(pitch, state.preferFlats)}</span>`).join('');
@@ -159,6 +160,8 @@ export function updateResult() {
 
 export function renderStrumEditor(activeIndex = -1) {
   const state = store.state;
+  // The chord-identifier page reuses this module but has no strum editor.
+  if (!document.getElementById('strumPattern')) return;
   document.getElementById('strumStepCount').value = String(state.strumPattern.length);
   document.getElementById('strumCount').style.setProperty('--strum-steps', state.strumPattern.length);
   document.getElementById('strumPattern').style.setProperty('--strum-steps', state.strumPattern.length);
@@ -202,7 +205,8 @@ function renderVoicingDiagram(shape) {
 
 export function closeVoicingModal() {
   document.getElementById('voicingModalOverlay').hidden = true;
-  if (document.getElementById('clipEditorOverlay').hidden) document.body.classList.remove('modal-open');
+  const clipEditor = document.getElementById('clipEditorOverlay');
+  if (!clipEditor || clipEditor.hidden) document.body.classList.remove('modal-open');
 }
 
 export function openVoicingModal(parsed, shapes) {
@@ -251,10 +255,18 @@ export function render() {
   document.getElementById('capo').max = Math.min(12, state.frets - 1);
   document.getElementById('capo').value = state.capo;
   document.getElementById('capoValue').textContent = state.capo ? t('builder.capo.at', { n: state.capo }) : t('builder.capo.none');
-  document.getElementById('strumInterval').value = state.strumInterval;
-  document.getElementById('strumIntervalValue').textContent = state.strumInterval === 0 ? t('builder.strumInterval.together') : t('common.template.ms', { n: state.strumInterval });
-  document.getElementById('chordRelease').value = state.release;
-  document.getElementById('chordReleaseValue').textContent = t('common.template.seconds', { n: state.release.toFixed(2) });
+  // Playback-shaping controls only exist on the studio page; the identifier
+  // still keeps the values in state so its preview strum sounds the same.
+  const strumInterval = document.getElementById('strumInterval');
+  if (strumInterval) {
+    strumInterval.value = state.strumInterval;
+    document.getElementById('strumIntervalValue').textContent = state.strumInterval === 0 ? t('builder.strumInterval.together') : t('common.template.ms', { n: state.strumInterval });
+  }
+  const chordRelease = document.getElementById('chordRelease');
+  if (chordRelease) {
+    chordRelease.value = state.release;
+    document.getElementById('chordReleaseValue').textContent = t('common.template.seconds', { n: state.release.toFixed(2) });
+  }
   document.getElementById('capoBadge').textContent = state.capo ? t('builder.capoBadge.at', { n: state.capo }) : t('builder.capoBadge.none');
   document.getElementById('preset').value = PRESETS[state.preset] ? state.preset : 'standard';
   renderStrumEditor();
