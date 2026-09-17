@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1015" />
+  <meta name="description" content="Интерактивное изучение музыкальных интервалов на гитарном грифе" data-i18n-attr='{"content":"meta.trainingLearn.description"}' />
+  <title data-i18n="meta.trainingLearn.title">ChordForge Learn — интервалы на гитаре</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b1015'/%3E%3Cpath d='M12 17h40M12 28h40M12 39h40M12 50h40' stroke='%23f4bf69' stroke-width='2'/%3E%3Cpath d='M26 9v46M40 9v46' stroke='%237ce4d1' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/training.css" />
+</head>
+<body class="training-page site-loading" data-theme="midnight">
+  <div class="site-loader" id="trainingLoader" role="status" data-i18n-attr='{"aria-label":"training.loader.ariaLabel"}' aria-label="Режим обучения загружается">
+    <div class="loader-glow"></div>
+    <div class="loader-emblem" aria-hidden="true">
+      <span class="loader-orbit orbit-a"></span><span class="loader-orbit orbit-b"></span>
+      <div class="loader-neck">
+        <span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span>
+        <i class="loader-note note-a"></i><i class="loader-note note-b"></i><i class="loader-note note-c"></i><b class="loader-pick">CF</b>
+      </div>
+    </div>
+    <div class="loader-copy"><strong data-i18n="common.trainingBrand">ChordForge Learn</strong><span data-i18n="training.loader.status">настраиваем слух и гриф</span></div>
+    <div class="loader-progress" aria-hidden="true"><i></i></div>
+  </div>
+
+  <div class="studio-shell">
+    <aside class="tool-panel card" data-i18n-attr='{"aria-label":"training.learn.sidebarAria"}' aria-label="Панель обучения">
+      <div class="sidebar-header">
+        <div class="brand"><span class="mark">♬</span><span data-i18n="common.trainingBrand">ChordForge Learn<small>learn lab</small></span></div>
+      </div>
+
+      <div class="sidebar-scroll">
+        <section class="tool-section current-section" aria-live="polite">
+          <div class="section-kicker"><span data-i18n="training.learn.anchorLabel">Опорная нота</span></div>
+          <div class="anchor-readout">
+            <strong id="anchorNote">E2</strong>
+            <small id="anchorPosition">6-я струна · открытая</small>
+          </div>
+        </section>
+
+        <section class="tool-section">
+          <div class="section-kicker" data-i18n="training.learn.intervalLabel">Интервал</div>
+          <div class="group">
+            <select id="learnInterval" data-i18n-attr='{"aria-label":"training.learn.intervalSelectAria"}' aria-label="Интервал для изучения"></select>
+          </div>
+          <div class="group">
+            <fieldset class="mode-choice">
+              <legend data-i18n="training.learn.intervalType.legend">Тип интервала</legend>
+              <label><input type="radio" name="learnIntervalType" value="ascending" checked /><span><b aria-hidden="true">↗</b><strong data-i18n="training.learn.intervalType.ascending">Восходящий</strong><small data-i18n="training.learn.intervalType.ascendingHint">низкая → высокая</small></span></label>
+              <label><input type="radio" name="learnIntervalType" value="descending" /><span><b aria-hidden="true">↘</b><strong data-i18n="training.learn.intervalType.descending">Нисходящий</strong><small data-i18n="training.learn.intervalType.descendingHint">высокая → низкая</small></span></label>
+              <label><input type="radio" name="learnIntervalType" value="harmonic" /><span><b aria-hidden="true">♫</b><strong data-i18n="training.learn.intervalType.harmonic">Гармонический</strong><small data-i18n="training.learn.intervalType.harmonicHint">одновременно</small></span></label>
+            </fieldset>
+          </div>
+          <button class="listen-button" id="playLearnInterval" type="button"><span aria-hidden="true">▶</span><span data-i18n="training.learn.playButton">Проиграть</span></button>
+        </section>
+
+        <section class="tool-section">
+          <div class="group tuning-group">
+            <div class="label-row">
+              <span data-i18n="builder.tuning.heading">Строй</span>
+              <span class="tuning-actions">
+                <button class="tuning-shift" id="tuningDown" type="button" data-i18n-attr='{"aria-label":"builder.tuning.downAria"}' aria-label="Понизить весь строй на полтона">↓</button>
+                <button class="tuning-shift" id="tuningUp" type="button" data-i18n-attr='{"aria-label":"builder.tuning.upAria"}' aria-label="Повысить весь строй на полтона">↑</button>
+                <button class="text-button" id="resetTuning" data-i18n="common.reset">Сбросить</button>
+              </span>
+            </div>
+            <div class="tuning" id="tuning"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="training-quiz.html" class="text-button" data-i18n="training.nav.trainer">Тренировка</a>
+        <a href="index.html" class="text-button" data-i18n="nav.backToEditor">← Редактор</a>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <section class="work card">
+        <div class="work-top">
+          <div><span class="eyebrow" data-i18n="training.learn.eyebrow">Обучение</span><h1 data-i18n="training.learn.title">Интервалы на стандартном грифе</h1><p class="sub" data-i18n="training.learn.subtitle">Выберите интервал, затем нажмите любую ноту на грифе. Карта покажет все доступные позиции выше и ниже неё.</p></div>
+          <div class="work-header-actions">
+            <span class="pill" id="tuningBadge">E · A · D · G · B · E</span>
+            <a class="training-entry" href="training-quiz.html"><span aria-hidden="true">▶</span><strong data-i18n="training.nav.trainer">Тренировка</strong></a>
+          </div>
+        </div>
+        <div class="training-board-scroll"><div class="interval-board" id="learnFretboard" data-i18n-attr='{"aria-label":"training.board.ariaLabel"}' aria-label="Учебный гитарный гриф"></div></div>
+        <div class="interval-explainer" id="intervalExplainer" aria-live="polite"></div>
+        <div class="board-legend">
+          <span><i class="legend-anchor">1</i> <span data-i18n="training.board.anchorLegend">опорная нота</span></span>
+          <span><i class="legend-target">m3</i> <span data-i18n="training.board.targetLegend">найденные позиции</span></span>
+          <span data-i18n="training.board.hint">Нажмите другую ноту, чтобы перестроить карту</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="locale-dock" id="localeDock" role="group" data-i18n-attr='{"aria-label":"common.localeDockLabel"}' aria-label="Язык интерфейса">
+    <button type="button" class="locale-dot" data-locale-option="ru" data-i18n="common.localeName.ru" data-i18n-attr='{"aria-label":"common.localeAria.ru"}' aria-label="Русский язык">RU</button>
+    <button type="button" class="locale-dot" data-locale-option="en" data-i18n="common.localeName.en" data-i18n-attr='{"aria-label":"common.localeAria.en"}' aria-label="Английский язык">EN</button>
+  </div>
+  <div class="theme-dock" id="themeDock" role="group" data-i18n-attr='{"aria-label":"common.themeDockLabel"}' aria-label="Цветовая тема">
+    <span class="theme-dock-icon" aria-hidden="true">✦</span>
+    <button type="button" class="theme-dot midnight" data-theme-option="midnight" data-label="Midnight" data-i18n-attr='{"aria-label":"common.themeLabel.midnight"}' aria-label="Тема Midnight" style="--swatch-a:#0b1015;--swatch-b:#72dfcf"></button>
+    <button type="button" class="theme-dot sunset" data-theme-option="sunset" data-label="Sunset" data-i18n-attr='{"aria-label":"common.themeLabel.sunset"}' aria-label="Тема Sunset" style="--swatch-a:#6f1d3d;--swatch-b:#ff9b45"></button>
+    <button type="button" class="theme-dot forest" data-theme-option="forest" data-label="Forest" data-i18n-attr='{"aria-label":"common.themeLabel.forest"}' aria-label="Тема Forest" style="--swatch-a:#0d2f22;--swatch-b:#7ddd9c"></button>
+    <button type="button" class="theme-dot ultraviolet" data-theme-option="ultraviolet" data-label="Ultraviolet" data-i18n-attr='{"aria-label":"common.themeLabel.ultraviolet"}' aria-label="Тема Ultraviolet" style="--swatch-a:#29124f;--swatch-b:#f06dff"></button>
+    <button type="button" class="theme-dot ocean" data-theme-option="ocean" data-label="Deep Ocean" data-i18n-attr='{"aria-label":"common.themeLabel.ocean"}' aria-label="Тема Deep Ocean" style="--swatch-a:#061d3b;--swatch-b:#42bfff"></button>
+    <button type="button" class="theme-dot porcelain" data-theme-option="porcelain" data-label="Porcelain" data-i18n-attr='{"aria-label":"common.themeLabel.porcelain"}' aria-label="Тема Porcelain" style="--swatch-a:#f2eadf;--swatch-b:#d86e3d"></button>
+  </div>
+
+  <div class="training-toast" id="trainingToast" role="status"></div>
+  <script type="module" src="js/pages/training/main-learn.js"></script>
+</body>
+</html>

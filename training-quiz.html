@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1015" />
+  <meta name="description" content="Тренировка узнавания музыкальных интервалов на слух и на грифе" data-i18n-attr='{"content":"meta.trainingQuiz.description"}' />
+  <title data-i18n="meta.trainingQuiz.title">ChordForge Learn — тренажёр интервалов</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b1015'/%3E%3Cpath d='M12 17h40M12 28h40M12 39h40M12 50h40' stroke='%23f4bf69' stroke-width='2'/%3E%3Cpath d='M26 9v46M40 9v46' stroke='%237ce4d1' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/training.css" />
+</head>
+<body class="training-page site-loading" data-theme="midnight">
+  <div class="site-loader" id="trainingLoader" role="status" data-i18n-attr='{"aria-label":"training.loader.ariaLabel"}' aria-label="Режим обучения загружается">
+    <div class="loader-glow"></div>
+    <div class="loader-emblem" aria-hidden="true">
+      <span class="loader-orbit orbit-a"></span><span class="loader-orbit orbit-b"></span>
+      <div class="loader-neck">
+        <span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span>
+        <i class="loader-note note-a"></i><i class="loader-note note-b"></i><i class="loader-note note-c"></i><b class="loader-pick">CF</b>
+      </div>
+    </div>
+    <div class="loader-copy"><strong data-i18n="common.trainingBrand">ChordForge Learn</strong><span data-i18n="training.loader.status">настраиваем слух и гриф</span></div>
+    <div class="loader-progress" aria-hidden="true"><i></i></div>
+  </div>
+
+  <div class="studio-shell">
+    <aside class="tool-panel card" data-i18n-attr='{"aria-label":"training.trainer.sidebarAria"}' aria-label="Панель тренировки">
+      <div class="sidebar-header">
+        <div class="brand"><span class="mark">♬</span><span data-i18n="common.trainingBrand">ChordForge Learn<small>quiz lab</small></span></div>
+      </div>
+
+      <div class="sidebar-scroll" id="trainerSettings">
+        <section class="tool-section">
+          <div class="section-kicker" data-i18n="training.trainer.modeLegend">Режим</div>
+          <fieldset class="mode-choice">
+            <label><input type="radio" name="trainingMode" value="visual" checked /><span><b aria-hidden="true">◉</b><strong data-i18n="training.trainer.modeVisual">Интервал на грифе</strong><small data-i18n="training.trainer.modeVisualHint">Угадайте по двум отмеченным позициям</small></span></label>
+            <label><input type="radio" name="trainingMode" value="ear" /><span><b aria-hidden="true">♪</b><strong data-i18n="training.trainer.modeEar">Интервал на слух</strong><small data-i18n="training.trainer.modeEarHint">Угадайте только по звучанию</small></span></label>
+          </fieldset>
+        </section>
+
+        <section class="tool-section">
+          <div class="section-kicker" data-i18n="training.trainer.playModeLegend">Как звучат ноты</div>
+          <fieldset class="play-mode compact-mode">
+            <label><input type="radio" name="trainingPlayMode" value="simultaneous" checked /><span data-i18n="training.playMode.simultaneous">Одновременно</span></label>
+            <label><input type="radio" name="trainingPlayMode" value="sequential" /><span data-i18n="training.playMode.sequential">Друг за другом</span></label>
+          </fieldset>
+        </section>
+
+        <section class="tool-section">
+          <fieldset class="interval-filter">
+            <div class="filter-head">
+              <legend data-i18n="training.trainer.intervalFilterLegend">Интервалы в тесте</legend>
+              <span>
+                <button id="selectAllIntervals" type="button" data-i18n="training.trainer.selectAll">Все</button>
+                <button id="clearIntervals" type="button" data-i18n="training.trainer.clearAll">Снять</button>
+              </span>
+            </div>
+            <div class="interval-checks" id="intervalChecks"></div>
+            <p class="settings-error" id="settingsError" role="alert"></p>
+          </fieldset>
+        </section>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="session-button" id="toggleTraining" type="button"><span aria-hidden="true">▶</span><span data-i18n="training.trainer.startButtonInitial">Начать</span></button>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <section class="work card">
+        <div class="work-top">
+          <div><span class="eyebrow" data-i18n="training.trainer.eyebrow">Практика</span><h1 data-i18n="training.trainer.title">Тренажёр интервалов</h1><p class="sub" data-i18n="training.trainer.subtitle">Настройте тест, нажмите «Начать» и отвечайте без ограничения по времени.</p></div>
+          <div class="work-header-actions">
+            <div class="session-stats" aria-live="polite">
+              <span><span data-i18n="training.trainer.correctLabel">Верно</span> <strong id="correctCount">0</strong></span>
+              <span><span data-i18n="training.trainer.errorsLabel">Ошибки</span> <strong id="errorCount">0</strong></span>
+            </div>
+            <a class="training-entry" href="training-learn.html"><span aria-hidden="true">◎</span><strong data-i18n="training.nav.learn">Закономерности</strong></a>
+          </div>
+        </div>
+
+        <div class="quiz-stage" id="quizStage">
+          <div class="quiz-idle" id="quizIdle"><span class="idle-symbol" aria-hidden="true">↗</span><h3 data-i18n="training.quiz.idleTitle">Выберите режим и интервалы</h3><p data-i18n="training.quiz.idleHint">После старта здесь появится первый вопрос.</p></div>
+          <div class="quiz-active" id="quizActive" hidden>
+            <div class="question-head"><div><span id="questionNumber" data-i18n="training.quiz.questionInitial">Вопрос 1</span><h3 id="questionTitle" data-i18n="training.quiz.questionPlaceholder">Какой интервал показан?</h3></div><button class="replay-button" id="replayQuestion" type="button"><span aria-hidden="true">▶</span> <span data-i18n="training.quiz.replayButton">Прослушать</span></button></div>
+            <div class="visual-question" id="visualQuestion"><div class="training-board-scroll"><div class="interval-board quiz-board" id="quizFretboard" data-i18n-attr='{"aria-label":"training.quiz.boardAriaLabel"}' aria-label="Интервал для определения"></div></div></div>
+            <div class="ear-question" id="earQuestion" hidden><div class="sound-orbit" aria-hidden="true"><i></i><i></i><i></i><span>♪</span></div><strong data-i18n="training.quiz.earPrompt">Слушайте две ноты</strong><p data-i18n="training.quiz.earHint">При необходимости нажмите «Прослушать» ещё раз.</p></div>
+            <div class="answer-grid" id="answerGrid" data-i18n-attr='{"aria-label":"training.quiz.answerGridAria"}' aria-label="Варианты ответа"></div>
+            <p class="quiz-feedback" id="quizFeedback" aria-live="assertive"></p>
+          </div>
+          <div class="quiz-summary" id="quizSummary" hidden>
+            <span class="summary-mark" aria-hidden="true">✓</span><h3 data-i18n="training.summary.title">Тренировка завершена</h3>
+            <div class="summary-numbers"><span><strong id="summaryCorrect">0</strong><span data-i18n="training.summary.correctLabel">верных ответов</span></span><span><strong id="summaryErrors">0</strong><span data-i18n="training.summary.errorsLabel">ошибок</span></span><span><strong id="summaryAccuracy">0%</strong><span data-i18n="training.summary.accuracyLabel">точность</span></span></div>
+            <p data-i18n="training.summary.hint">Измените набор интервалов или начните ещё одну попытку.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="locale-dock" id="localeDock" role="group" data-i18n-attr='{"aria-label":"common.localeDockLabel"}' aria-label="Язык интерфейса">
+    <button type="button" class="locale-dot" data-locale-option="ru" data-i18n="common.localeName.ru" data-i18n-attr='{"aria-label":"common.localeAria.ru"}' aria-label="Русский язык">RU</button>
+    <button type="button" class="locale-dot" data-locale-option="en" data-i18n="common.localeName.en" data-i18n-attr='{"aria-label":"common.localeAria.en"}' aria-label="Английский язык">EN</button>
+  </div>
+  <div class="theme-dock" id="themeDock" role="group" data-i18n-attr='{"aria-label":"common.themeDockLabel"}' aria-label="Цветовая тема">
+    <span class="theme-dock-icon" aria-hidden="true">✦</span>
+    <button type="button" class="theme-dot midnight" data-theme-option="midnight" data-label="Midnight" data-i18n-attr='{"aria-label":"common.themeLabel.midnight"}' aria-label="Тема Midnight" style="--swatch-a:#0b1015;--swatch-b:#72dfcf"></button>
+    <button type="button" class="theme-dot sunset" data-theme-option="sunset" data-label="Sunset" data-i18n-attr='{"aria-label":"common.themeLabel.sunset"}' aria-label="Тема Sunset" style="--swatch-a:#6f1d3d;--swatch-b:#ff9b45"></button>
+    <button type="button" class="theme-dot forest" data-theme-option="forest" data-label="Forest" data-i18n-attr='{"aria-label":"common.themeLabel.forest"}' aria-label="Тема Forest" style="--swatch-a:#0d2f22;--swatch-b:#7ddd9c"></button>
+    <button type="button" class="theme-dot ultraviolet" data-theme-option="ultraviolet" data-label="Ultraviolet" data-i18n-attr='{"aria-label":"common.themeLabel.ultraviolet"}' aria-label="Тема Ultraviolet" style="--swatch-a:#29124f;--swatch-b:#f06dff"></button>
+    <button type="button" class="theme-dot ocean" data-theme-option="ocean" data-label="Deep Ocean" data-i18n-attr='{"aria-label":"common.themeLabel.ocean"}' aria-label="Тема Deep Ocean" style="--swatch-a:#061d3b;--swatch-b:#42bfff"></button>
+    <button type="button" class="theme-dot porcelain" data-theme-option="porcelain" data-label="Porcelain" data-i18n-attr='{"aria-label":"common.themeLabel.porcelain"}' aria-label="Тема Porcelain" style="--swatch-a:#f2eadf;--swatch-b:#d86e3d"></button>
+  </div>
+
+  <div class="training-toast" id="trainingToast" role="status"></div>
+  <script type="module" src="js/pages/training/main-quiz.js"></script>
+</body>
+</html>

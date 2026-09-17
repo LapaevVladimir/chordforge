@@ -1,0 +1,14 @@
+Acoustic guitar samples
+=======================
+
+Source: tonejs-instruments by Nicholas Brosowsky and contributors
+https://github.com/nbrosowsky/tonejs-instruments
+
+Original recordings: University of Iowa Electronic Music Studios
+https://theremin.music.uiowa.edu/MIS.html
+
+License: Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+https://creativecommons.org/licenses/by/3.0/
+
+The samples were trimmed, normalized, denoised, volume-matched, and pitch-corrected
+by the tonejs-instruments project. They are included here in MP3 format.
