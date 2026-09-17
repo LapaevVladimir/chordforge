@@ -105,16 +105,16 @@ button.interval-cell { cursor: pointer; }
 .interval-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: 0.78rem; }
 .interval-distance { color: var(--accent-2); font-size: 0.83rem; font-weight: 790; }
 .board-legend { display: flex; align-items: center; gap: 18px; padding: 16px 24px 19px; color: var(--muted); border-top: 1px solid var(--line); font-size: 0.76rem; }
-.board-legend span { display: flex; align-items: center; gap: 7px; }
-.board-legend span:last-child { margin-left: auto; }
+.board-legend > span { display: flex; align-items: center; gap: 7px; }
+.board-legend > span:last-child { margin-left: auto; }
 .board-legend i { display: grid; min-width: 23px; height: 23px; place-items: center; padding: 0 5px; color: var(--clip-text); border-radius: 7px; background: var(--accent-2); font-size: 0.65rem; font-style: normal; font-weight: 900; }
 .board-legend .legend-target { background: var(--accent); }
 
 /* Workspace: quiz stage (Quiz page) */
 .session-stats { display: flex; gap: 6px; }
-.session-stats span { display: flex; flex-direction: column; min-width: 74px; padding: 8px 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 9px; background: var(--panel-3); font-size: 0.7rem; }
+.session-stats > span { display: flex; flex-direction: column; min-width: 74px; padding: 8px 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 9px; background: var(--panel-3); font-size: 0.7rem; }
 .session-stats strong { color: var(--text); font-size: 1.1rem; line-height: 1.1; }
-.session-stats span:last-child strong { color: var(--danger); }
+.session-stats > span:last-child strong { color: var(--danger); }
 
 .quiz-stage { position: relative; display: grid; min-width: 0; min-height: 560px; place-items: center; padding: 22px; overflow: hidden; background: radial-gradient(circle at 50% 45%, rgba(var(--accent-rgb), 0.08), transparent 28rem); }
 .quiz-idle,
@@ -158,10 +158,10 @@ button.interval-cell { cursor: pointer; }
 .quiz-feedback.success { color: var(--accent); }
 .summary-mark { color: var(--clip-text); background: var(--accent); }
 .summary-numbers { display: flex; gap: 8px; margin: 20px 0 15px; }
-.summary-numbers span { display: flex; min-width: 104px; flex-direction: column; padding: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 11px; background: var(--panel-3); font-size: 0.7rem; }
+.summary-numbers > span { display: flex; min-width: 104px; flex-direction: column; align-items: center; padding: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 11px; background: var(--panel-3); font-size: 0.7rem; text-align: center; }
 .summary-numbers strong { color: var(--text); font-size: 1.45rem; line-height: 1.1; }
-.summary-numbers span:nth-child(2) strong { color: var(--danger); }
-.summary-numbers span:nth-child(3) strong { color: var(--accent); }
+.summary-numbers > span:nth-child(2) strong { color: var(--danger); }
+.summary-numbers > span:nth-child(3) strong { color: var(--accent); }
 
 .training-toast { position: fixed; z-index: 200; right: 20px; bottom: 20px; max-width: min(350px, calc(100vw - 40px)); padding: 10px 14px; color: var(--text); border: 1px solid var(--line-strong); border-radius: 9px; background: var(--panel-2); box-shadow: var(--shadow); opacity: 0; transform: translateY(12px); pointer-events: none; transition: 0.2s ease; }
 .training-toast.show { opacity: 1; transform: translateY(0); }
@@ -180,8 +180,8 @@ button.interval-cell { cursor: pointer; }
   .interval-explainer { grid-template-columns: auto 1fr; margin: 14px 16px; }
   .interval-distance { grid-column: 2; }
   .board-legend { align-items: flex-start; flex-wrap: wrap; gap: 8px 15px; padding: 12px 16px 15px; }
-  .board-legend span:last-child { width: 100%; margin-left: 0; }
-  .session-stats span { min-width: 0; flex: 1; }
+  .board-legend > span:last-child { width: 100%; margin-left: 0; }
+  .session-stats > span { min-width: 0; flex: 1; }
   .summary-numbers { width: 100%; flex-direction: column; }
-  .summary-numbers span { width: 100%; }
+  .summary-numbers > span { width: 100%; }
 }
