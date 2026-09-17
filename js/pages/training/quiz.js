@@ -2,7 +2,7 @@ import { t } from '../../i18n/i18n.js';
 import { INTERVALS, getInterval, intervalShort, intervalName } from './intervals-data.js';
 import { boardCells, renderBoard } from './board.js';
 import { elements, checkedValue } from './elements.js';
-import { audio, playNotes } from './playback.js';
+import { audio, playIntervalByType } from './playback.js';
 
 export const session = {
   running: false,
@@ -85,7 +85,7 @@ function renderAnswers(intervals) {
 export function playCurrentQuestion(button = null) {
   if (!session.current) return;
   const { pair } = session.current;
-  playNotes(pair.root.midi, pair.target.midi, checkedValue('trainingPlayMode', 'sequential'), button);
+  playIntervalByType(pair.root.midi, pair.target.midi, checkedValue('quizIntervalType', 'ascending'), button);
 }
 
 export function nextQuestion() {

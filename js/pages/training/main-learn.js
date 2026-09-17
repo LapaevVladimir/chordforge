@@ -2,23 +2,12 @@ import { applyTheme, bindThemeDock, THEME_KEY } from '../../core/theme.js';
 import { init as i18nInit, onChange as onLocaleChange, t } from '../../i18n/i18n.js';
 import { OPEN_MIDIS, tuningLabel } from './board.js';
 import { elements, checkedValue } from './elements.js';
-import { audio, showToast, playNotes } from './playback.js';
+import { audio, showToast, playIntervalByType } from './playback.js';
 import { syncLocaleDock, bindLocaleDock } from './locale-dock.js';
 import {
   renderIntervalOptions, renderLearning, renderTuningControls, bindTuningActions,
   chooseLearnTarget, setLearnAnchor, learnAnchor,
 } from './learn.js';
-
-// Plays the anchor/target pair according to the selected interval type:
-// ascending/descending order the two notes by pitch and play them one after another,
-// harmonic plays them together.
-function playLearnIntervalByType(anchorMidi, targetMidi, type, button) {
-  const low = Math.min(anchorMidi, targetMidi);
-  const high = Math.max(anchorMidi, targetMidi);
-  if (type === 'harmonic') return playNotes(anchorMidi, targetMidi, 'simultaneous', button);
-  if (type === 'descending') return playNotes(high, low, 'sequential', button);
-  return playNotes(low, high, 'sequential', button);
-}
 
 onLocaleChange(() => {
   syncLocaleDock();
@@ -44,7 +33,7 @@ function bindEvents() {
       return;
     }
     const intervalType = checkedValue('learnIntervalType', 'ascending');
-    playLearnIntervalByType(learnAnchor.midi, target.midi, intervalType, elements.playLearnInterval);
+    playIntervalByType(learnAnchor.midi, target.midi, intervalType, elements.playLearnInterval);
   });
   bindTuningActions();
   bindThemeDock('sunset');

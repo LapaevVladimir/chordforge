@@ -32,3 +32,14 @@ export async function playNotes(rootMidi, targetMidi, mode, sourceButton = null)
     }
   }
 }
+
+// Orders and plays a pair of notes according to the selected interval type:
+// ascending/descending order the two notes by pitch and play them one after
+// another, harmonic plays them together. Shared by the Learn and Practice pages.
+export function playIntervalByType(rootMidi, targetMidi, type, sourceButton = null) {
+  if (type === 'harmonic') return playNotes(rootMidi, targetMidi, 'simultaneous', sourceButton);
+  const low = Math.min(rootMidi, targetMidi);
+  const high = Math.max(rootMidi, targetMidi);
+  if (type === 'descending') return playNotes(high, low, 'sequential', sourceButton);
+  return playNotes(low, high, 'sequential', sourceButton);
+}

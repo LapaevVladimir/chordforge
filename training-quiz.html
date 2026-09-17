@@ -40,10 +40,11 @@
         </section>
 
         <section class="tool-section">
-          <div class="section-kicker" data-i18n="training.trainer.playModeLegend">Как звучат ноты</div>
-          <fieldset class="play-mode compact-mode">
-            <label><input type="radio" name="trainingPlayMode" value="simultaneous" checked /><span data-i18n="training.playMode.simultaneous">Одновременно</span></label>
-            <label><input type="radio" name="trainingPlayMode" value="sequential" /><span data-i18n="training.playMode.sequential">Друг за другом</span></label>
+          <fieldset class="mode-choice">
+            <legend data-i18n="training.intervalType.legend">Тип интервала</legend>
+            <label><input type="radio" name="quizIntervalType" value="ascending" checked /><span><b aria-hidden="true">↗</b><strong data-i18n="training.intervalType.ascending">Восходящий</strong><small data-i18n="training.intervalType.ascendingHint">низкая → высокая</small></span></label>
+            <label><input type="radio" name="quizIntervalType" value="descending" /><span><b aria-hidden="true">↘</b><strong data-i18n="training.intervalType.descending">Нисходящий</strong><small data-i18n="training.intervalType.descendingHint">высокая → низкая</small></span></label>
+            <label><input type="radio" name="quizIntervalType" value="harmonic" /><span><b aria-hidden="true">♫</b><strong data-i18n="training.intervalType.harmonic">Гармонический</strong><small data-i18n="training.intervalType.harmonicHint">одновременно</small></span></label>
           </fieldset>
         </section>
 
