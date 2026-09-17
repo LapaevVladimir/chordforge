@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1015" />
+  <meta name="description" content="Настройте гитару по микрофону: любой строй, точность в центах" data-i18n-attr='{"content":"meta.tuner.description"}' />
+  <title data-i18n="meta.tuner.title">ChordForge Tuner — настройка гитары</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b1015'/%3E%3Cpath d='M12 17h40M12 28h40M12 39h40M12 50h40' stroke='%23f4bf69' stroke-width='2'/%3E%3Cpath d='M26 9v46M40 9v46' stroke='%237ce4d1' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/tuner.css" />
+</head>
+<body class="tuner-page site-loading" data-theme="midnight">
+  <div class="site-loader" id="tunerLoader" role="status" data-i18n-attr='{"aria-label":"tuner.sidebarAria"}' aria-label="Панель тюнера">
+    <div class="loader-glow"></div>
+    <div class="loader-emblem" aria-hidden="true">
+      <span class="loader-orbit orbit-a"></span><span class="loader-orbit orbit-b"></span>
+      <div class="loader-neck">
+        <span style="--i:0"></span><span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span>
+        <i class="loader-note note-a"></i><i class="loader-note note-b"></i><i class="loader-note note-c"></i><b class="loader-pick">CF</b>
+      </div>
+    </div>
+    <div class="loader-copy"><strong data-i18n="common.trainingBrand">ChordForge Learn</strong><span data-i18n="tuner.eyebrow">Тюнер</span></div>
+    <div class="loader-progress" aria-hidden="true"><i></i></div>
+  </div>
+
+  <div class="studio-shell">
+    <aside class="tool-panel card" data-i18n-attr='{"aria-label":"tuner.sidebarAria"}' aria-label="Панель тюнера">
+      <div class="sidebar-header">
+        <div class="brand"><span class="mark">♬</span><span data-i18n="common.trainingBrand">ChordForge Learn<small>tuner</small></span></div>
+      </div>
+
+      <div class="sidebar-scroll">
+        <section class="tool-section">
+          <div class="section-kicker" data-i18n="tuner.modeLegend">Режим</div>
+          <fieldset class="mode-choice">
+            <label><input type="radio" name="tunerMode" value="auto" checked /><span><b aria-hidden="true">◎</b><strong data-i18n="tuner.modeAuto">Автоопределение</strong><small data-i18n="tuner.modeAutoHint">Тюнер сам находит струну</small></span></label>
+            <label><input type="radio" name="tunerMode" value="manual" /><span><b aria-hidden="true">✋</b><strong data-i18n="tuner.modeManual">Вручную</strong><small data-i18n="tuner.modeManualHint">Вы выбираете струну сами</small></span></label>
+          </fieldset>
+        </section>
+
+        <section class="tool-section">
+          <div class="section-kicker" data-i18n="tuner.presetLabel">Пресет</div>
+          <div class="group">
+            <select id="tunerPreset">
+              <option value="standard" data-i18n="builder.presetOptions.standard">Гитара — стандарт</option>
+              <option value="dropd" data-i18n="builder.presetOptions.dropd">Гитара — Drop D</option>
+              <option value="dadgad" data-i18n="builder.presetOptions.dadgad">Гитара — DADGAD</option>
+              <option value="openg" data-i18n="builder.presetOptions.openg">Гитара — Open G</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="tool-section">
+          <div class="group tuning-group">
+            <div class="label-row">
+              <span data-i18n="builder.tuning.heading">Строй</span>
+              <span class="tuning-actions">
+                <button class="tuning-shift" id="tuningDown" type="button" data-i18n-attr='{"aria-label":"builder.tuning.downAria"}' aria-label="Понизить весь строй на полтона">↓</button>
+                <button class="tuning-shift" id="tuningUp" type="button" data-i18n-attr='{"aria-label":"builder.tuning.upAria"}' aria-label="Повысить весь строй на полтона">↑</button>
+                <button class="text-button" id="resetTuning" data-i18n="common.reset">Сбросить</button>
+              </span>
+            </div>
+            <div class="tuning" id="tuning"></div>
+          </div>
+        </section>
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="training-learn.html" class="text-button" data-i18n="training.nav.learn">Закономерности</a>
+        <a href="index.html" class="text-button" data-i18n="nav.backToEditor">← Редактор</a>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <section class="work card">
+        <div class="work-top">
+          <div><span class="eyebrow" data-i18n="tuner.eyebrow">Тюнер</span><h1 data-i18n="tuner.title">Настройте гитару</h1><p class="sub" data-i18n="tuner.subtitle">Разрешите доступ к микрофону и по очереди играйте на струнах — кольцо покажет, насколько точно они настроены.</p></div>
+          <div class="work-header-actions">
+            <span class="pill" id="tuningBadge">E · A · D · G · B · E</span>
+          </div>
+        </div>
+
+        <div class="tuner-body">
+          <div class="mic-bar">
+            <button class="mic-button" id="micToggle" type="button">
+              <span class="mic-icon" aria-hidden="true">🎙</span>
+              <span data-i18n="tuner.micStart">Включить микрофон</span>
+            </button>
+            <div class="mic-level" id="micLevel" role="img" data-i18n-attr='{"aria-label":"tuner.levelAria"}' aria-label="Уровень сигнала с микрофона"><i></i></div>
+          </div>
+          <p class="mic-status" id="micStatus" data-i18n="tuner.micStatus.idle" aria-live="polite">Микрофон выключен</p>
+
+          <div class="tuner-stage" id="tunerStage">
+            <div class="tuner-gauge">
+              <svg viewBox="0 0 260 260" class="gauge-svg" aria-hidden="true">
+                <g class="gauge-ticks" id="gaugeTicks"></g>
+                <circle class="gauge-track" cx="130" cy="130" r="96"></circle>
+                <circle class="gauge-arc" id="gaugeArc" cx="130" cy="130" r="96"></circle>
+              </svg>
+              <div class="gauge-face">
+                <strong class="gauge-note"><span id="tunerNote">—</span><i id="tunerOctave"></i></strong>
+                <span class="gauge-cents" id="tunerCents"></span>
+              </div>
+            </div>
+
+            <div class="tuner-chevrons" id="tunerChevrons" aria-hidden="true">
+              <span class="chev flat" data-side="flat" data-cent="30">‹</span>
+              <span class="chev flat" data-side="flat" data-cent="15">‹</span>
+              <span class="chev flat" data-side="flat" data-cent="5">‹</span>
+              <span class="chev-core"></span>
+              <span class="chev sharp" data-side="sharp" data-cent="5">›</span>
+              <span class="chev sharp" data-side="sharp" data-cent="15">›</span>
+              <span class="chev sharp" data-side="sharp" data-cent="30">›</span>
+            </div>
+
+            <div class="tuner-readout">
+              <span class="tuner-status" id="tunerStatusText" aria-live="polite">Микрофон выключен</span>
+              <span class="tuner-frequency" id="tunerFrequency"></span>
+            </div>
+          </div>
+
+          <div class="tuner-strings" id="tunerStrings" role="group"></div>
+          <p class="tuner-hint" data-i18n="tuner.hint">Играйте по одной струне рядом с микрофоном. Кольцо заполняется в сторону отклонения — ровный центр значит «в строе».</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="locale-dock" id="localeDock" role="group" data-i18n-attr='{"aria-label":"common.localeDockLabel"}' aria-label="Язык интерфейса">
+    <button type="button" class="locale-dot" data-locale-option="ru" data-i18n="common.localeName.ru" data-i18n-attr='{"aria-label":"common.localeAria.ru"}' aria-label="Русский язык">RU</button>
+    <button type="button" class="locale-dot" data-locale-option="en" data-i18n="common.localeName.en" data-i18n-attr='{"aria-label":"common.localeAria.en"}' aria-label="Английский язык">EN</button>
+  </div>
+  <div class="theme-dock" id="themeDock" role="group" data-i18n-attr='{"aria-label":"common.themeDockLabel"}' aria-label="Цветовая тема">
+    <span class="theme-dock-icon" aria-hidden="true">✦</span>
+    <button type="button" class="theme-dot midnight" data-theme-option="midnight" data-label="Midnight" data-i18n-attr='{"aria-label":"common.themeLabel.midnight"}' aria-label="Тема Midnight" style="--swatch-a:#0b1015;--swatch-b:#72dfcf"></button>
+    <button type="button" class="theme-dot sunset" data-theme-option="sunset" data-label="Sunset" data-i18n-attr='{"aria-label":"common.themeLabel.sunset"}' aria-label="Тема Sunset" style="--swatch-a:#6f1d3d;--swatch-b:#ff9b45"></button>
+    <button type="button" class="theme-dot forest" data-theme-option="forest" data-label="Forest" data-i18n-attr='{"aria-label":"common.themeLabel.forest"}' aria-label="Тема Forest" style="--swatch-a:#0d2f22;--swatch-b:#7ddd9c"></button>
+    <button type="button" class="theme-dot ultraviolet" data-theme-option="ultraviolet" data-label="Ultraviolet" data-i18n-attr='{"aria-label":"common.themeLabel.ultraviolet"}' aria-label="Тема Ultraviolet" style="--swatch-a:#29124f;--swatch-b:#f06dff"></button>
+    <button type="button" class="theme-dot ocean" data-theme-option="ocean" data-label="Deep Ocean" data-i18n-attr='{"aria-label":"common.themeLabel.ocean"}' aria-label="Тема Deep Ocean" style="--swatch-a:#061d3b;--swatch-b:#42bfff"></button>
+    <button type="button" class="theme-dot porcelain" data-theme-option="porcelain" data-label="Porcelain" data-i18n-attr='{"aria-label":"common.themeLabel.porcelain"}' aria-label="Тема Porcelain" style="--swatch-a:#f2eadf;--swatch-b:#d86e3d"></button>
+  </div>
+
+  <div class="tuner-toast" id="tunerToast" role="status"></div>
+  <script type="module" src="js/pages/tuner/main.js"></script>
+</body>
+</html>

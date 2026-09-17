@@ -3,7 +3,7 @@ import { init as i18nInit, onChange as onLocaleChange, t } from '../../i18n/i18n
 import { getInterval, intervalShort, intervalName } from './intervals-data.js';
 import { elements, checkedValue } from './elements.js';
 import { audio } from './playback.js';
-import { syncLocaleDock, bindLocaleDock } from './locale-dock.js';
+import { syncLocaleDock, bindLocaleDock } from '../../i18n/locale-dock.js';
 import {
   session, renderIntervalFilterOptions, playCurrentQuestion, startTraining, stopTraining, handleAnswer,
 } from './quiz.js';

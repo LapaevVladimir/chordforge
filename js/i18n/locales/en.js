@@ -12,6 +12,10 @@ export default {
       title: 'ChordForge Learn — Interval Trainer',
       description: 'Drill recognizing musical intervals by ear and on the fretboard',
     },
+    tuner: {
+      title: 'ChordForge Tuner — Guitar Tuner',
+      description: 'Tune your guitar with your microphone: any tuning, cent-accurate',
+    },
   },
 
   common: {
@@ -55,6 +59,7 @@ export default {
 
   nav: {
     trainingLink: 'Learn intervals',
+    tunerLink: 'Tuner',
     backToEditor: '← Editor',
   },
 
@@ -368,5 +373,39 @@ export default {
       samplesLoadFailed: 'Could not load the guitar samples. Make sure the site is served from a server.',
       noSecondPosition: 'There is no second position for this note on the visible neck. Pick another note.',
     },
+  },
+
+  tuner: {
+    sidebarAria: 'Tuner panel',
+    eyebrow: 'Tuner',
+    title: 'Tune your guitar',
+    subtitle: 'Allow microphone access and play each string in turn — the ring shows how close it is.',
+    presetLabel: 'Preset',
+    modeLegend: 'Mode',
+    modeAuto: 'Auto-detect',
+    modeAutoHint: 'The tuner finds the string',
+    modeManual: 'Manual',
+    modeManualHint: 'You choose the string yourself',
+    micStart: 'Turn on microphone',
+    micStop: 'Turn off microphone',
+    micStatus: {
+      idle: 'Microphone off',
+      listening: 'Listening…',
+      denied: 'Microphone access denied — allow it in your browser settings',
+      unsupported: 'Microphone isn’t available in this browser. Open the site over HTTPS in a modern browser',
+      error: 'Could not access the microphone',
+    },
+    levelAria: 'Microphone input level',
+    notePlaceholder: '—',
+    statusListening: 'Play a string',
+    statusPlaySelected: 'Play {note} — string {n}',
+    statusWrongString: 'That’s a different string — play the selected one',
+    statusUnclear: 'Sound is unclear — play closer to the microphone',
+    statusFlat: 'Flat',
+    statusSharp: 'Sharp',
+    statusInTune: 'In tune',
+    stringAria: 'String {n} · {note} · click to hear the reference pitch',
+    stringSelectAria: 'String {n} · {note} · select for tuning and hear the reference pitch',
+    hint: 'Play one string at a time near the microphone. The ring fills toward whichever side you are off — level means in tune.',
   },
 };

@@ -1,4 +1,4 @@
-import { getLocale, setLocale } from '../../i18n/i18n.js';
+import { getLocale, setLocale } from './i18n.js';
 
 export function syncLocaleDock() {
   const current = getLocale();

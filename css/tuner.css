@@ -1,0 +1,109 @@
+.tuner-page {
+  min-height: 100vh;
+  font-size: 16px;
+  background:
+    linear-gradient(rgba(var(--accent-rgb), 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.025) 1px, transparent 1px),
+    radial-gradient(circle at 18% 0, var(--bg-glow-a), transparent 34rem),
+    radial-gradient(circle at 88% 72%, var(--bg-glow-b), transparent 32rem),
+    var(--bg);
+  background-size: 42px 42px, 42px 42px, auto, auto, auto;
+}
+
+/* The whole readout takes its colour from one state class on .tuner-stage, so
+   the gauge, the chevrons and the note text can never disagree with each other. */
+.tuner-stage {
+  --state: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: 22px;
+}
+.tuner-stage.in-tune { --state: var(--accent); }
+.tuner-stage.flat, .tuner-stage.sharp { --state: var(--accent-2); }
+
+.tuner-body { display: flex; flex-direction: column; align-items: center; padding: 28px 24px 34px; }
+
+.mic-bar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+.mic-button { display: flex; align-items: center; justify-content: center; gap: 9px; min-width: 232px; padding: 0 22px; height: 52px; color: var(--clip-text); border: 1px solid var(--accent); border-radius: 14px; background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 92%, white), var(--accent)); box-shadow: 0 14px 30px rgba(var(--accent-rgb), 0.24); font-size: 0.94rem; font-weight: 850; transition: 0.16s ease; }
+.mic-button:hover { transform: translateY(-2px); box-shadow: 0 18px 38px rgba(var(--accent-rgb), 0.3); }
+.mic-button.listening { color: white; border-color: var(--danger); background: linear-gradient(180deg, color-mix(in srgb, var(--danger) 92%, white), var(--danger)); box-shadow: 0 14px 30px color-mix(in srgb, var(--danger) 28%, transparent); }
+.mic-button.listening .mic-icon { animation: mic-breathe 1.9s ease-in-out infinite; }
+.mic-button.pending { pointer-events: none; opacity: 0.68; }
+.mic-icon { font-size: 1.1rem; }
+@keyframes mic-breathe { 50% { opacity: 0.45; transform: scale(0.88); } }
+
+/* Live input meter — without it there's no way to tell "the mic hears nothing"
+   apart from "the mic hears you but the note isn't clear enough to read". */
+.mic-level { position: relative; overflow: hidden; width: 128px; height: 8px; border: 1px solid var(--line); border-radius: 99px; background: var(--panel-3); }
+.mic-level i { position: absolute; inset: 0; transform: scaleX(var(--level, 0)); transform-origin: left; border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: transform 0.09s linear; }
+.mic-status { min-height: 20px; margin: 12px 0 0; color: var(--muted); font-size: 0.8rem; text-align: center; }
+
+.tuner-gauge { position: relative; width: min(316px, 86vw); }
+.gauge-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gauge-track { fill: none; stroke: var(--line); stroke-width: 12; }
+.gauge-arc {
+  fill: none;
+  stroke: var(--state);
+  stroke-width: 12;
+  stroke-linecap: round;
+  stroke-dasharray: var(--arc-length, 0) 9999;
+  transform: rotate(var(--arc-rotate, -90deg));
+  transform-origin: 130px 130px;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--state) 55%, transparent));
+  transition: stroke 0.18s ease, stroke-dasharray 0.14s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.14s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.gauge-tick { stroke: var(--line-strong); stroke-width: 2; stroke-linecap: round; }
+.gauge-tick.major { stroke: var(--muted); stroke-width: 3; }
+
+.gauge-face { position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: 4px; pointer-events: none; }
+.gauge-note { display: flex; align-items: baseline; color: var(--text); font-size: clamp(3rem, 15vw, 4.4rem); font-weight: 900; letter-spacing: -0.04em; line-height: 0.95; transition: color 0.18s ease; }
+.gauge-note i { color: var(--muted); font-size: 0.36em; font-style: normal; font-weight: 800; letter-spacing: 0; }
+.gauge-cents { min-height: 20px; color: var(--state); font-size: 0.92rem; font-weight: 820; font-variant-numeric: tabular-nums; transition: color 0.18s ease; }
+.tuner-stage.in-tune .gauge-note { color: var(--accent); }
+
+.tuner-chevrons { display: flex; align-items: center; gap: 7px; margin-top: 4px; }
+.chev { color: var(--line-strong); font-size: 1.5rem; font-weight: 900; line-height: 1; transition: 0.16s ease; }
+.chev.lit { color: var(--accent-2); text-shadow: 0 0 12px color-mix(in srgb, var(--accent-2) 60%, transparent); }
+.chev-core { width: 10px; height: 10px; margin: 0 6px; border: 2px solid var(--line-strong); border-radius: 3px; transform: rotate(45deg); transition: 0.18s ease; }
+.tuner-stage.in-tune .chev-core { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 70%, transparent); }
+
+.tuner-readout { display: grid; place-items: center; gap: 3px; margin-top: 14px; text-align: center; }
+.tuner-status { min-height: 22px; color: var(--state); font-size: 1rem; font-weight: 780; transition: color 0.18s ease; }
+.tuner-frequency { min-height: 16px; color: var(--muted); font-size: 0.72rem; font-variant-numeric: tabular-nums; }
+
+.tuner-strings { display: grid; grid-template-columns: repeat(6, 1fr); gap: 9px; width: min(520px, 100%); margin-top: 30px; }
+.tuner-string { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 13px 4px 11px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-3); transition: 0.16s ease; }
+.tuner-string strong { color: var(--text); font-size: 1.1rem; font-weight: 850; }
+.tuner-string small { color: var(--muted); font-size: 0.6rem; font-weight: 700; }
+.tuner-string:hover { border-color: rgba(var(--accent-rgb), 0.5); transform: translateY(-2px); }
+/* In manual mode the chosen string stays marked whether or not it is sounding,
+   so it is always clear which one the gauge is measuring against. */
+.tuner-string.selected { border-color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 10%, var(--panel-3)); }
+.tuner-string.selected strong { color: var(--accent-2); }
+.tuner-string.active { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.12); box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.32), 0 10px 22px rgba(var(--accent-rgb), 0.16); }
+.tuner-string.active strong { color: var(--accent); }
+/* A tick that stays put once a string has landed in tune, so you can see at a
+   glance which strings are still to do. */
+.string-check { position: absolute; top: 5px; right: 6px; color: var(--accent); font-size: 0.62rem; font-weight: 900; opacity: 0; transform: scale(0.5); transition: 0.2s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.tuner-string.tuned { border-color: rgba(var(--accent-rgb), 0.45); }
+.tuner-string.tuned .string-check { opacity: 1; transform: scale(1); }
+
+.tuner-hint { max-width: 460px; margin: 24px 0 0; color: var(--muted); font-size: 0.78rem; line-height: 1.55; text-align: center; }
+
+.tuner-toast { position: fixed; z-index: 200; right: 20px; bottom: 20px; max-width: min(350px, calc(100vw - 40px)); padding: 10px 14px; color: var(--text); border: 1px solid var(--line-strong); border-radius: 9px; background: var(--panel-2); box-shadow: var(--shadow); opacity: 0; transform: translateY(12px); pointer-events: none; transition: 0.2s ease; }
+.tuner-toast.show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 650px) {
+  .tuner-body { padding: 22px 16px 26px; }
+  .mic-bar { flex-direction: column; gap: 12px; }
+  .mic-level { width: 180px; }
+  .tuner-strings { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gauge-arc, .mic-level i { transition: none; }
+  .mic-button.listening .mic-icon { animation: none; }
+}

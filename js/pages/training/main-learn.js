@@ -3,7 +3,7 @@ import { init as i18nInit, onChange as onLocaleChange, t } from '../../i18n/i18n
 import { OPEN_MIDIS, tuningLabel } from './board.js';
 import { elements, checkedValue } from './elements.js';
 import { audio, showToast, playIntervalByType } from './playback.js';
-import { syncLocaleDock, bindLocaleDock } from './locale-dock.js';
+import { syncLocaleDock, bindLocaleDock } from '../../i18n/locale-dock.js';
 import {
   renderIntervalOptions, renderLearning, renderTuningControls, bindTuningActions,
   chooseLearnTarget, setLearnAnchor, learnAnchor,
