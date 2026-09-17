@@ -20,6 +20,65 @@ export default {
       title: 'ChordForge — Chord Identifier',
       description: 'Identify a chord from the fretboard, or look up a shape by name',
     },
+    home: {
+      title: 'ChordForge — Guitar Tools in Your Browser',
+      description: 'Guitar tools in your browser: a microphone tuner, a chord identifier and an interval trainer',
+    },
+  },
+  home: {
+    eyebrow: 'ChordForge',
+    title: 'A guitar workbench in your browser',
+    lead: 'Four tools for guitarists: tune up with your microphone, work out any chord on the neck, learn the intervals and test yourself by ear. Nothing to install.',
+    toolsAria: 'Tools',
+    open: 'Open →',
+    loader: {
+      ariaLabel: 'ChordForge is loading',
+      status: 'setting up the workbench',
+    },
+    facts: {
+      chords: 'chord types',
+      intervals: 'intervals',
+      themes: 'themes',
+      locales: 'two languages',
+    },
+    tools: {
+      tuner: {
+        title: 'Tuner',
+        desc: 'Microphone tuning, accurate to the cent. The ring shows how far off you are, with auto string detection or a manual mode.',
+      },
+      chords: {
+        title: 'Chord identifier',
+        desc: 'Press frets and the name works itself out. Or type a name and get up to eight shapes on the neck.',
+      },
+      learn: {
+        title: 'Lessons',
+        desc: 'Intervals on the neck: pick an interval and a root note, and the map shows every position above and below it.',
+      },
+      quiz: {
+        title: 'Quiz',
+        desc: 'Test yourself by ear and on the neck. Choose which intervals to include and answer at your own pace.',
+      },
+    },
+    notes: {
+      heading: 'What’s inside',
+      sound: {
+        title: 'Real samples',
+        text: 'Not a synth: acoustic guitar samples recorded a semitone apart, from E2 to D5.',
+      },
+      tuning: {
+        title: 'Any tuning',
+        text: 'Standard, Drop D, DADGAD, Open G, bass and seven-string — or set every string by hand.',
+      },
+      locale: {
+        title: 'Two languages',
+        text: 'Russian and English, chord and interval names included. Switches live.',
+      },
+      themes: {
+        title: 'Six themes',
+        text: 'Pick a look in the top-right corner; it is remembered for next time.',
+      },
+    },
+    foot: 'Runs right in the browser — nothing to install. The tuner will ask for microphone access.',
   },
   chords: {
     sidebarAria: 'Chord identifier panel',

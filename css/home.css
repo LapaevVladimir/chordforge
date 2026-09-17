@@ -1,0 +1,84 @@
+.home-page {
+  background:
+    linear-gradient(rgba(var(--accent-rgb), 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.022) 1px, transparent 1px),
+    radial-gradient(circle at 76% -12%, var(--bg-glow-a), transparent 38rem),
+    radial-gradient(circle at 4% 92%, var(--bg-glow-b), transparent 34rem),
+    var(--bg);
+  background-size: 46px 46px, 46px 46px, auto, auto, auto;
+}
+
+.home-shell { display: grid; gap: 18px; width: min(100% - 40px, 1080px); margin: 0 auto; padding: 96px 0 56px; }
+body.site-loading .home-shell { visibility: hidden; }
+body.site-ready .home-hero { animation: panel-enter 0.7s 0.04s cubic-bezier(0.16, 0.88, 0.22, 1) both; }
+body.site-ready .tool-card { animation: detail-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+body.site-ready .tool-card:nth-child(1) { animation-delay: 0.2s; }
+body.site-ready .tool-card:nth-child(2) { animation-delay: 0.27s; }
+body.site-ready .tool-card:nth-child(3) { animation-delay: 0.34s; }
+body.site-ready .tool-card:nth-child(4) { animation-delay: 0.41s; }
+body.site-ready .home-notes { animation: detail-rise 0.6s 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+body.site-ready .home-foot { animation: detail-rise 0.6s 0.58s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* Hero ---------------------------------------------------------------- */
+.home-hero { position: relative; overflow: hidden; padding: 46px 44px 40px; }
+/* Wide enough for the fact pills to sit on one line; the text below sets its
+   own narrower measure so it never runs under the string decoration. */
+.hero-copy { position: relative; max-width: 74ch; }
+.home-hero h1 { max-width: 17ch; margin: 0; font-size: clamp(1.9rem, 4.6vw, 3.05rem); font-weight: 860; letter-spacing: -0.035em; line-height: 1.04; }
+.hero-lead { max-width: 52ch; margin: 15px 0 0; color: var(--muted); font-size: 0.97rem; line-height: 1.62; }
+
+/* Six strings running off the right edge — the same motif as the loader. */
+.hero-strings { position: absolute; top: 0; right: 0; bottom: 0; left: 62%; display: grid; align-content: center; gap: 15px; opacity: 0.42; pointer-events: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 45%, #000); mask-image: linear-gradient(90deg, transparent, #000 45%, #000); }
+.hero-strings span { height: 1px; background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.55), color-mix(in srgb, var(--accent-2) 55%, transparent)); }
+.hero-strings span:nth-child(1) { height: 1px; }
+.hero-strings span:nth-child(2) { height: 1.3px; }
+.hero-strings span:nth-child(3) { height: 1.7px; }
+.hero-strings span:nth-child(4) { height: 2.1px; }
+.hero-strings span:nth-child(5) { height: 2.6px; }
+.hero-strings span:nth-child(6) { height: 3.2px; }
+
+.hero-facts { display: flex; flex-wrap: wrap; gap: 10px; margin: 26px 0 0; padding: 0; list-style: none; }
+.hero-facts li { display: flex; align-items: baseline; gap: 7px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 99px; background: var(--panel-3); }
+.hero-facts strong { color: var(--accent); font-size: 0.98rem; font-weight: 860; letter-spacing: -0.01em; }
+.hero-facts span { color: var(--muted); font-size: 0.74rem; font-weight: 700; }
+
+/* Tool cards ---------------------------------------------------------- */
+.tool-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.tool-card { position: relative; display: flex; flex-direction: column; padding: 26px 26px 22px; color: inherit; text-decoration: none; transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+.tool-card::after { content: ""; position: absolute; top: 0; right: 0; left: 0; height: 2px; border-radius: 18px 18px 0 0; background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), 0.75), transparent); opacity: 0; transition: opacity 0.2s ease; }
+.tool-card:hover { transform: translateY(-3px); border-color: rgba(var(--accent-rgb), 0.5); box-shadow: 0 26px 60px rgba(0, 0, 0, 0.36); }
+.tool-card:hover::after { opacity: 1; }
+.tool-card:focus-visible { outline: 3px solid rgba(var(--accent-rgb), 0.48); outline-offset: 3px; }
+.tool-mark { display: grid; width: 42px; height: 42px; margin-bottom: 15px; place-items: center; color: var(--accent); border: 1px solid rgba(var(--accent-rgb), 0.3); border-radius: 12px; background: rgba(var(--accent-rgb), 0.1); font-size: 1.15rem; }
+.tool-card h2 { margin: 0; font-size: 1.12rem; font-weight: 830; letter-spacing: -0.02em; }
+.tool-card p { flex: 1; margin: 9px 0 0; color: var(--muted); font-size: 0.85rem; line-height: 1.6; }
+.tool-go { margin-top: 18px; color: var(--accent); font-size: 0.78rem; font-weight: 800; transition: transform 0.2s ease; }
+.tool-card:hover .tool-go { transform: translateX(3px); }
+
+/* What's inside ------------------------------------------------------- */
+.home-notes { padding: 30px 34px 32px; }
+.notes-heading { margin: 0 0 18px; font-size: 0.68rem; font-weight: 800; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; }
+.notes-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 34px; margin: 0; padding: 0; list-style: none; }
+.notes-grid li { display: grid; gap: 5px; padding-left: 15px; border-left: 2px solid rgba(var(--accent-rgb), 0.35); }
+.notes-grid strong { font-size: 0.87rem; font-weight: 820; }
+.notes-grid span { color: var(--muted); font-size: 0.8rem; line-height: 1.58; }
+
+.home-foot { padding: 2px 6px 0; color: var(--muted); font-size: 0.76rem; text-align: center; }
+.home-foot p { margin: 0; }
+
+@media (max-width: 860px) {
+  .home-shell { width: min(100% - 24px, 640px); padding: 82px 0 40px; gap: 14px; }
+  .home-hero { padding: 32px 24px 30px; }
+  /* Not enough clear space beside the copy at this width to read as decoration. */
+  .hero-strings { display: none; }
+  .hero-lead { font-size: 0.9rem; }
+  .tool-grid { grid-template-columns: 1fr; }
+  .tool-card { padding: 22px 22px 20px; }
+  .home-notes { padding: 24px 22px 26px; }
+  .notes-grid { grid-template-columns: 1fr; gap: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-card:hover { transform: none; }
+  .tool-card:hover .tool-go { transform: none; }
+}
