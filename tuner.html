@@ -27,8 +27,15 @@
   <div class="studio-shell">
     <aside class="tool-panel card" data-i18n-attr='{"aria-label":"tuner.sidebarAria"}' aria-label="Панель тюнера">
       <div class="sidebar-header">
-        <div class="brand"><span class="mark">♬</span><span data-i18n="common.trainingBrand">ChordForge Learn<small>tuner</small></span></div>
+        <a class="brand" href="index.html" data-i18n-attr='{"aria-label":"nav.homeAria"}' aria-label="На главную"><span class="mark">♬</span><span data-i18n="common.brand">ChordForge<small>tuner</small></span></a>
       </div>
+
+      <nav class="app-nav" data-i18n-attr='{"aria-label":"nav.appNavAria"}' aria-label="Разделы">
+        <a href="tuner.html" aria-current="page"><i aria-hidden="true">🎙</i><span data-i18n="nav.tunerLink">Тюнер</span></a>
+        <a href="chords.html"><i aria-hidden="true">♯</i><span data-i18n="nav.chordsLink">Аккорды</span></a>
+        <a href="training-learn.html"><i aria-hidden="true">◎</i><span data-i18n="nav.learnLink">Обучатель</span></a>
+        <a href="training-quiz.html"><i aria-hidden="true">▶</i><span data-i18n="nav.quizLink">Тест</span></a>
+      </nav>
 
       <div class="sidebar-scroll">
         <section class="tool-section">
@@ -66,10 +73,6 @@
         </section>
       </div>
 
-      <div class="sidebar-footer">
-        <a href="training-learn.html" class="text-button" data-i18n="training.nav.learn">Закономерности</a>
-        <a href="index.html" class="text-button" data-i18n="nav.backToHome">← Главная</a>
-      </div>
     </aside>
 
     <main class="workspace">

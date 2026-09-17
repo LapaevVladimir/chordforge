@@ -27,8 +27,15 @@
   <div class="studio-shell">
     <aside class="tool-panel card" data-i18n-attr='{"aria-label":"training.trainer.sidebarAria"}' aria-label="Панель тренировки">
       <div class="sidebar-header">
-        <div class="brand"><span class="mark">♬</span><span data-i18n="common.trainingBrand">ChordForge Learn<small>quiz lab</small></span></div>
+        <a class="brand" href="index.html" data-i18n-attr='{"aria-label":"nav.homeAria"}' aria-label="На главную"><span class="mark">♬</span><span data-i18n="common.brand">ChordForge<small>quiz lab</small></span></a>
       </div>
+
+      <nav class="app-nav" data-i18n-attr='{"aria-label":"nav.appNavAria"}' aria-label="Разделы">
+        <a href="tuner.html"><i aria-hidden="true">🎙</i><span data-i18n="nav.tunerLink">Тюнер</span></a>
+        <a href="chords.html"><i aria-hidden="true">♯</i><span data-i18n="nav.chordsLink">Аккорды</span></a>
+        <a href="training-learn.html"><i aria-hidden="true">◎</i><span data-i18n="nav.learnLink">Обучатель</span></a>
+        <a href="training-quiz.html" aria-current="page"><i aria-hidden="true">▶</i><span data-i18n="nav.quizLink">Тест</span></a>
+      </nav>
 
       <div class="sidebar-scroll" id="trainerSettings">
         <section class="tool-section">
@@ -77,8 +84,6 @@
               <span><span data-i18n="training.trainer.correctLabel">Верно</span> <strong id="correctCount">0</strong></span>
               <span><span data-i18n="training.trainer.errorsLabel">Ошибки</span> <strong id="errorCount">0</strong></span>
             </div>
-            <a class="training-entry" href="tuner.html"><span aria-hidden="true">🎙</span><strong data-i18n="nav.tunerLink">Тюнер</strong></a>
-            <a class="training-entry" href="training-learn.html"><span aria-hidden="true">◎</span><strong data-i18n="training.nav.learn">Закономерности</strong></a>
           </div>
         </div>
 

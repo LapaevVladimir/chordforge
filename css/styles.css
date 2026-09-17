@@ -202,6 +202,16 @@ body.site-ready .timeline-scroll { animation: stage-reveal 0.72s 0.63s cubic-bez
 .brand small { margin-top: -2px; color: var(--muted); font-size: 0.6rem; font-weight: 650; letter-spacing: 0.11em; text-transform: uppercase; }
 .mark { display: grid; place-items: center; width: 38px; height: 38px; color: var(--accent-2); border: 1px solid rgba(var(--accent-rgb), 0.32); border-radius: 11px; background: rgba(var(--accent-rgb), 0.08); }
 .status-dot { display: inline-block; width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent); }
+/* Section switcher, identical on every tool page: same order, same labels, same
+   place, with the page you are on marked. */
+.app-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 9px 11px; border-bottom: 1px solid var(--line); }
+.app-nav a { display: grid; gap: 3px; justify-items: center; padding: 8px 2px 7px; color: var(--muted); border: 1px solid transparent; border-radius: 10px; font-size: 0.58rem; font-weight: 760; letter-spacing: 0.01em; text-align: center; text-decoration: none; transition: 0.16s ease; }
+.app-nav a i { font-size: 0.92rem; font-style: normal; line-height: 1; }
+.app-nav a:hover { color: var(--text); background: var(--panel-3); }
+.app-nav a[aria-current="page"] { color: var(--accent); border-color: rgba(var(--accent-rgb), 0.4); background: rgba(var(--accent-rgb), 0.1); }
+a.brand { color: inherit; text-decoration: none; }
+a.brand:hover .mark { border-color: rgba(var(--accent-rgb), 0.7); }
+
 .sidebar-scroll { flex: 1; min-height: 0; overflow-y: auto; scrollbar-color: color-mix(in srgb, var(--accent) 32%, transparent) transparent; }
 .tool-section { padding: 17px 18px; border-bottom: 1px solid var(--line); }
 .section-kicker { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; color: color-mix(in srgb, var(--text) 72%, var(--muted)); font-size: 0.68rem; font-weight: 780; letter-spacing: 0.11em; text-transform: uppercase; }

@@ -27,8 +27,15 @@
   <div class="studio-shell">
     <aside class="tool-panel card" data-i18n-attr='{"aria-label":"training.learn.sidebarAria"}' aria-label="Панель обучения">
       <div class="sidebar-header">
-        <div class="brand"><span class="mark">♬</span><span data-i18n="common.trainingBrand">ChordForge Learn<small>learn lab</small></span></div>
+        <a class="brand" href="index.html" data-i18n-attr='{"aria-label":"nav.homeAria"}' aria-label="На главную"><span class="mark">♬</span><span data-i18n="common.brand">ChordForge<small>learn lab</small></span></a>
       </div>
+
+      <nav class="app-nav" data-i18n-attr='{"aria-label":"nav.appNavAria"}' aria-label="Разделы">
+        <a href="tuner.html"><i aria-hidden="true">🎙</i><span data-i18n="nav.tunerLink">Тюнер</span></a>
+        <a href="chords.html"><i aria-hidden="true">♯</i><span data-i18n="nav.chordsLink">Аккорды</span></a>
+        <a href="training-learn.html" aria-current="page"><i aria-hidden="true">◎</i><span data-i18n="nav.learnLink">Обучатель</span></a>
+        <a href="training-quiz.html"><i aria-hidden="true">▶</i><span data-i18n="nav.quizLink">Тест</span></a>
+      </nav>
 
       <div class="sidebar-scroll">
         <section class="tool-section current-section" aria-live="polite">
@@ -70,10 +77,6 @@
         </section>
       </div>
 
-      <div class="sidebar-footer">
-        <a href="training-quiz.html" class="text-button" data-i18n="training.nav.trainer">Тренировка</a>
-        <a href="index.html" class="text-button" data-i18n="nav.backToHome">← Главная</a>
-      </div>
     </aside>
 
     <main class="workspace">
@@ -82,8 +85,6 @@
           <div><span class="eyebrow" data-i18n="training.learn.eyebrow">Обучение</span><h1 data-i18n="training.learn.title">Интервалы на стандартном грифе</h1><p class="sub" data-i18n="training.learn.subtitle">Выберите интервал, затем нажмите любую ноту на грифе. Карта покажет все доступные позиции выше и ниже неё.</p></div>
           <div class="work-header-actions">
             <span class="pill" id="tuningBadge">E · A · D · G · B · E</span>
-            <a class="training-entry" href="tuner.html"><span aria-hidden="true">🎙</span><strong data-i18n="nav.tunerLink">Тюнер</strong></a>
-            <a class="training-entry" href="training-quiz.html"><span aria-hidden="true">▶</span><strong data-i18n="training.nav.trainer">Тренировка</strong></a>
           </div>
         </div>
         <div class="training-board-scroll"><div class="interval-board" id="learnFretboard" data-i18n-attr='{"aria-label":"training.board.ariaLabel"}' aria-label="Учебный гитарный гриф"></div></div>

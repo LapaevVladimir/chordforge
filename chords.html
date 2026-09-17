@@ -29,9 +29,16 @@
   <div class="studio-shell">
     <aside class="tool-panel card" data-i18n-attr='{"aria-label":"chords.sidebarAria"}' aria-label="Панель определителя">
       <div class="sidebar-header">
-        <div class="brand"><span class="mark">♬</span><span data-i18n="common.brand">ChordForge<small>chord finder</small></span></div>
+        <a class="brand" href="index.html" data-i18n-attr='{"aria-label":"nav.homeAria"}' aria-label="На главную"><span class="mark">♬</span><span data-i18n="common.brand">ChordForge<small>chord finder</small></span></a>
         <span class="status-dot" data-i18n-attr='{"title":"common.autosaveOn"}' title="Автосохранение включено"></span>
       </div>
+
+      <nav class="app-nav" data-i18n-attr='{"aria-label":"nav.appNavAria"}' aria-label="Разделы">
+        <a href="tuner.html"><i aria-hidden="true">🎙</i><span data-i18n="nav.tunerLink">Тюнер</span></a>
+        <a href="chords.html" aria-current="page"><i aria-hidden="true">♯</i><span data-i18n="nav.chordsLink">Аккорды</span></a>
+        <a href="training-learn.html"><i aria-hidden="true">◎</i><span data-i18n="nav.learnLink">Обучатель</span></a>
+        <a href="training-quiz.html"><i aria-hidden="true">▶</i><span data-i18n="nav.quizLink">Тест</span></a>
+      </nav>
 
       <div class="sidebar-scroll">
         <section class="tool-section current-section" aria-live="polite">
@@ -86,7 +93,7 @@
       </div>
 
       <div class="sidebar-footer">
-        <a href="index.html" class="text-button" data-i18n="nav.backToHome">← Главная</a>
+        <span><i class="status-dot"></i> <span data-i18n="common.autosaveLabel">автосохранение</span></span>
         <button class="text-button" id="copyLink" data-i18n="common.share">Поделиться</button>
       </div>
     </aside>
@@ -97,8 +104,6 @@
           <div><span class="eyebrow" data-i18n="chords.eyebrow">Аккорды</span><h1 data-i18n="chords.title">Определитель аккордов</h1><p class="sub" data-i18n="chords.subtitle">Зажмите лады на грифе — название определится само. Или найдите аппликатуру по названию аккорда.</p></div>
           <div class="work-header-actions">
             <span class="pill" id="capoBadge" data-i18n="builder.capoBadge.none">без каподастра</span>
-            <a class="training-entry" href="tuner.html"><span aria-hidden="true">🎙</span><strong data-i18n="nav.tunerLink">Тюнер</strong></a>
-            <a class="training-entry" href="training-learn.html"><span aria-hidden="true">◎</span><strong data-i18n="nav.trainingLink">Учить интервалы</strong></a>
           </div>
         </div>
         <div class="fret-scroll" id="fretScroll"><div class="fretboard" id="fretboard"></div></div>
