@@ -508,7 +508,12 @@ h1, .timeline-title h2 { margin: 0; font-size: clamp(1.35rem, 2vw, 1.8rem); line
   .sidebar-scroll { display: block; }
   .work-top, .timeline-header { padding: 16px; }
   .work-top { flex-direction: column; }
-  .work-header-actions { width: 100%; flex-wrap: wrap; }
+  /* Keep the stat pills and nav links on one row on narrow screens — wrapping
+     split them across two rows and made the second row look orphaned. When
+     everything doesn't fit, scroll horizontally instead of wrapping. */
+  .work-header-actions { width: 100%; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  .work-header-actions::-webkit-scrollbar { display: none; }
+  .work-header-actions > * { flex: 0 0 auto; }
   .fret-scroll { min-height: 320px; padding: 28px 0; }
   .fretboard { padding: 0 15px; }
   .fret-toolbar, .timeline-header, .timeline-help { align-items: flex-start; flex-direction: column; }
