@@ -4,6 +4,8 @@ import { getInterval, intervalShort, intervalName } from './intervals-data.js';
 import { elements, checkedValue } from './elements.js';
 import { audio } from './playback.js';
 import { syncLocaleDock, bindLocaleDock } from '../../i18n/locale-dock.js';
+import { initOrientation, bindOrientationToggle, onOrientationChange } from '../../core/board-orientation.js';
+import { renderBoard } from './board.js';
 import {
   session, renderIntervalFilterOptions, playCurrentQuestion, startTraining, stopTraining, handleAnswer,
 } from './quiz.js';
@@ -45,6 +47,15 @@ function bindEvents() {
     const button = event.target.closest('[data-answer]');
     if (button) handleAnswer(button);
   });
+  bindOrientationToggle(document.querySelector('#boardFlip'), { vertical: t('common.boardFlipVertical'), horizontal: t('common.boardFlipHorizontal') });
+  // Only a question that is on screen has a board to redraw.
+  const redrawBoard = () => { if (session.current) renderBoard(elements.quizFretboard, { quizPair: session.current.pair }); };
+  onOrientationChange(redrawBoard);
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(redrawBoard, 160);
+  });
   bindThemeDock('sunset');
   bindLocaleDock();
   window.addEventListener('beforeunload', () => audio?.stop());
@@ -52,6 +63,7 @@ function bindEvents() {
 
 function initialize() {
   i18nInit();
+  initOrientation();
   syncLocaleDock();
   renderIntervalFilterOptions();
   bindEvents();

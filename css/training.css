@@ -161,6 +161,23 @@ button.interval-cell { cursor: pointer; }
 .board-legend i { display: grid; min-width: 23px; height: 23px; place-items: center; padding: 0 5px; color: var(--clip-text); border-radius: 7px; background: var(--accent-2); font-size: 0.65rem; font-style: normal; font-weight: 900; }
 .board-legend .legend-target { background: var(--accent); }
 
+/* The interval and scale boards turned upright, the same way the builder's neck
+   is (see styles.css): one rotation, and the text turns back on its own. The
+   rows are squeezed a little first, because after the turn the board's height is
+   what has to fit across a phone. */
+body.board-vertical .training-board-scroll { position: relative; overflow-x: auto; overflow-y: hidden; }
+/* The board's entrance animation ends on a transform of its own, and an
+   animation beats a plain declaration — it would simply undo the rotation. */
+body.board-vertical .interval-board { animation: none; position: absolute; top: 0; left: 0; min-width: 0; width: max-content; transform-origin: top left; transform: rotate(90deg) translateY(-100%); }
+body.board-vertical .interval-fret-numbers,
+body.board-vertical .interval-string { grid-template-columns: 52px repeat(16, minmax(52px, 1fr)); }
+body.board-vertical .interval-string { min-height: 48px; }
+body.board-vertical .interval-note b,
+body.board-vertical .interval-fret-numbers span,
+body.board-vertical .interval-string-label span,
+body.board-vertical .interval-string-label small { display: block; transform: rotate(-90deg); }
+body.board-vertical .interval-string-label { flex-direction: column; justify-content: center; gap: 2px; padding: 0 4px; }
+
 /* Workspace: quiz stage (Quiz page) */
 .session-stats { display: flex; gap: 6px; }
 .session-stats > span { display: flex; flex-direction: column; min-width: 74px; padding: 8px 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 9px; background: var(--panel-3); font-size: 0.7rem; }

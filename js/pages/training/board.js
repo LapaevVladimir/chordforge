@@ -1,6 +1,7 @@
 import { createTuning, STANDARD_TUNING, PITCH_NAMES } from '../../core/tuning.js';
 import { DEGREE_LABELS } from '../../core/scales.js';
 import { t } from '../../i18n/i18n.js';
+import { layoutRotatedBoard } from '../../core/board-orientation.js';
 
 export const MAX_FRET = 15;
 export { STANDARD_TUNING, PITCH_NAMES };
@@ -88,12 +89,13 @@ function renderGrid(container, { interactive = false, cellAttr = '', decorate })
       const allClasses = ['interval-cell', ...(stringNumber >= 4 ? ['wound'] : []), ...classes];
       const attrs = `class="${allClasses.join(' ')}" style="--training-string:${stringThickness}px" aria-label="${label}"`;
       html += interactive
-        ? `<button ${attrs} type="button" ${cellAttr}="${cellKey(cell)}"><span class="interval-note">${marker}</span></button>`
-        : `<div ${attrs} role="img"><span class="interval-note">${marker}</span></div>`;
+        ? `<button ${attrs} type="button" ${cellAttr}="${cellKey(cell)}"><span class="interval-note"><b>${marker}</b></span></button>`
+        : `<div ${attrs} role="img"><span class="interval-note"><b>${marker}</b></span></div>`;
     }
     html += '</div>';
   }
   container.innerHTML = html;
+  layoutRotatedBoard(container.closest('.training-board-scroll'), container);
 }
 
 // The neck is wider than a phone, so whatever has been marked on it can easily

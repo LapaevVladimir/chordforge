@@ -3,6 +3,7 @@ import * as Audio from '../../core/guitar-audio.js';
 import { escapeHtml } from '../../core/utils.js';
 import { t, pluralize } from '../../i18n/i18n.js';
 import { store, PITCHES, PRESETS, normalizeState, currentAnalysis, persistState } from './store.js';
+import { layoutRotatedBoard, isVertical } from '../../core/board-orientation.js';
 import { strumActionName, strumCountLabels, renderStrumSteps } from './strum.js';
 import { audio, stopPlayback, showToast, updateSampleStatus, playString } from './playback.js';
 
@@ -24,7 +25,12 @@ function fretWidths() {
   const state = store.state;
   const weights = Array.from({ length: state.frets }, (_, index) => Math.pow(2, -index / 12));
   const viewportWidth = document.getElementById('fretScroll')?.clientWidth || Math.max(760, window.innerWidth - 380);
-  const availableWidth = Math.max(420, viewportWidth - 136);
+  // Standing upright, the neck runs down the screen, so it is the height that
+  // says how long it can be. Measuring it against a phone's width instead would
+  // squeeze every fret to its minimum.
+  const availableWidth = isVertical()
+    ? Math.max(480, window.innerHeight - 250)
+    : Math.max(420, viewportWidth - 136);
   const weightTotal = weights.reduce((sum, weight) => sum + weight, 0);
   return weights.map((weight) => Math.max(30, Math.round(availableWidth * weight / weightTotal)));
 }
@@ -81,14 +87,14 @@ export function renderBoard(options = {}) {
     const noteAtOpen = Engine.noteName(openPitch, state.preferFlats);
     const stateText = selected === null ? '×' : `○ ${noteAtOpen}`;
     const stateTitle = selected === null ? t('builder.fretboard.mutedTitle') : t('builder.fretboard.openTitle', { note: noteAtOpen });
-    stringControlsHtml += `<button class="string-state ${selected === null ? 'muted' : ''}" data-string-state="${stringIndex}" data-midi="${openMidis[stringIndex] + state.capo}" title="${stateTitle}">${stateText}</button>`;
+    stringControlsHtml += `<button class="string-state ${selected === null ? 'muted' : ''}" data-string-state="${stringIndex}" data-midi="${openMidis[stringIndex] + state.capo}" title="${stateTitle}"><b>${stateText}</b></button>`;
     neckRowsHtml += `<div class="string-row ${isWound ? 'wound' : 'plain'}" style="grid-template-columns:${columns};--string-thickness:${thickness}px">`;
     for (let fret = 1; fret <= state.frets; fret += 1) {
       const pitch = Engine.soundingPitch(state.tuning[stringIndex], fret, state.capo);
       const active = selected === fret;
       const blocked = fret <= state.capo;
       const noteAtFret = Engine.noteName(pitch);
-      neckRowsHtml += `<button class="fret-cell ${active ? 'active' : ''} ${blocked ? 'blocked' : ''}" data-string="${stringIndex}" data-fret="${fret}" data-midi="${openMidis[stringIndex] + fret}" ${blocked ? 'aria-disabled="true"' : ''} aria-label="${t('builder.fretboard.fretAria', { string: state.strings - stringIndex, fret, note: noteAtFret })}"><span class="finger-dot ${analysis.root === pitch ? 'root' : ''}">${Engine.noteName(pitch, state.preferFlats)}</span></button>`;
+      neckRowsHtml += `<button class="fret-cell ${active ? 'active' : ''} ${blocked ? 'blocked' : ''}" data-string="${stringIndex}" data-fret="${fret}" data-midi="${openMidis[stringIndex] + fret}" ${blocked ? 'aria-disabled="true"' : ''} aria-label="${t('builder.fretboard.fretAria', { string: state.strings - stringIndex, fret, note: noteAtFret })}"><span class="finger-dot ${analysis.root === pitch ? 'root' : ''}"><b>${Engine.noteName(pitch, state.preferFlats)}</b></span></button>`;
     }
     neckRowsHtml += '</div>';
   }
@@ -107,6 +113,10 @@ export function renderBoard(options = {}) {
   }
 
   document.getElementById('fretboard').innerHTML = `<div class="fret-head"><span class="head-label">${t('builder.fretboard.headLabel')}</span><div class="fret-numbers" style="width:${neckWidth}px">${numbers}</div></div><div class="board-body"><div class="string-controls">${stringControlsHtml}</div><div class="neck-wrap" style="width:${neckWidth}px"><div class="neck-surface">${neckRowsHtml}${inlays}</div>${capo}</div></div>`;
+
+  // The rotated board keeps its old layout box, so the frame it sits in has to be
+  // resized every time the board is redrawn.
+  layoutRotatedBoard(document.querySelector('.fret-scroll'), document.getElementById('fretboard'));
 
   document.querySelectorAll('[data-string]').forEach((cell) => cell.addEventListener('click', () => {
     const stringIndex = Number(cell.dataset.string);

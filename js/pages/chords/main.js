@@ -8,6 +8,7 @@ import { clone, readJson } from '../../core/utils.js';
 import { applyTheme, bindThemeDock, THEME_KEY } from '../../core/theme.js';
 import { init as i18nInit, onChange as onLocaleChange, t } from '../../i18n/i18n.js';
 import { syncLocaleDock, bindLocaleDock } from '../../i18n/locale-dock.js';
+import { initOrientation, bindOrientationToggle, onOrientationChange } from '../../core/board-orientation.js';
 import {
   store, STANDARD, PRESETS, normalizeState, tuningFor,
   persistState, currentAnalysis, useStateKey,
@@ -110,6 +111,8 @@ $('copyLink').addEventListener('click', async () => {
 bindThemeDock('midnight', { bloom: true });
 bindLocaleDock();
 
+initOrientation();
+
 function finishSiteIntro() {
   const loader = $('siteLoader');
   const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -125,6 +128,17 @@ function finishSiteIntro() {
 
 i18nInit();
 syncLocaleDock();
+
+// After i18nInit so the button's tooltip is in the reader's language.
+bindOrientationToggle($('boardFlip'), { vertical: t('common.boardFlipVertical'), horizontal: t('common.boardFlipHorizontal') });
+// Turning the neck changes the shape of the frame it needs, and so does turning
+// the phone or resizing the window.
+onOrientationChange(() => renderBoard({ stopAudio: false }));
+let resizeTimer = 0;
+window.addEventListener('resize', () => {
+  window.clearTimeout(resizeTimer);
+  resizeTimer = window.setTimeout(() => renderBoard({ stopAudio: false }), 160);
+});
 
 if (location.hash.length > 1) {
   try {

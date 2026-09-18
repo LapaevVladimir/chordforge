@@ -4,6 +4,7 @@ import { OPEN_MIDIS, tuningLabel } from './board.js';
 import { elements, checkedValue } from './elements.js';
 import { audio, showToast, playIntervalByType } from './playback.js';
 import { syncLocaleDock, bindLocaleDock } from '../../i18n/locale-dock.js';
+import { initOrientation, bindOrientationToggle, onOrientationChange } from '../../core/board-orientation.js';
 import {
   renderIntervalRail, renderLearning, renderTuningControls, bindTuningActions,
   chooseLearnTarget, setLearnAnchor, setLearnInterval, learnAnchor, onTuningChange,
@@ -79,6 +80,18 @@ function bindEvents() {
   elements.scaleType.addEventListener('click', refreshBadges);
 
   onTuningChange(() => { renderScales(); refreshBadges(); });
+  const flipLabels = { vertical: t('common.boardFlipVertical'), horizontal: t('common.boardFlipHorizontal') };
+  bindOrientationToggle(document.querySelector('#boardFlip'), flipLabels);
+  bindOrientationToggle(document.querySelector('#scaleBoardFlip'), flipLabels);
+  // Both boards are laid out from the same tuning, so both are redrawn when the
+  // neck turns or the window changes shape.
+  const redrawBoards = () => { renderLearning(); renderScales(); };
+  onOrientationChange(redrawBoards);
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(redrawBoards, 160);
+  });
   bindTuningActions();
   bindThemeDock('sunset');
   bindLocaleDock();
@@ -87,6 +100,7 @@ function bindEvents() {
 
 function initialize() {
   i18nInit();
+  initOrientation();
   syncLocaleDock();
   renderAll();
   applySection('intervals');
