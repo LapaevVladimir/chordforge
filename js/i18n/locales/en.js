@@ -138,6 +138,7 @@ export default {
     chordsLink: 'Chords',
     learnLink: 'Lessons',
     quizLink: 'Quiz',
+    homeLink: 'Home',
     appNavAria: 'Sections',
     homeAria: 'Go to home page',
   },

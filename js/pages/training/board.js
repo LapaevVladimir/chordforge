@@ -96,6 +96,31 @@ function renderGrid(container, { interactive = false, cellAttr = '', decorate })
   container.innerHTML = html;
 }
 
+// The neck is wider than a phone, so whatever has been marked on it can easily
+// sit off the right edge — being asked which interval is marked while the marks
+// are out of view is no question at all. After drawing, the scroller is nudged so
+// the marked frets are centred. On a screen wide enough to show the whole neck
+// nothing moves.
+function revealMarks(container, selector) {
+  const scroller = container?.closest('.training-board-scroll');
+  if (!scroller || scroller.scrollWidth <= scroller.clientWidth) return;
+  const marks = container.querySelectorAll(selector);
+  if (!marks.length) return;
+  const base = scroller.getBoundingClientRect().left - scroller.scrollLeft;
+  let left = Infinity;
+  let right = -Infinity;
+  marks.forEach((mark) => {
+    const rect = mark.getBoundingClientRect();
+    left = Math.min(left, rect.left - base);
+    right = Math.max(right, rect.right - base);
+  });
+  // Already on screen: leave the board where the reader put it. Recentring on
+  // every render would yank the neck out from under the finger that just tapped it.
+  if (left >= scroller.scrollLeft && right <= scroller.scrollLeft + scroller.clientWidth) return;
+  const centred = (left + right) / 2 - scroller.clientWidth / 2;
+  scroller.scrollLeft = Math.max(0, Math.min(centred, scroller.scrollWidth - scroller.clientWidth));
+}
+
 // The "Learn" interval map and the quiz board. `targetMarker` is the symbol shown
 // on matched-interval cells (the caller looks it up via intervalShort(), so
 // board.js stays interval-agnostic).
@@ -124,6 +149,11 @@ export function renderBoard(container, { anchor = null, targets = [], quizPair =
       return { marker, classes, label: t('training.board.cellAria', { string: cell.stringNumber, fretLabel: fretLabel(cell.fret), note: noteName(cell.midi), extra }) };
     },
   });
+
+  // The anchor and the quiz pair, but not every matched position: on the interval
+  // map the matches can span the whole neck, and centring on all of them would
+  // leave the note you actually chose off the edge.
+  revealMarks(container, '.quiz-first, .quiz-second, .anchor');
 }
 
 // The scale map. Notes of the scale carry their degree; those outside the chosen
@@ -160,4 +190,6 @@ export function renderScaleBoard(container, { cells = [], position = null, showN
       };
     },
   });
+
+  revealMarks(container, position ? '.scale-note:not(.scale-outside)' : '.scale-root');
 }

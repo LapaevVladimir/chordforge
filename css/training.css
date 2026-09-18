@@ -227,6 +227,14 @@ button.interval-cell { cursor: pointer; }
   .quiz-stage { min-height: 520px; padding: 16px; }
 }
 
+/* Touch sizing to match styles.css: a checkbox drawn at 13px is a fiddly target
+   even inside a label. */
+@media (max-width: 980px) {
+  .switch-row { min-height: 42px; }
+  .switch-row input { width: 18px; height: 18px; }
+  .played-slot { min-height: 62px; }
+}
+
 @media (max-width: 650px) {
   .interval-explainer { grid-template-columns: auto 1fr; margin: 14px 16px; }
   .interval-rail { margin: 0 16px 4px; }

@@ -138,6 +138,7 @@ export default {
     chordsLink: 'Аккорды',
     learnLink: 'Обучатель',
     quizLink: 'Тест',
+    homeLink: 'Главная',
     appNavAria: 'Разделы',
     homeAria: 'На главную',
   },
