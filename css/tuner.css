@@ -64,15 +64,41 @@
 .gauge-cents { min-height: 20px; color: var(--state); font-size: 0.92rem; font-weight: 820; font-variant-numeric: tabular-nums; transition: color 0.18s ease; }
 .tuner-stage.in-tune .gauge-note { color: var(--accent); }
 
-.tuner-chevrons { display: flex; align-items: center; gap: 7px; margin-top: 4px; }
-.chev { color: var(--line-strong); font-size: 1.5rem; font-weight: 900; line-height: 1; transition: 0.16s ease; }
-.chev.lit { color: var(--accent-2); text-shadow: 0 0 12px color-mix(in srgb, var(--accent-2) 60%, transparent); }
-.chev-core { width: 10px; height: 10px; margin: 0 6px; border: 2px solid var(--line-strong); border-radius: 3px; transform: rotate(45deg); transition: 0.18s ease; }
-.tuner-stage.in-tune .chev-core { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 70%, transparent); }
+/* Linear ±50 cent scale under the ring: the ring shows magnitude at a glance,
+   this shows exactly where you sit within the range. */
+.cents-scale { width: min(420px, 100%); margin-top: 10px; }
+.scale-track { position: relative; height: 10px; border: 1px solid var(--line); border-radius: 99px; background: var(--panel-3); }
+.scale-zone { position: absolute; top: 0; bottom: 0; left: 45%; width: 10%; border-radius: 99px; background: rgba(var(--accent-rgb), 0.22); }
+.scale-pointer { position: absolute; top: 50%; left: var(--pointer, 50%); width: 3px; height: 20px; border-radius: 2px; background: var(--state); transform: translate(-50%, -50%); box-shadow: 0 0 10px color-mix(in srgb, var(--state) 55%, transparent); transition: left 0.14s cubic-bezier(0.2, 0.7, 0.2, 1), background 0.18s ease; }
+.scale-labels { display: flex; justify-content: space-between; margin-top: 6px; color: var(--muted); font-size: 0.62rem; font-variant-numeric: tabular-nums; }
 
-.tuner-readout { display: grid; place-items: center; gap: 3px; margin-top: 14px; text-align: center; }
-.tuner-status { min-height: 22px; color: var(--state); font-size: 1rem; font-weight: 780; transition: color 0.18s ease; }
-.tuner-frequency { min-height: 16px; color: var(--muted); font-size: 0.72rem; font-variant-numeric: tabular-nums; }
+.tuner-readout { display: grid; place-items: center; gap: 8px; margin-top: 16px; text-align: center; }
+.tuner-status { min-height: 22px; color: var(--state); font-size: 1rem; font-weight: 780; letter-spacing: 0.02em; transition: color 0.18s ease; }
+.readout-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.readout-grid > div { min-width: 104px; padding: 7px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3); }
+.readout-grid dt { color: var(--muted); font-size: 0.58rem; font-weight: 760; letter-spacing: 0.08em; text-transform: uppercase; }
+.readout-grid dd { margin: 3px 0 0; color: var(--text); font-size: 0.82rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* Sidebar: string picker, target and diagnostics */
+.string-picker { display: flex; flex-wrap: wrap; gap: 5px; }
+.string-chip { padding: 6px 9px; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; background: var(--panel-3); font-size: 0.66rem; font-weight: 750; transition: 0.16s ease; }
+.string-chip:hover { color: var(--text); border-color: rgba(var(--accent-rgb), 0.45); }
+.string-chip.active { color: var(--accent); border-color: rgba(var(--accent-rgb), 0.6); background: rgba(var(--accent-rgb), 0.12); }
+.target-readout { display: grid; gap: 2px; margin-top: 9px; color: var(--muted); font-size: 0.68rem; }
+.target-readout strong { color: var(--text); font-size: 0.74rem; }
+
+.diag-list { display: grid; gap: 4px; margin: 0 0 10px; }
+.diag-list > div { display: flex; justify-content: space-between; gap: 8px; }
+.diag-list dt { color: var(--muted); font-size: 0.64rem; }
+.diag-list dd { margin: 0; color: var(--text); font-size: 0.64rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+
+.self-test { margin-top: 9px; }
+.self-test-status { margin: 0; color: var(--muted); font-size: 0.65rem; }
+.self-test-table { width: 100%; border-collapse: collapse; font-size: 0.6rem; font-variant-numeric: tabular-nums; }
+.self-test-table th { padding: 3px 4px; color: var(--muted); font-weight: 750; text-align: left; border-bottom: 1px solid var(--line); }
+.self-test-table td { padding: 3px 4px; border-bottom: 1px solid var(--line); }
+.self-test-table tr.pass td:nth-child(2) { color: var(--accent); }
+.self-test-table tr.warn td:nth-child(2) { color: var(--accent-2); }
 
 .tuner-strings { display: grid; grid-template-columns: repeat(6, 1fr); gap: 9px; width: min(520px, 100%); margin-top: 30px; }
 .tuner-string { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 13px 4px 11px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-3); transition: 0.16s ease; }

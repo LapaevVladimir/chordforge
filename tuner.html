@@ -20,7 +20,7 @@
         <i class="loader-note note-a"></i><i class="loader-note note-b"></i><i class="loader-note note-c"></i><b class="loader-pick">CF</b>
       </div>
     </div>
-    <div class="loader-copy"><strong data-i18n="common.trainingBrand">ChordForge Learn</strong><span data-i18n="tuner.eyebrow">Тюнер</span></div>
+    <div class="loader-copy"><strong data-i18n="common.brand">ChordForge</strong><span data-i18n="tuner.eyebrow">Тюнер</span></div>
     <div class="loader-progress" aria-hidden="true"><i></i></div>
   </div>
 
@@ -41,9 +41,15 @@
         <section class="tool-section">
           <div class="section-kicker" data-i18n="tuner.modeLegend">Режим</div>
           <fieldset class="mode-choice">
-            <label><input type="radio" name="tunerMode" value="auto" checked /><span><b aria-hidden="true">◎</b><strong data-i18n="tuner.modeAuto">Автоопределение</strong><small data-i18n="tuner.modeAutoHint">Тюнер сам находит струну</small></span></label>
-            <label><input type="radio" name="tunerMode" value="manual" /><span><b aria-hidden="true">✋</b><strong data-i18n="tuner.modeManual">Вручную</strong><small data-i18n="tuner.modeManualHint">Вы выбираете струну сами</small></span></label>
+            <label><input type="radio" name="tunerMode" value="guitar" checked /><span><b aria-hidden="true">🎸</b><strong data-i18n="tuner.modeGuitar">Гитара</strong><small data-i18n="tuner.modeGuitarHint">Отклонение от струн строя</small></span></label>
+            <label><input type="radio" name="tunerMode" value="chromatic" /><span><b aria-hidden="true">♪</b><strong data-i18n="tuner.modeChromatic">Хроматический</strong><small data-i18n="tuner.modeChromaticHint">Любая ближайшая нота</small></span></label>
           </fieldset>
+        </section>
+
+        <section class="tool-section" id="stringSection">
+          <div class="section-kicker" data-i18n="tuner.stringLabel">Струна</div>
+          <div class="string-picker" id="stringPicker" role="group" data-i18n-attr='{"aria-label":"tuner.stringLabel"}' aria-label="Струна"></div>
+          <div class="target-readout" id="targetReadout" aria-live="polite"></div>
         </section>
 
         <section class="tool-section">
@@ -71,8 +77,20 @@
             <div class="tuning" id="tuning"></div>
           </div>
         </section>
-      </div>
 
+        <section class="tool-section">
+          <div class="section-kicker" data-i18n="tuner.diagnosticsLabel">Диагностика</div>
+          <dl class="diag-list">
+            <div><dt data-i18n="tuner.diag.engine">Движок</dt><dd id="diagEngine">—</dd></div>
+            <div><dt data-i18n="tuner.diag.sampleRate">Частота дискретизации</dt><dd id="diagSampleRate">—</dd></div>
+            <div><dt data-i18n="tuner.diag.frame">Окно анализа</dt><dd id="diagFrame">—</dd></div>
+            <div><dt data-i18n="tuner.diag.confidence">Уверенность</dt><dd id="diagConfidence">—</dd></div>
+            <div><dt data-i18n="tuner.diag.compute">Время расчёта</dt><dd id="diagCompute">—</dd></div>
+          </dl>
+          <button class="text-button" id="runSelfTest" type="button" data-i18n="tuner.selfTest.run">Проверить точность</button>
+          <div class="self-test" id="selfTestOutput" aria-live="polite"></div>
+        </section>
+      </div>
     </aside>
 
     <main class="workspace">
@@ -107,19 +125,18 @@
               </div>
             </div>
 
-            <div class="tuner-chevrons" id="tunerChevrons" aria-hidden="true">
-              <span class="chev flat" data-side="flat" data-cent="30">‹</span>
-              <span class="chev flat" data-side="flat" data-cent="15">‹</span>
-              <span class="chev flat" data-side="flat" data-cent="5">‹</span>
-              <span class="chev-core"></span>
-              <span class="chev sharp" data-side="sharp" data-cent="5">›</span>
-              <span class="chev sharp" data-side="sharp" data-cent="15">›</span>
-              <span class="chev sharp" data-side="sharp" data-cent="30">›</span>
+            <div class="cents-scale" id="centsScale" aria-hidden="true">
+              <div class="scale-track"><i class="scale-zone"></i><b class="scale-pointer" id="scalePointer"></b></div>
+              <div class="scale-labels"><span>−50</span><span>−25</span><span>0</span><span>+25</span><span>+50</span></div>
             </div>
 
             <div class="tuner-readout">
               <span class="tuner-status" id="tunerStatusText" aria-live="polite">Микрофон выключен</span>
-              <span class="tuner-frequency" id="tunerFrequency"></span>
+              <div class="readout-grid">
+                <div><dt data-i18n="tuner.readout.detected">Определено</dt><dd id="readoutDetected">—</dd></div>
+                <div><dt data-i18n="tuner.readout.target">Цель</dt><dd id="readoutTarget">—</dd></div>
+                <div><dt data-i18n="tuner.readout.deviation">Отклонение</dt><dd id="readoutCents">—</dd></div>
+              </div>
             </div>
           </div>
 
