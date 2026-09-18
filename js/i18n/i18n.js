@@ -4,7 +4,10 @@ import en from './locales/en.js';
 export const LOCALE_KEY = 'chordforge-locale-v1';
 const LOCALES = { ru, en };
 const listeners = new Set();
-let currentLocale = 'ru';
+// English is the base language of the source — it is what the markup says before
+// any dictionary is applied, so it is also what an unrecognised locale falls back to.
+export const DEFAULT_LOCALE = 'en';
+let currentLocale = DEFAULT_LOCALE;
 
 function getFromDict(dict, key) {
   return key.split('.').reduce((node, part) => (node && typeof node === 'object' ? node[part] : undefined), dict);
@@ -17,7 +20,7 @@ function interpolate(text, params) {
 
 export function t(key, params) {
   const value = getFromDict(LOCALES[currentLocale], key);
-  const fallback = value === undefined ? getFromDict(LOCALES.ru, key) : value;
+  const fallback = value === undefined ? getFromDict(LOCALES[DEFAULT_LOCALE], key) : value;
   const text = fallback === undefined ? key : fallback;
   return interpolate(text, params);
 }
@@ -33,13 +36,18 @@ const EN_PLURAL = (count, forms) => (count === 1 ? forms.one : forms.other);
 
 // forms: { one, few, many } for ru locales, { one, other } for everything else.
 export function plural(count, forms) {
-  return currentLocale === 'ru' ? RU_PLURAL(count, forms) : EN_PLURAL(count, forms);
+  const picked = currentLocale === 'ru' ? RU_PLURAL(count, forms) : EN_PLURAL(count, forms);
+  // A form borrowed from the other locale has the other locale's shape — ru has no
+  // `other`, en has no `few`/`many` — so fall back within the forms we were given
+  // rather than printing "undefined".
+  return picked ?? forms.other ?? forms.many ?? forms.one;
 }
 
 // Looks up a { one, few?, many?, other? } forms object at `key` in the active locale
-// (falling back to ru's forms if the key is missing there) and picks the right form for `count`.
+// (falling back to the base language if the key is missing there) and picks the
+// right form for `count`.
 export function pluralize(key, count) {
-  const forms = getFromDict(LOCALES[currentLocale], key) || getFromDict(LOCALES.ru, key);
+  const forms = getFromDict(LOCALES[currentLocale], key) || getFromDict(LOCALES[DEFAULT_LOCALE], key);
   return forms ? plural(count, forms) : String(count);
 }
 
@@ -65,7 +73,7 @@ export function onChange(handler) {
 }
 
 export function setLocale(code, { persist = true } = {}) {
-  currentLocale = LOCALES[code] ? code : 'ru';
+  currentLocale = LOCALES[code] ? code : DEFAULT_LOCALE;
   document.documentElement.lang = currentLocale;
   if (persist) {
     try { localStorage.setItem(LOCALE_KEY, currentLocale); }
@@ -81,7 +89,7 @@ export function init() {
   try { saved = localStorage.getItem(LOCALE_KEY); }
   catch { /* storage may be unavailable */ }
   const browserLocale = (navigator.language || '').slice(0, 2).toLowerCase();
-  currentLocale = LOCALES[saved] ? saved : (LOCALES[browserLocale] ? browserLocale : 'ru');
+  currentLocale = LOCALES[saved] ? saved : (LOCALES[browserLocale] ? browserLocale : DEFAULT_LOCALE);
   document.documentElement.lang = currentLocale;
   applyStatic();
   return currentLocale;
