@@ -1,7 +1,7 @@
 import * as Engine from '../../core/chord-engine.js';
 import * as Audio from '../../core/guitar-audio.js';
 import { escapeHtml } from '../../core/utils.js';
-import { t } from '../../i18n/i18n.js';
+import { t, pluralize } from '../../i18n/i18n.js';
 import { store, PITCHES, PRESETS, normalizeState, currentAnalysis, persistState } from './store.js';
 import { strumActionName, strumCountLabels, renderStrumSteps } from './strum.js';
 import { audio, stopPlayback, showToast, updateSampleStatus, playString } from './playback.js';
@@ -213,7 +213,7 @@ export function openVoicingModal(parsed, shapes) {
   const state = store.state;
   const chordLabel = `${Engine.noteName(parsed.root, parsed.preferFlats)}${parsed.quality.suffix}${parsed.bass !== null ? `/${Engine.noteName(parsed.bass, parsed.preferFlats)}` : ''}`;
   document.getElementById('voicingModalTitle').textContent = t('builder.voicing.titleNamed', { chord: chordLabel });
-  document.getElementById('voicingModalBody').innerHTML = shapes.map((candidate, index) => `<button type="button" class="voicing-card" data-voicing="${index}"><span class="voicing-position">${candidate.position === 0 ? t('builder.voicing.openPosition') : t('builder.voicing.fretPosition', { n: candidate.position })}</span><div class="voicing-diagram">${renderVoicingDiagram(candidate.shape)}</div></button>`).join('');
+  document.getElementById('voicingModalBody').innerHTML = shapes.map((candidate, index) => `<button type="button" class="voicing-card" data-voicing="${index}"><span class="voicing-position">${candidate.position === 0 ? t('builder.voicing.openPosition') : t('builder.voicing.fretPosition', { n: candidate.position })}<small>${candidate.strings} ${pluralize('builder.voicing.stringCount', candidate.strings)}</small></span><div class="voicing-diagram">${renderVoicingDiagram(candidate.shape)}</div></button>`).join('');
   document.getElementById('voicingModalBody').querySelectorAll('[data-voicing]').forEach((button) => button.addEventListener('click', () => {
     state.shape = shapes[Number(button.dataset.voicing)].shape;
     state.preset = 'custom';
@@ -235,7 +235,9 @@ export function findShape(input) {
     info.classList.add('show', 'error');
     return;
   }
-  const shapes = Engine.generateShapes(parsed, state.tuning, state.capo, state.frets, 8);
+  // Room for six positions and a second voicing of each: the full shape and the
+  // compact one are different answers, and both are worth offering.
+  const shapes = Engine.generateShapes(parsed, state.tuning, state.capo, state.frets, 12);
   if (!shapes.length) {
     info.textContent = t('builder.search.noShapeFound');
     info.classList.add('show', 'error');

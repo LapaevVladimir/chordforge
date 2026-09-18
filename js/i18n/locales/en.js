@@ -313,6 +313,7 @@ export default {
       closeAria: 'Close dialog',
       openPosition: 'Open position',
       fretPosition: 'fret {n}',
+      stringCount: { one: 'string', other: 'strings' },
     },
     clipEditor: {
       eyebrow: 'Chord editor',

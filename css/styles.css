@@ -459,7 +459,10 @@ h1, .timeline-title h2 { margin: 0; font-size: clamp(1.35rem, 2vw, 1.8rem); line
 .clip-editor-actions .primary { color: var(--clip-text); border-color: var(--accent); background: var(--accent); }
 .voicing-card { display: flex; flex-direction: column; gap: 8px; padding: 11px; color: var(--text); border: 1px solid var(--line); border-radius: 11px; background: rgba(255, 255, 255, 0.03); text-align: left; }
 .voicing-card:hover { border-color: rgba(var(--accent-rgb), 0.48); background: rgba(var(--accent-rgb), 0.08); }
-.voicing-position { color: var(--accent); font-size: 0.7rem; font-weight: 740; }
+/* Two cards can share a position — the full shape and the compact one — so each
+   says how many strings it sounds. */
+.voicing-position { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; color: var(--accent); font-size: 0.7rem; font-weight: 740; }
+.voicing-position small { color: var(--muted); font-size: 0.62rem; font-weight: 700; }
 .voicing-diagram { display: grid; gap: 2px; }
 .voicing-row { display: grid; grid-template-columns: 16px repeat(5, 1fr); align-items: center; gap: 2px; }
 .voicing-nut, .voicing-cell { display: grid; place-items: center; height: 15px; border-radius: 3px; background: rgba(255, 255, 255, 0.06); }

@@ -313,6 +313,7 @@ export default {
       closeAria: 'Закрыть окно',
       openPosition: 'Открытая позиция',
       fretPosition: '{n}-й лад',
+      stringCount: { one: 'струна', few: 'струны', many: 'струн' },
     },
     clipEditor: {
       eyebrow: 'Редактор аккорда',
