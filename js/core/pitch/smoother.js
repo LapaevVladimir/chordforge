@@ -50,6 +50,11 @@ export const DEFAULT_SMOOTHER_OPTIONS = {
   confirmFrames: 3,
   // How long a reading survives after the signal stops arriving.
   holdMs: 600,
+  // Pull an estimate that landed a whole octave out back to the note being held.
+  // Right for a tuner, where the note is meant to stay where it is; wrong for
+  // anything listening to someone move around the neck, because a real octave
+  // leap looks exactly like the error it repairs.
+  octaveRepair: true,
 };
 
 export function createPitchSmoother(options = {}) {
@@ -71,7 +76,7 @@ export function createPitchSmoother(options = {}) {
   // Brings an estimate that landed a whole number of octaves away back to the
   // note being held, which is the failure mode YIN actually exhibits.
   function repairOctave(semitones) {
-    if (smoothed === null) return semitones;
+    if (smoothed === null || !config.octaveRepair) return semitones;
     let best = semitones;
     let bestDistance = Math.abs(semitones - smoothed);
     for (const shift of [-24, -12, 12, 24]) {

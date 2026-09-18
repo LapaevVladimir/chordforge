@@ -43,6 +43,7 @@
           <fieldset class="mode-choice">
             <label><input type="radio" name="trainingMode" value="visual" checked /><span><b aria-hidden="true">◉</b><strong data-i18n="training.trainer.modeVisual">Интервал на грифе</strong><small data-i18n="training.trainer.modeVisualHint">Угадайте по двум отмеченным позициям</small></span></label>
             <label><input type="radio" name="trainingMode" value="ear" /><span><b aria-hidden="true">♪</b><strong data-i18n="training.trainer.modeEar">Интервал на слух</strong><small data-i18n="training.trainer.modeEarHint">Угадайте только по звучанию</small></span></label>
+            <label><input type="radio" name="trainingMode" value="play" /><span><b aria-hidden="true">🎙</b><strong data-i18n="training.trainer.modePlay">Сыграть на гитаре</strong><small data-i18n="training.trainer.modePlayHint">Услышали — повторите, микрофон проверит</small></span></label>
           </fieldset>
         </section>
 
@@ -93,6 +94,22 @@
             <div class="question-head"><div><span id="questionNumber" data-i18n="training.quiz.questionInitial">Вопрос 1</span><h3 id="questionTitle" data-i18n="training.quiz.questionPlaceholder">Какой интервал показан?</h3></div><button class="replay-button" id="replayQuestion" type="button"><span aria-hidden="true">▶</span> <span data-i18n="training.quiz.replayButton">Прослушать</span></button></div>
             <div class="visual-question" id="visualQuestion"><div class="training-board-scroll"><div class="interval-board quiz-board" id="quizFretboard" data-i18n-attr='{"aria-label":"training.quiz.boardAriaLabel"}' aria-label="Интервал для определения"></div></div></div>
             <div class="ear-question" id="earQuestion" hidden><div class="sound-orbit" aria-hidden="true"><i></i><i></i><i></i><span>♪</span></div><strong data-i18n="training.quiz.earPrompt">Слушайте две ноты</strong><p data-i18n="training.quiz.earHint">При необходимости нажмите «Прослушать» ещё раз.</p></div>
+            <div class="play-question" id="playQuestion" hidden>
+              <div class="play-mic">
+                <button class="play-mic-button" id="playMicToggle" type="button"><span aria-hidden="true">🎙</span><span data-i18n="training.play.micOn">Включить микрофон</span></button>
+                <span class="play-mic-status" id="playMicStatus" aria-live="polite" data-i18n="training.play.micIdle">Микрофон выключен</span>
+                <span class="play-live-note" id="playLiveNote">—</span>
+                <div class="play-mic-level" id="playMicLevel" aria-hidden="true"><i></i></div>
+              </div>
+              <div class="played-slots" id="playedSlots">
+                <div class="played-slot"><small data-i18n="training.play.firstNote">Первая нота</small><strong>—</strong></div>
+                <span class="played-arrow" aria-hidden="true">→</span>
+                <div class="played-slot"><small data-i18n="training.play.secondNote">Вторая нота</small><strong>—</strong></div>
+                <span class="played-distance" id="playedDistance">—</span>
+              </div>
+              <p class="play-hint" id="playHint" data-i18n="training.play.hint">Повторите интервал в любом месте грифа — важно расстояние, а не те же самые ноты. Играйте ноты по одной.</p>
+              <button class="text-button" id="playRetry" type="button" data-i18n="training.play.retry">Сыграть заново</button>
+            </div>
             <div class="answer-grid" id="answerGrid" data-i18n-attr='{"aria-label":"training.quiz.answerGridAria"}' aria-label="Варианты ответа"></div>
             <p class="quiz-feedback" id="quizFeedback" aria-live="assertive"></p>
           </div>
