@@ -113,11 +113,11 @@ hysteresis band so a value sitting on a boundary does not flicker between two
 numbers, and the frequency shows one decimal for the same reason: 0.01 Hz at the
 low E is a fifth of a cent.
 
-**One second to earn a tick.** A string is only marked done after it has held its
-pitch inside the in-tune window for a continuous second of *live* frames at
+**Half a second to earn a tick.** A string is only marked done after it has held
+its pitch inside the in-tune window for a continuous 500 ms of *live* frames at
 clarity 0.93 or better. Coasting frames from the hold window do not count, so a
 note that has already died away cannot finish the countdown, and a gap longer
-than 250 ms starts the second over. A door closing or a neighbouring string
+than 150 ms starts the count over. A door closing or a neighbouring string
 ringing sympathetically can land in tune for a moment; a tick is supposed to mean
 more than that.
 

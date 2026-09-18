@@ -23,13 +23,14 @@ const CENTS_RANGE = 50;
 // A string has to sit in tune for this long before it is ticked off. A single
 // frame is not evidence: a door closing or a neighbouring string ringing can
 // land in tune for a moment, and the tick is supposed to mean "this one is done".
-const CONFIRM_MS = 1000;
+const CONFIRM_MS = 500;
 // Only frames the detector is fairly sure of advance that second, so a vague
 // smear of room noise cannot accumulate one.
 const CONFIRM_MIN_CONFIDENCE = 0.93;
-// Guards the timer against a stalled tab: a gap longer than this is not time
-// spent in tune.
-const CONFIRM_MAX_STEP_MS = 250;
+// Guards the timer against a stalled tab, and bounds how much of the window above
+// can be bridged rather than actually played: a gap longer than this is not time
+// spent in tune. A clarity dip lasts a frame or two, so this is generous already.
+const CONFIRM_MAX_STEP_MS = 150;
 // Half the hysteresis band on the cents display, in cents. See displayCents.
 const CENTS_HYSTERESIS = 0.65;
 
