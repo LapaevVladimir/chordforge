@@ -60,37 +60,33 @@ export function scaleCells(scale, rootPitchClass, openMidis, maxFret) {
   return cells;
 }
 
-// One position per scale degree: the box that starts where that degree falls on
-// the lowest string. This is how the five pentatonic boxes and the seven
-// three-note-per-string shapes are normally taught, and deriving it rather than
-// hard-coding shapes means it holds for any scale and any tuning.
+// One position per scale degree, numbered the way boxes are actually numbered:
+// position 1 is the one that starts on the root, position 2 the one starting on
+// the second degree of the scale, and so on. For A minor pentatonic that puts
+// box 1 at the fifth fret and box 2 at the eighth, which is what every book and
+// every teacher means by those numbers.
 //
-// Positions are returned ordered up the neck, so position 1 is the lowest one.
+// The root's own fret on the lowest string anchors the ladder, so a degree that
+// sits `offset` semitones above the root starts `offset` frets above the anchor.
 export function scalePositions(scale, rootPitchClass, openMidis, maxFret) {
   const lowest = openMidis[0];
   const span = scale.span;
-  const seen = new Set();
-  const positions = [];
 
-  for (const offset of scale.intervals) {
-    let start = null;
-    for (let fret = 0; fret <= maxFret; fret += 1) {
-      if (mod12(lowest + fret - rootPitchClass) === offset) { start = fret; break; }
-    }
-    if (start === null) continue;
-    // A box that would run off the end of the board slides back onto it rather
-    // than being dropped: the shape is still playable, just not open-ended.
-    const from = Math.max(0, Math.min(start, maxFret - span));
-    const to = Math.min(maxFret, from + span);
-    const key = `${from}:${to}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    positions.push({ from, to, degree: offset, rootMidi: lowest + start });
+  let anchor = null;
+  for (let fret = 0; fret < 12; fret += 1) {
+    if (mod12(lowest + fret - rootPitchClass) === 0) { anchor = fret; break; }
   }
+  if (anchor === null || anchor + span > maxFret) return [];
 
-  return positions
-    .sort((a, b) => a.from - b.from)
-    .map((position, index) => ({ ...position, number: index + 1 }));
+  return scale.intervals.map((offset, index) => {
+    // A box that would run off the end of the board is played an octave lower,
+    // which is the same shape at the same number — box 5 of A minor pentatonic
+    // sits at the fifteenth fret and, identically, at the third. The shift is
+    // always safe: a start past `maxFret - span` is at least the twelfth fret.
+    let from = anchor + offset;
+    if (from + span > maxFret) from -= 12;
+    return { from, to: from + span, degree: offset, number: index + 1 };
+  });
 }
 
 export function inPosition(cell, position) {

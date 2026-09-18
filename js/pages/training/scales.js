@@ -59,7 +59,7 @@ function renderPositionPicker(positions) {
   const chips = positions.map((position) => `
     <button type="button" role="radio" class="position-chip${position.number === state.positionNumber ? ' active' : ''}"
       aria-checked="${position.number === state.positionNumber}" data-scale-position="${position.number}"
-      aria-label="${t('training.scales.positionAria', { n: position.number, from: position.from, to: position.to })}">
+      aria-label="${t('training.scales.positionAria', { n: position.number, degree: DEGREE_LABELS[position.degree], from: position.from, to: position.to })}">
       <strong>${position.number}</strong>
       <small>${position.from}–${position.to}</small>
     </button>`).join('');
@@ -73,7 +73,7 @@ function renderExplainer(scale, cells, position) {
   const rootName = PITCH_NAMES[state.rootPitchClass];
   const pitches = scale.intervals.map((offset) => PITCH_NAMES[mod12(state.rootPitchClass + offset)]);
   const scope = position
-    ? t('training.scales.positionScope', { n: position.number, from: position.from, to: position.to })
+    ? t('training.scales.positionScope', { n: position.number, degree: DEGREE_LABELS[position.degree], from: position.from, to: position.to })
     : t('training.scales.wholeNeckScope', { n: cells.length });
 
   elements.scaleExplainer.innerHTML = `
