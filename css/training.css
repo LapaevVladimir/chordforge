@@ -59,6 +59,65 @@ body.site-ready .interval-board { animation: training-board-in 0.82s 0.42s cubic
 #trainerSettings fieldset { min-width: 0; margin: 0; }
 #trainerSettings fieldset:disabled { opacity: 0.48; }
 
+/* Section panels (Learn page swaps intervals <-> scales) */
+[data-learn-panel][hidden] { display: none; }
+
+/* Sidebar: scale pickers */
+.pitch-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.pitch-chip { padding: 8px 0; color: var(--text); border: 1px solid var(--line); border-radius: 9px; background: var(--panel-3); font-size: 0.76rem; font-weight: 800; cursor: pointer; transition: 0.15s ease; }
+.pitch-chip:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.pitch-chip.active { color: var(--clip-text); border-color: transparent; background: var(--accent); }
+
+.scale-list { display: grid; gap: 5px; }
+.scale-option { display: grid; padding: 8px 10px; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3); cursor: pointer; transition: 0.15s ease; }
+.scale-option strong { color: var(--text); font-size: 0.78rem; font-weight: 780; }
+/* The formula is the reason to pick one scale over another, so it sits in the
+   button rather than behind a tooltip. */
+.scale-option small { margin-top: 2px; color: var(--muted); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; }
+.scale-option:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.scale-option.active { border-color: rgba(var(--accent-rgb), 0.62); background: rgba(var(--accent-rgb), 0.1); }
+.scale-option.active strong { color: var(--accent); }
+
+.position-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.position-chip { display: grid; padding: 6px 0 7px; color: var(--text); border: 1px solid var(--line); border-radius: 9px; background: var(--panel-3); cursor: pointer; transition: 0.15s ease; }
+.position-chip strong { font-size: 0.82rem; font-weight: 850; }
+.position-chip small { color: var(--muted); font-size: 0.58rem; font-weight: 700; }
+.position-chip.wide { grid-column: 1 / -1; padding: 8px 0; font-size: 0.74rem; font-weight: 760; }
+.position-chip:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.position-chip.active { color: var(--clip-text); border-color: transparent; background: var(--accent); }
+.position-chip.active small { color: color-mix(in srgb, var(--clip-text) 72%, transparent); }
+
+.switch-row { display: flex; align-items: center; gap: 8px; margin: 10px 0 12px; color: var(--muted); font-size: 0.74rem; cursor: pointer; }
+
+/* Workspace: interval rail — the whole set of intervals, one click each, in
+   place of a dropdown that hid twelve of the thirteen. */
+.interval-rail { display: flex; gap: 6px; margin: 0 24px 4px; padding-bottom: 4px; overflow-x: auto; scrollbar-width: thin; }
+.interval-chip { display: grid; flex: 1 1 0; min-width: 58px; padding: 9px 4px 7px; color: var(--text); border: 1px solid var(--line); border-radius: 11px; background: var(--panel-3); cursor: pointer; transition: 0.16s ease; }
+.interval-chip strong { font-size: 0.86rem; font-weight: 860; }
+.interval-chip small { margin-top: 1px; color: var(--muted); font-size: 0.58rem; font-weight: 720; }
+.interval-chip::before { content: ""; display: block; width: 18px; height: 3px; margin: 0 auto 6px; border-radius: 99px; background: var(--family-tint); }
+.interval-chip.perfect { --family-tint: var(--accent-2); }
+.interval-chip.major { --family-tint: var(--accent); }
+.interval-chip.minor { --family-tint: color-mix(in srgb, var(--accent) 45%, var(--muted)); }
+.interval-chip.tritone { --family-tint: var(--danger); }
+.interval-chip:hover { border-color: rgba(var(--accent-rgb), 0.5); transform: translateY(-2px); }
+.interval-chip.active { border-color: transparent; background: color-mix(in srgb, var(--family-tint) 16%, var(--panel-3)); box-shadow: inset 0 0 0 1px var(--family-tint), 0 8px 18px rgba(0, 0, 0, 0.26); }
+.interval-chip.active strong { color: var(--family-tint); }
+.interval-chip.active::before { width: 26px; }
+
+/* Workspace: scale board */
+.interval-cell.scale-note .interval-note { min-width: 30px; height: 30px; color: var(--clip-text); background: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.16), 0 6px 13px rgba(0, 0, 0, 0.45); font-size: 0.7rem; font-weight: 880; }
+.interval-cell.scale-root .interval-note { min-width: 34px; height: 34px; background: var(--accent-2); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-2) 22%, transparent), 0 8px 16px rgba(0, 0, 0, 0.5); font-size: 0.78rem; font-weight: 950; }
+/* Degrees outside the chosen position stay on the board so the box is seen in
+   context, but recede far enough that the shape reads on its own. */
+.interval-cell.scale-outside .interval-note { color: rgba(255, 248, 232, 0.6); background: rgba(255, 248, 232, 0.075); box-shadow: inset 0 0 0 1px rgba(255, 248, 232, 0.16); }
+.interval-cell.scale-rest { color: rgba(255, 248, 232, 0.2); }
+
+.interval-explainer.scale-explainer { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+.scale-formula { display: flex; gap: 5px; }
+.scale-formula b { display: grid; min-width: 34px; padding: 4px 6px 5px; text-align: center; color: var(--text); border: 1px solid var(--line); border-radius: 8px; background: var(--panel-3); font-size: 0.74rem; font-weight: 820; }
+.scale-formula i { color: var(--accent); font-size: 0.58rem; font-style: normal; font-weight: 900; }
+
 /* Workspace: interval board (Learn page) */
 .training-board-scroll { overflow-x: auto; scrollbar-color: color-mix(in srgb, var(--accent) 40%, #333) var(--panel-3); }
 .interval-board { min-width: 1120px; padding: 17px 18px 20px; background: linear-gradient(160deg, #251a14, #0f0c0a 54%, #21160f); box-shadow: inset 0 18px 38px rgba(255, 197, 124, 0.035), inset 0 -25px 38px rgba(0, 0, 0, 0.38); }
@@ -170,6 +229,10 @@ button.interval-cell { cursor: pointer; }
 
 @media (max-width: 650px) {
   .interval-explainer { grid-template-columns: auto 1fr; margin: 14px 16px; }
+  .interval-rail { margin: 0 16px 4px; }
+  .interval-chip { flex: 0 0 auto; }
+  .interval-explainer.scale-explainer { grid-template-columns: auto 1fr; }
+  .scale-formula { grid-column: 1 / -1; flex-wrap: wrap; }
   .interval-distance { grid-column: 2; }
   .board-legend { align-items: flex-start; flex-wrap: wrap; gap: 8px 15px; padding: 12px 16px 15px; }
   .board-legend > span:last-child { width: 100%; margin-left: 0; }

@@ -38,7 +38,15 @@
       </nav>
 
       <div class="sidebar-scroll">
-        <section class="tool-section current-section" aria-live="polite">
+        <section class="tool-section">
+          <div class="section-kicker" data-i18n="training.learn.sectionLabel">Раздел</div>
+          <fieldset class="mode-choice">
+            <label><input type="radio" name="learnSection" value="intervals" checked /><span><b aria-hidden="true">◎</b><strong data-i18n="training.learn.sectionIntervals">Интервалы</strong><small data-i18n="training.learn.sectionIntervalsHint">Расстояния от опорной ноты</small></span></label>
+            <label><input type="radio" name="learnSection" value="scales" /><span><b aria-hidden="true">≋</b><strong data-i18n="training.learn.sectionScales">Гаммы</strong><small data-i18n="training.learn.sectionScalesHint">Позиции и аппликатуры</small></span></label>
+          </fieldset>
+        </section>
+
+        <section class="tool-section current-section" data-learn-panel="intervals" aria-live="polite">
           <div class="section-kicker"><span data-i18n="training.learn.anchorLabel">Опорная нота</span></div>
           <div class="anchor-readout">
             <strong id="anchorNote">E2</strong>
@@ -46,11 +54,8 @@
           </div>
         </section>
 
-        <section class="tool-section">
-          <div class="section-kicker" data-i18n="training.learn.intervalLabel">Интервал</div>
-          <div class="group">
-            <select id="learnInterval" data-i18n-attr='{"aria-label":"training.learn.intervalSelectAria"}' aria-label="Интервал для изучения"></select>
-          </div>
+        <section class="tool-section" data-learn-panel="intervals">
+          <div class="section-kicker" data-i18n="training.learn.playbackLabel">Прослушивание</div>
           <div class="group">
             <fieldset class="mode-choice">
               <legend data-i18n="training.intervalType.legend">Тип интервала</legend>
@@ -60,6 +65,26 @@
             </fieldset>
           </div>
           <button class="listen-button" id="playLearnInterval" type="button"><span aria-hidden="true">▶</span><span data-i18n="training.learn.playButton">Проиграть</span></button>
+        </section>
+
+        <section class="tool-section" data-learn-panel="scales" hidden>
+          <div class="section-kicker" data-i18n="training.scales.rootLabel">Тоника</div>
+          <div class="pitch-grid" id="scaleRoot" role="radiogroup" data-i18n-attr='{"aria-label":"training.scales.rootAria"}' aria-label="Тоника гаммы"></div>
+        </section>
+
+        <section class="tool-section" data-learn-panel="scales" hidden>
+          <div class="section-kicker" data-i18n="training.scales.typeLabel">Гамма</div>
+          <div class="scale-list" id="scaleType" role="radiogroup" data-i18n-attr='{"aria-label":"training.scales.typeAria"}' aria-label="Тип гаммы"></div>
+        </section>
+
+        <section class="tool-section" data-learn-panel="scales" hidden>
+          <div class="section-kicker" data-i18n="training.scales.positionLabel">Позиция</div>
+          <div class="position-grid" id="scalePosition" role="radiogroup" data-i18n-attr='{"aria-label":"training.scales.positionAriaGroup"}' aria-label="Позиция на грифе"></div>
+          <label class="switch-row">
+            <input type="checkbox" id="scaleNamesToggle" />
+            <span data-i18n="training.scales.showNoteNames">Показывать названия нот</span>
+          </label>
+          <button class="listen-button" id="playScale" type="button"><span aria-hidden="true">▶</span><span data-i18n="training.scales.playButton">Проиграть позицию</span></button>
         </section>
 
         <section class="tool-section">
@@ -80,19 +105,36 @@
     </aside>
 
     <main class="workspace">
-      <section class="work card">
+      <section class="work card" data-learn-panel="intervals">
         <div class="work-top">
           <div><span class="eyebrow" data-i18n="training.learn.eyebrow">Обучение</span><h1 data-i18n="training.learn.title">Интервалы на стандартном грифе</h1><p class="sub" data-i18n="training.learn.subtitle">Выберите интервал, затем нажмите любую ноту на грифе. Карта покажет все доступные позиции выше и ниже неё.</p></div>
           <div class="work-header-actions">
             <span class="pill" id="tuningBadge">E · A · D · G · B · E</span>
           </div>
         </div>
+        <div class="interval-rail" id="intervalRail" role="radiogroup" data-i18n-attr='{"aria-label":"training.learn.intervalSelectAria"}' aria-label="Интервал для изучения"></div>
         <div class="training-board-scroll"><div class="interval-board" id="learnFretboard" data-i18n-attr='{"aria-label":"training.board.ariaLabel"}' aria-label="Учебный гитарный гриф"></div></div>
         <div class="interval-explainer" id="intervalExplainer" aria-live="polite"></div>
         <div class="board-legend">
           <span><i class="legend-anchor">1</i> <span data-i18n="training.board.anchorLegend">опорная нота</span></span>
           <span><i class="legend-target">m3</i> <span data-i18n="training.board.targetLegend">найденные позиции</span></span>
           <span data-i18n="training.board.hint">Нажмите другую ноту, чтобы перестроить карту</span>
+        </div>
+      </section>
+
+      <section class="work card" data-learn-panel="scales" hidden>
+        <div class="work-top">
+          <div><span class="eyebrow" data-i18n="training.scales.eyebrow">Гаммы</span><h1 data-i18n="training.scales.title">Гаммы по позициям</h1><p class="sub" data-i18n="training.scales.subtitle">Выберите тонику и гамму. Гриф покажет все её ступени, а позиция подсветит одну аппликатуру — ту, что играется без смены руки.</p></div>
+          <div class="work-header-actions">
+            <span class="pill" id="scaleBadge">A Пентатоника минорная</span>
+          </div>
+        </div>
+        <div class="training-board-scroll"><div class="interval-board scale-board" id="scaleFretboard" data-i18n-attr='{"aria-label":"training.scales.boardAria"}' aria-label="Гриф с гаммой"></div></div>
+        <div class="interval-explainer scale-explainer" id="scaleExplainer" aria-live="polite"></div>
+        <div class="board-legend">
+          <span><i class="legend-anchor">1</i> <span data-i18n="training.scales.rootLegend">тоника</span></span>
+          <span><i class="legend-target">5</i> <span data-i18n="training.scales.degreeLegend">ступени гаммы</span></span>
+          <span data-i18n="training.scales.hint">Бледные ступени лежат вне выбранной позиции</span>
         </div>
       </section>
     </main>

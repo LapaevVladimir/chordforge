@@ -5,20 +5,55 @@ import { elements, checkedValue } from './elements.js';
 import { audio, showToast, playIntervalByType } from './playback.js';
 import { syncLocaleDock, bindLocaleDock } from '../../i18n/locale-dock.js';
 import {
-  renderIntervalOptions, renderLearning, renderTuningControls, bindTuningActions,
-  chooseLearnTarget, setLearnAnchor, learnAnchor,
+  renderIntervalRail, renderLearning, renderTuningControls, bindTuningActions,
+  chooseLearnTarget, setLearnAnchor, setLearnInterval, learnAnchor, onTuningChange,
 } from './learn.js';
+import { renderScales, bindScaleEvents, currentScaleLabel } from './scales.js';
+
+// Which half of the page is on screen. Both are rendered from the same tuning
+// and the same board module; only their panels are swapped.
+let section = 'intervals';
+
+function applySection(next) {
+  section = next === 'scales' ? 'scales' : 'intervals';
+  elements.sectionPanels.forEach((panel) => {
+    panel.hidden = panel.dataset.learnPanel !== section;
+  });
+  if (section === 'scales') renderScales();
+  else renderLearning();
+}
+
+function refreshBadges() {
+  if (elements.tuningBadge) elements.tuningBadge.textContent = tuningLabel();
+  if (elements.scaleBadge) elements.scaleBadge.textContent = currentScaleLabel();
+}
+
+function renderAll() {
+  renderIntervalRail();
+  renderTuningControls();
+  renderLearning();
+  renderScales();
+  refreshBadges();
+}
 
 onLocaleChange(() => {
   syncLocaleDock();
-  renderIntervalOptions();
-  renderTuningControls();
-  if (elements.tuningBadge) elements.tuningBadge.textContent = tuningLabel();
-  renderLearning();
+  renderAll();
 });
 
 function bindEvents() {
-  elements.learnInterval.addEventListener('change', renderLearning);
+  document.querySelectorAll('input[name="learnSection"]').forEach((input) => {
+    input.addEventListener('change', () => { if (input.checked) applySection(input.value); });
+  });
+
+  elements.intervalRail.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-interval]');
+    if (!button) return;
+    setLearnInterval(button.dataset.interval);
+    renderIntervalRail();
+    renderLearning();
+  });
+
   elements.learnFretboard.addEventListener('click', (event) => {
     const button = event.target.closest('[data-learn-cell]');
     if (!button) return;
@@ -26,6 +61,7 @@ function bindEvents() {
     setLearnAnchor({ stringIndex, fret, midi: OPEN_MIDIS[stringIndex] + fret });
     renderLearning();
   });
+
   elements.playLearnInterval.addEventListener('click', () => {
     const target = chooseLearnTarget();
     if (!target) {
@@ -35,6 +71,14 @@ function bindEvents() {
     const intervalType = checkedValue('learnIntervalType', 'ascending');
     playIntervalByType(learnAnchor.midi, target.midi, intervalType, elements.playLearnInterval);
   });
+
+  bindScaleEvents();
+  // The scale controls redraw their own board; the badge above it is this
+  // module's, so it is refreshed on the way past.
+  elements.scaleRoot.addEventListener('click', refreshBadges);
+  elements.scaleType.addEventListener('click', refreshBadges);
+
+  onTuningChange(() => { renderScales(); refreshBadges(); });
   bindTuningActions();
   bindThemeDock('sunset');
   bindLocaleDock();
@@ -44,10 +88,8 @@ function bindEvents() {
 function initialize() {
   i18nInit();
   syncLocaleDock();
-  renderIntervalOptions();
-  renderTuningControls();
-  if (elements.tuningBadge) elements.tuningBadge.textContent = tuningLabel();
-  renderLearning();
+  renderAll();
+  applySection('intervals');
   bindEvents();
   applyTheme(localStorage.getItem(THEME_KEY), 'sunset');
   window.setTimeout(() => {

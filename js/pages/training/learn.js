@@ -16,11 +16,21 @@ function syncAnchorToTuning() {
   learnAnchor = { ...learnAnchor, midi: OPEN_MIDIS[learnAnchor.stringIndex] + learnAnchor.fret };
 }
 
+// The tuning controls live in this module but the scale board is drawn from the
+// same open strings, so anything else that depends on the tuning subscribes here
+// rather than duplicating the wiring.
+const tuningListeners = [];
+
+export function onTuningChange(listener) {
+  tuningListeners.push(listener);
+}
+
 function onTuningChanged() {
   syncAnchorToTuning();
   if (elements.tuningBadge) elements.tuningBadge.textContent = tuningLabel();
   renderTuningControls();
   renderLearning();
+  tuningListeners.forEach((listener) => listener());
 }
 
 export function renderTuningControls() {
@@ -58,8 +68,16 @@ export function bindTuningActions() {
   elements.resetTuning?.addEventListener('click', () => { resetTuning(); onTuningChanged(); });
 }
 
+// The chosen interval lives here rather than in a form control, because the rail
+// is a set of buttons: one click, everything visible at once, no list to open.
+let selectedIntervalId = 'p8';
+
 export function getLearnInterval() {
-  return getInterval(elements.learnInterval.value);
+  return getInterval(selectedIntervalId);
+}
+
+export function setLearnInterval(id) {
+  selectedIntervalId = getInterval(id).id;
 }
 
 export function findTargets(anchor, interval) {
@@ -91,7 +109,24 @@ export function chooseLearnTarget() {
     })[0];
 }
 
-export function renderIntervalOptions() {
-  elements.learnInterval.innerHTML = INTERVALS.map((interval) => `<option value="${interval.id}">${intervalShort(interval.id)} · ${intervalName(interval.id)}</option>`).join('');
-  elements.learnInterval.value = 'p8';
+// Interval families, used only to tint the rail: perfect intervals read as one
+// group, major and minor as their own, and the tritone stands alone — which is
+// roughly how they sound, and makes the row scannable without reading every label.
+function intervalFamily(id) {
+  if (id === 'tt') return 'tritone';
+  if (id.startsWith('p')) return 'perfect';
+  return id.startsWith('m') ? 'minor' : 'major';
+}
+
+export function renderIntervalRail() {
+  if (!elements.intervalRail) return;
+  elements.intervalRail.innerHTML = INTERVALS.map((interval) => {
+    const active = interval.id === selectedIntervalId;
+    return `<button type="button" role="radio" class="interval-chip ${intervalFamily(interval.id)}${active ? ' active' : ''}"
+      aria-checked="${active}" data-interval="${interval.id}"
+      title="${intervalName(interval.id)}" aria-label="${intervalName(interval.id)}">
+      <strong>${intervalShort(interval.id)}</strong>
+      <small>${interval.semitones}</small>
+    </button>`;
+  }).join('');
 }

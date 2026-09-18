@@ -43,3 +43,46 @@ export function playIntervalByType(rootMidi, targetMidi, type, sourceButton = nu
   if (type === 'descending') return playNotes(high, low, 'sequential', sourceButton);
   return playNotes(low, high, 'sequential', sourceButton);
 }
+
+// Plays a run of notes one after another — a scale in a position, in practice.
+// Voices are spread across the stereo field the way the run climbs the neck, and
+// the button stays disabled until the last note has sounded so a second click
+// cannot stack two runs on top of each other.
+const STEP_MS = 260;
+
+export async function playSequence(midis, sourceButton = null) {
+  if (!midis.length) return;
+  const previous = sourceButton?.innerHTML;
+  try {
+    if (sourceButton) {
+      sourceButton.disabled = true;
+      sourceButton.innerHTML = t('common.loadingSound');
+    }
+    const context = await audio.prepare(midis);
+    // Past this point the samples are in memory, so the button stops claiming to
+    // be loading and says what it is actually doing.
+    if (sourceButton) sourceButton.innerHTML = t('training.scales.playing');
+    audio.stop();
+    const origin = context.currentTime + 0.05;
+    const step = STEP_MS / 1000;
+    midis.forEach((midi, order) => {
+      const pan = midis.length <= 1 ? 0 : -0.24 + (order / (midis.length - 1)) * 0.48;
+      audio.playVoice({ midi, stringIndex: order % 6 }, {
+        start: origin + order * step,
+        velocity: 0.62,
+        pan,
+        duration: 0.85,
+        release: 0.22,
+      });
+    });
+    await new Promise((resolve) => window.setTimeout(resolve, midis.length * STEP_MS + 260));
+  } catch (error) {
+    console.error(error);
+    showToast(t('training.toast.samplesLoadFailed'));
+  } finally {
+    if (sourceButton) {
+      sourceButton.disabled = false;
+      sourceButton.innerHTML = previous;
+    }
+  }
+}
