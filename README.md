@@ -1,26 +1,48 @@
 # ChordForge
 
-An interactive guitar chord builder and multi-track chord sequencer, plus a
-companion interval trainer, built as a static site with no build step.
+A set of guitar tools that run in the browser: a microphone tuner, a chord
+identifier, an interval and scale map, and an ear-training quiz. It is a static
+site — no dependencies, no build step, no framework. Every page loads one ES
+module and the browser resolves the rest.
 
-- **Builder** ([index.html](index.html)) — build chords on an interactive fretboard,
-  search for a chord by name to see voicing options, arrange chords on a
-  multi-track timeline with per-clip volume/attack/release and strum patterns,
-  and play everything back with real recorded guitar samples.
-- **Learn** ([training-learn.html](training-learn.html)) — pick an interval and
-  click any note on the neck to see every matching position, with a
-  customizable tuning and ascending/descending/harmonic playback.
-- **Practice** ([training-quiz.html](training-quiz.html)) — a quiz that drills
-  recognizing intervals visually on the neck or by ear.
+## The pages
 
-The whole app is available in Russian and English, with a live language
-switcher (🇷🇺/EN) that persists across visits.
+| Page | What it does |
+|---|---|
+| [index.html](index.html) | Landing page: what the four tools are and where they live. |
+| [tuner.html](tuner.html) | Microphone tuner. Guitar mode measures against the strings of the current tuning, automatically or one string you pin by hand; chromatic mode names whatever it hears. Built on a YIN pitch detector running off the UI thread — see [docs/TUNER.md](docs/TUNER.md). |
+| [chords.html](chords.html) | Chord identifier. Press frets and the chord names itself, or search by name and pick from the voicings — full barre and compact shapes, up the neck. |
+| [training-learn.html](training-learn.html) | Two maps of the neck: every position of a chosen interval from a note you pick, and any of eight scales laid out by position with the degrees marked. |
+| [training-quiz.html](training-quiz.html) | Interval quiz, on the neck or by ear. |
 
-## Running locally
+`studio.html` is the older combined builder — chord editing plus a multi-track
+timeline with per-clip strum patterns and envelopes. It still works and shares
+most of its code with the chord identifier, but it is unfinished and is not
+linked from the landing page.
 
-This is a plain static site — no dependencies, no build step. Because the
-audio samples are loaded with `fetch()`, it needs to be served over HTTP
-rather than opened directly as a `file://` URL:
+## What is in it
+
+- **43 chord qualities** with aliases, inversions and a search that only offers
+  shapes a hand can actually hold: fingers and stretch are counted, and a barre
+  that an open string would have to ring through is counted as the several
+  fingers it really costs.
+- **13 intervals** and **8 scales** (major, natural minor, both pentatonics,
+  blues, dorian, mixolydian, harmonic minor), with positions derived from the
+  scale rather than hard-coded, so they hold for any root and any tuning.
+- **Real recorded samples**, not a synthesiser: 35 acoustic guitar notes from
+  E2 to D5, pitch-shifted to fill the gaps between them.
+- **Russian and English**, switchable live and remembered. English is the base
+  language — it is what the markup says before any dictionary is applied.
+- **Six themes**, also remembered.
+- **Built for a phone as well as a desk**: navigation becomes a bar fixed to
+  the bottom of the screen, and the fretboards can be turned upright, the way
+  chord diagrams are drawn.
+
+## Running it
+
+A plain static site, but it has to be served over HTTP rather than opened as a
+`file://` URL — the pages are ES modules, and the tuner's microphone needs a
+secure context (`localhost` counts).
 
 ```bash
 python3 -m http.server 4173
@@ -28,30 +50,38 @@ python3 -m http.server 4173
 
 Then open `http://localhost:4173`.
 
-## Project structure
+## Layout
 
 ```
-index.html               Chord builder page
-training-learn.html      Interval map / "Learn" page
-training-quiz.html       Interval trainer / "Practice" page
-css/                     Stylesheets (shared design system + page-specific)
+*.html                   One page each, one module each
+css/                     styles.css is the shared design system;
+                         home/tuner/training add what only they need
 js/
-  core/                  Framework-agnostic logic: chord theory, audio engine,
-                         shared utils and theming — no DOM/page dependencies
-  i18n/                  Translation engine + ru/en dictionaries
+  core/                  No DOM, no page knowledge, reusable anywhere:
+    chord-engine.js        chord theory — naming, parsing, shape generation
+    scales.js              scale theory and neck positions
+    tuning.js              tunings and pitch classes
+    guitar-audio.js        sample loading, playback, strums, timelines
+    theme.js               themes
+    board-orientation.js   the upright-neck toggle
+    utils.js
+    pitch/                 note maths, the YIN detector, smoothing, a test-signal
+                           generator used by the tuner's accuracy self-test
+    tuner/                 microphone capture, the worklet, the pitch worker and
+                           TunerEngine, which knows nothing about the UI
+  i18n/                  Translation engine and the ru/en dictionaries
   pages/
-    builder/             Chord builder page modules (state, fretboard,
-                         timeline, clip editor, strum editor, playback)
-    training/            Learn/Practice page modules (board rendering,
-                         interval data, learn/quiz logic, playback)
-assets/                  Fretboard texture + recorded guitar samples
+    home/ tuner/ chords/ training/ builder/
+                         Page modules. builder/ is shared by chords.html and
+                         studio.html; training/ by both training pages.
+assets/                  Fretboard texture and the guitar samples (embedded/
+                         holds base64 copies, used only on a file:// origin)
+docs/TUNER.md            How the tuner works and why it is built that way
 ```
 
-Each page loads a single `<script type="module">` entry point
-(`js/pages/builder/main.js`, `js/pages/training/main-learn.js`,
-`js/pages/training/main-quiz.js`); everything else is imported by that entry
-module. There's no bundler — modules are served and resolved by the browser
-as-is.
+The engines in `js/core/` are meant to be used from anywhere: `TunerEngine`
+emits readings to whatever subscribes, `chord-engine.js` and `scales.js` return
+data rather than markup, and none of them import anything from `js/pages/`.
 
 ## Credits
 
