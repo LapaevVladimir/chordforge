@@ -209,7 +209,16 @@ function fingersNeeded(shape) {
   if (!fretted.length) return 0;
   const lowest = Math.min(...fretted);
   const above = fretted.filter((position) => position > lowest).length;
-  return 1 + above;
+  // One finger normally lies across everything at the lowest fret. It cannot,
+  // though, if a string is meant to ring open between the outermost strings it
+  // would cover — the barre would stop that string dead. Then each note at the
+  // lowest fret costs a finger of its own, which is usually more than a hand has.
+  const atLowest = [];
+  shape.forEach((position, stringIndex) => { if (position === lowest) atLowest.push(stringIndex); });
+  const first = atLowest[0];
+  const last = atLowest[atLowest.length - 1];
+  const openUnderBarre = shape.some((position, stringIndex) => position === 0 && stringIndex > first && stringIndex < last);
+  return (openUnderBarre ? atLowest.length : 1) + above;
 }
 
 // The actual stretch the hand has to cover: open strings are not held down, so
@@ -256,7 +265,10 @@ function bestShapeInWindow(target, targetMask, rootBit, bassTarget, tuning, capo
           else {
             copy.min = Math.min(copy.min, position);
             copy.max = Math.max(copy.max, position);
-            copy.score += position * 0.07;
+            // Relative to the window, not absolute. An absolute cost per string
+            // quietly charges a shape for every string it sounds, which is how a
+            // full barre used to lose to a thinner voicing at the same fret.
+            copy.score += (position - windowStart) * 0.05;
             if (copy.max - copy.min > 4) copy.score += 9;
           }
         }
@@ -272,10 +284,15 @@ function bestShapeInWindow(target, targetMask, rootBit, bassTarget, tuning, capo
     candidate.fingers = fingersNeeded(candidate.shape);
     candidate.span = frettedSpan(candidate.shape);
     if (strict && (candidate.fingers > MAX_FINGERS || candidate.span > MAX_STRETCH || candidate.internalMutes > 1)) continue;
-    candidate.position = candidate.hasOpen ? 0 : (candidate.min === Infinity ? windowStart : candidate.min);
+    // Open strings alone do not put the hand at the nut: a barre at the fifth
+    // fret with two open strings is a fifth-position shape, and saying otherwise
+    // made it collide with the real open chord in the list.
+    const lowestFretted = candidate.min === Infinity ? 0 : candidate.min;
+    candidate.position = candidate.hasOpen && lowestFretted <= 3 ? 0 : (lowestFretted || windowStart);
     // Among playable shapes, prefer the ones that ask less of the hand.
     candidate.selectionScore = candidate.score + candidate.span * 1.1 + candidate.fingers * 0.5
-      + candidate.internalMutes * 1.2 + (candidate.bass === bassTarget ? 0 : 4.5);
+      + candidate.internalMutes * 1.2 + candidate.position * 0.32
+      + (candidate.bass === bassTarget ? 0 : 4.5);
     if (!best || candidate.selectionScore < best.selectionScore) best = candidate;
     // score is finalized by the caller once the bass penalty (which depends on the
     // requested chord, not the window) has been applied.
@@ -310,7 +327,7 @@ export function generateShapes(parsed, tuning, capo, fretCount, limit = 8) {
       if ((fullMask & (1 << pitch)) && !(candidate.mask & (1 << pitch))) dropped += 1;
     }
     candidate.score += candidate.span * 1.1 + candidate.fingers * 0.5
-      + candidate.internalMutes * 1.2 + bassPenalty + dropped * 2.2;
+      + candidate.internalMutes * 1.2 + candidate.position * 0.32 + bassPenalty + dropped * 2.2;
     return candidate;
   };
 
