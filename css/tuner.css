@@ -116,6 +116,10 @@
 .string-check { position: absolute; top: 5px; right: 6px; color: var(--accent); font-size: 0.62rem; font-weight: 900; opacity: 0; transform: scale(0.5); transition: 0.2s cubic-bezier(0.3, 1.5, 0.5, 1); }
 .tuner-string.tuned { border-color: rgba(var(--accent-rgb), 0.45); }
 .tuner-string.tuned .string-check { opacity: 1; transform: scale(1); }
+/* The tick is earned rather than given: a string has to hold its pitch for a
+   full second, and this line fills while that second runs. */
+.tuner-string::after { content: ""; position: absolute; right: 10px; bottom: 5px; left: 10px; height: 2px; border-radius: 2px; background: var(--accent); opacity: calc(var(--confirm, 0) * 0.85); transform: scaleX(var(--confirm, 0)); transform-origin: left center; transition: transform 0.09s linear, opacity 0.09s linear; }
+.tuner-string.tuned::after { opacity: 0; }
 
 .tuner-hint { max-width: 460px; margin: 24px 0 0; color: var(--muted); font-size: 0.78rem; line-height: 1.55; text-align: center; }
 
@@ -130,6 +134,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gauge-arc, .mic-level i { transition: none; }
+  .gauge-arc, .mic-level i, .tuner-string::after { transition: none; }
   .mic-button.listening .mic-icon { animation: none; }
 }

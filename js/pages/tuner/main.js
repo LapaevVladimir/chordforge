@@ -20,6 +20,19 @@ const GAUGE_SWEEP = 120; // degrees of arc that ±50 cents maps to
 const GAUGE_CIRCUMFERENCE = 2 * Math.PI * 96; // must match r= in tuner.html
 const CENTS_RANGE = 50;
 
+// A string has to sit in tune for this long before it is ticked off. A single
+// frame is not evidence: a door closing or a neighbouring string ringing can
+// land in tune for a moment, and the tick is supposed to mean "this one is done".
+const CONFIRM_MS = 1000;
+// Only frames the detector is fairly sure of advance that second, so a vague
+// smear of room noise cannot accumulate one.
+const CONFIRM_MIN_CONFIDENCE = 0.93;
+// Guards the timer against a stalled tab: a gap longer than this is not time
+// spent in tune.
+const CONFIRM_MAX_STEP_MS = 250;
+// Half the hysteresis band on the cents display, in cents. See displayCents.
+const CENTS_HYSTERESIS = 0.65;
+
 const tuning = createTuning(STANDARD_TUNING, 'guitar');
 const audio = new GuitarEngine();
 const engine = createTunerEngine({ stringMidis: tuning.openMidis });
@@ -75,6 +88,7 @@ function renderStringPicker() {
   elements.stringPicker.querySelectorAll('[data-string-select]').forEach((button) => button.addEventListener('click', () => {
     const value = button.dataset.stringSelect;
     engine.selectString(value === 'auto' ? null : Number(value));
+    resetConfirmation();
     renderStringPicker();
     renderTargetReadout();
   }));
@@ -128,12 +142,43 @@ async function playReference(stringIndex) {
 
 const tunedStrings = new Set();
 
+// Tracks how long the current string has been continuously in tune. Only live
+// frames count: while the engine is coasting on its hold window no time passes,
+// so a note that has already died away cannot finish the countdown by itself.
+let confirm = { index: null, elapsed: 0, lastAt: 0 };
+
+function resetConfirmation() {
+  confirm = { index: null, elapsed: 0, lastAt: 0 };
+}
+
+function advanceConfirmation(reading, now) {
+  const eligible = reading.verdict === TUNING_VERDICTS.IN_TUNE
+    && reading.stringIndex !== null
+    && !reading.held
+    && reading.confidence >= CONFIRM_MIN_CONFIDENCE;
+  if (!eligible) return;
+
+  // A gap shorter than CONFIRM_MAX_STEP_MS is bridged rather than restarting the
+  // count, so a reading that flickers over the in-tune boundary — or a frame the
+  // detector was unsure about — does not send the player back to the start.
+  // Anything longer, including silence between plucks, begins a fresh second.
+  const continuing = confirm.index === reading.stringIndex
+    && now - confirm.lastAt <= CONFIRM_MAX_STEP_MS;
+  confirm.elapsed = continuing ? confirm.elapsed + (now - confirm.lastAt) : 0;
+  confirm.index = reading.stringIndex;
+  confirm.lastAt = now;
+  if (confirm.elapsed >= CONFIRM_MS) tunedStrings.add(confirm.index);
+}
+
 function updateStringStates(activeIndex) {
+  const settled = tunedStrings.has(confirm.index);
+  const progress = confirm.index === null || settled ? 0 : Math.min(1, confirm.elapsed / CONFIRM_MS);
   elements.strings.querySelectorAll('[data-string]').forEach((button) => {
     const index = Number(button.dataset.string);
     button.classList.toggle('active', index === activeIndex);
     button.classList.toggle('selected', engine.config.mode === 'guitar' && index === engine.selectedStringIndex);
     button.classList.toggle('tuned', tunedStrings.has(index));
+    button.style.setProperty('--confirm', index === confirm.index ? progress.toFixed(3) : '0');
   });
 }
 
@@ -165,6 +210,16 @@ function setLevel(level) {
   elements.micLevel.style.setProperty('--level', filled.toFixed(3));
 }
 
+// The measured 90th-percentile error is around a cent, so a tenths digit would
+// be displaying noise — hence whole cents, with a hysteresis band so a value
+// sitting on a boundary does not flicker between two numbers.
+let shownCents = null;
+
+function displayCents(value) {
+  if (shownCents === null || Math.abs(value - shownCents) >= CENTS_HYSTERESIS) shownCents = Math.round(value);
+  return shownCents;
+}
+
 function clearReadout(statusKey) {
   elements.note.textContent = '—';
   elements.octave.textContent = '';
@@ -173,6 +228,7 @@ function clearReadout(statusKey) {
   elements.readoutTarget.textContent = '—';
   elements.readoutCents.textContent = '—';
   elements.statusText.textContent = t(statusKey);
+  shownCents = null;
   elements.stage.classList.remove('in-tune', 'flat', 'sharp');
   setGauge(0);
   updateStringStates(null);
@@ -212,19 +268,21 @@ function render(reading) {
   const inTune = reading.verdict === TUNING_VERDICTS.IN_TUNE;
   elements.note.textContent = reading.noteName;
   elements.octave.textContent = reading.octave;
-  const rounded = reading.cents;
-  const sign = rounded > 0.05 ? '+' : rounded < -0.05 ? '−' : '';
-  elements.cents.textContent = `${sign}${Math.abs(rounded).toFixed(1)}¢`;
-  elements.readoutDetected.textContent = `${reading.frequency.toFixed(2)} Hz`;
+  const rounded = displayCents(reading.cents);
+  const sign = rounded > 0 ? '+' : rounded < 0 ? '−' : '';
+  elements.cents.textContent = `${sign}${Math.abs(rounded)}¢`;
+  // One decimal on the frequency for the same reason: 0.01 Hz at the low E is a
+  // fifth of a cent, finer than the detector can honestly resolve.
+  elements.readoutDetected.textContent = `${reading.frequency.toFixed(1)} Hz`;
   elements.readoutTarget.textContent = `${reading.targetFrequency.toFixed(4)} Hz`;
-  elements.readoutCents.textContent = `${sign}${Math.abs(rounded).toFixed(2)} ¢`;
+  elements.readoutCents.textContent = `${sign}${Math.abs(rounded)} ¢`;
   elements.statusText.textContent = t(VERDICT_KEYS[reading.verdict]);
   elements.stage.classList.toggle('in-tune', inTune);
   elements.stage.classList.toggle('flat', reading.verdict === TUNING_VERDICTS.FLAT);
   elements.stage.classList.toggle('sharp', reading.verdict === TUNING_VERDICTS.SHARP);
   setGauge(reading.cents);
 
-  if (inTune && reading.stringIndex !== null) tunedStrings.add(reading.stringIndex);
+  advanceConfirmation(reading, performance.now());
   updateStringStates(reading.stringIndex);
 }
 
@@ -240,6 +298,7 @@ function showClipWarning() {
 
 function onTuningChanged() {
   tunedStrings.clear();
+  resetConfirmation();
   engine.setStringMidis(tuning.openMidis);
   renderTuningControls();
   renderStringPicker();
@@ -313,6 +372,7 @@ async function runSelfTest() {
 
 function applyMode(mode) {
   engine.setMode(mode);
+  resetConfirmation();
   elements.stringSection.hidden = mode === 'chromatic';
   renderStringPicker();
   renderTargetReadout();

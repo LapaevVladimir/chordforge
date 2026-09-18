@@ -14,7 +14,7 @@ getUserMedia ─► AudioWorklet (capture-processor.js)   realtime audio thread
                      │ { frequency, clarity, rms, peak }
                      ▼
                PitchSmoother (pitch/smoother.js)
-                     │ clarity gate → octave repair → outlier reject → median → adaptive EMA
+                     │ clarity gate → octave repair → outlier reject → median → weighted EMA
                      ▼
                note detection (pitch/note.js)  midi / name / octave / target / cents
                      ▼
@@ -80,10 +80,46 @@ and noise floors. At 0.9 and above the median error was 0.57 cents and the 90th
 percentile 3.67. Every bucket below 0.9 contained octave errors of 1200-2400
 cents. The gate is therefore a real discriminator, not a guess.
 
-**Median of 5, then adaptive EMA** (alpha 0.25 steady, 1.0 on a jump greater than
-0.6 semitones). Smoothing runs in semitone space, so tolerances mean the same
-thing at E2 as at E4. The adaptive step is what keeps a string change snappy
-while a held note stays still.
+**Clarity is a weight, not just a gate.** The same sweep, bucketed more finely,
+shows how much an estimate is worth across the band above the gate:
+
+| clarity | frames | median error | 90th pct | 99th pct |
+|---|---|---|---|---|
+| 0.84 | 519 | 9.4 cents | 1200 | 2399 |
+| 0.86 | 462 | 7.7 | 21.5 | 33.5 |
+| 0.90 | 546 | 4.0 | 15.1 | 30.1 |
+| 0.94 | 903 | 2.2 | 8.2 | 15.8 |
+| 0.96 | 1776 | 1.1 | 3.8 | 8.2 |
+| 0.98 | 4569 | 0.42 | 1.04 | 2.94 |
+
+Two things follow. The floor stays at 0.90, because 0.84 and below is where
+octave errors live and no amount of filtering survives a 1200-cent outlier. But a
+0.91 frame is roughly ten times worse than a 0.98 one, so treating them alike is
+what made the last digit dance on a decaying note. Frames between 0.90 and
+**0.97** now move the estimate by a quadratically reduced fraction of the normal
+step, down to 12% at the floor — never zero, because a quietly played string
+lives in that band and still has to follow the peg.
+
+**Median of 9, then a weighted EMA** (base alpha 0.15, scaled by the trust weight
+above; a jump greater than 0.6 semitones snaps instead). Smoothing runs in
+semitone space, so tolerances mean the same thing at E2 as at E4. Measured on a
+decaying low E, this cuts the spread of the displayed value from 4.9 cents
+standard deviation to 3.2, and roughly halves how often the number changes.
+The cost is about 250 ms of lag while a peg is actually turning.
+
+**Whole cents on screen.** The 90th-percentile error is around a cent, so a
+tenths digit would be displaying noise. The readout rounds, with a 0.65-cent
+hysteresis band so a value sitting on a boundary does not flicker between two
+numbers, and the frequency shows one decimal for the same reason: 0.01 Hz at the
+low E is a fifth of a cent.
+
+**One second to earn a tick.** A string is only marked done after it has held its
+pitch inside the in-tune window for a continuous second of *live* frames at
+clarity 0.93 or better. Coasting frames from the hold window do not count, so a
+note that has already died away cannot finish the countdown, and a gap longer
+than 250 ms starts the second over. A door closing or a neighbouring string
+ringing sympathetically can land in tune for a moment; a tick is supposed to mean
+more than that.
 
 ## Measured accuracy
 

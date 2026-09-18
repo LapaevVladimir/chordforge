@@ -8,7 +8,8 @@
 //   2. octave repair     — pull obvious 2x / 0.5x errors back to the held note
 //   3. outlier rejection — ignore a lone frame that disagrees with the history
 //   4. median            — remove what survives of the spikes
-//   5. adaptive EMA      — smooth the remainder without adding lag on real moves
+//   5. weighted EMA      — smooth the remainder, trusting clear frames more than
+//                          murky ones, without adding lag on real moves
 //
 // Everything runs in semitone (log-frequency) space, because a fixed tolerance in
 // Hz would be far stricter at E2 than at E4.
@@ -21,13 +22,24 @@ const toFrequency = (semitones) => Math.pow(2, semitones / SEMITONES_PER_OCTAVE)
 export const DEFAULT_SMOOTHER_OPTIONS = {
   // YIN clarity below this is treated as "no reliable pitch". Chosen from
   // measurement, not taste: bucketing estimates by clarity over a sweep of
-  // levels and noise floors, everything at 0.9 and above had a median error of
-  // ~0.6 cents, while the buckets below it were riddled with octave errors.
+  // levels and noise floors, the buckets at 0.84 and below are riddled with
+  // octave errors — 1200 cents at the 90th percentile — and no filter downstream
+  // survives those. From 0.86 up the worst case is tens of cents, which the
+  // stages below can handle.
   minClarity: 0.9,
-  // Median window. 5 frames at a 512-sample hop is ~53 ms of history at 48 kHz.
-  medianSize: 5,
+  // Above this clarity an estimate is trusted in full. Measured on decaying
+  // plucked tones: clarity 0.98 frames land within 0.42 cents (median) and 1.04
+  // (90th percentile), while 0.90-0.92 frames miss by 3-4 cents and occasionally
+  // 30. Both kinds still count — the weight below just scales how much.
+  trustClarity: 0.97,
+  // How much a barely-trusted frame is allowed to move the estimate, as a
+  // fraction of the full step. Not zero: a quietly played string sits in this
+  // band the whole time, and it still has to follow the peg.
+  minTrustWeight: 0.12,
+  // Median window. 9 frames at a 512-sample hop is ~96 ms of history at 48 kHz.
+  medianSize: 9,
   // Steady-state smoothing factor for the exponential stage.
-  smoothing: 0.25,
+  smoothing: 0.15,
   // A change larger than this many semitones is treated as the player moving to
   // another note, so the filter jumps instead of gliding.
   jumpSemitones: 0.6,
@@ -114,11 +126,15 @@ export function createPitchSmoother(options = {}) {
 
     if (smoothed === null) {
       smoothed = median;
+    } else if (Math.abs(median - smoothed) > config.jumpSemitones) {
+      // A real move to another note: snap, so stability costs no responsiveness.
+      smoothed = median;
     } else {
-      // Adaptive: glide when the note is holding steady, snap when it moves, so
-      // stability costs nothing in responsiveness.
-      const alpha = Math.abs(median - smoothed) > config.jumpSemitones ? 1 : config.smoothing;
-      smoothed += (median - smoothed) * alpha;
+      // Otherwise glide, at a rate set by how much this frame deserves to be
+      // believed. A clear frame moves the reading the full step; a murky one
+      // nudges it. This is what keeps the last digit still on a decaying note,
+      // where the raw estimate wanders by ten cents or more.
+      smoothed += (median - smoothed) * config.smoothing * trustWeight(clarity, config);
     }
 
     lastAcceptedAt = now;
@@ -126,6 +142,14 @@ export function createPitchSmoother(options = {}) {
   }
 
   return { push, reset, config };
+}
+
+// 0 at the clarity floor, 1 at full trust, quadratic in between so the middle of
+// the band counts for a quarter rather than a half.
+function trustWeight(clarity, config) {
+  const span = config.trustClarity - config.minClarity;
+  const position = span > 0 ? Math.min(1, Math.max(0, (clarity - config.minClarity) / span)) : 1;
+  return config.minTrustWeight + (1 - config.minTrustWeight) * position * position;
 }
 
 function medianOf(values) {
