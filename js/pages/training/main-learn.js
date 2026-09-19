@@ -1,6 +1,6 @@
 import { applyTheme, bindThemeDock, THEME_KEY } from '../../core/theme.js';
 import { init as i18nInit, onChange as onLocaleChange, t } from '../../i18n/i18n.js';
-import { OPEN_MIDIS, tuningLabel } from './board.js';
+import { OPEN_MIDIS, tuningLabel, renderNoteBoard } from './board.js';
 import { elements, checkedValue } from './elements.js';
 import { audio, showToast, playIntervalByType } from './playback.js';
 import { syncLocaleDock, bindLocaleDock } from '../../i18n/locale-dock.js';
@@ -11,21 +11,26 @@ import {
 } from './learn.js';
 import { renderScales, bindScaleEvents, currentScaleLabel } from './scales.js';
 
-// Which half of the page is on screen. Both are rendered from the same tuning
+// Which part of the page is on screen. All three are drawn from the same tuning
 // and the same board module; only their panels are swapped.
+const SECTIONS = ['intervals', 'scales', 'notes'];
 let section = 'intervals';
 
 function applySection(next) {
-  section = next === 'scales' ? 'scales' : 'intervals';
+  section = SECTIONS.includes(next) ? next : 'intervals';
   elements.sectionPanels.forEach((panel) => {
     panel.hidden = panel.dataset.learnPanel !== section;
   });
+  // A board laid out while its panel was hidden has no width to measure, so the
+  // section being shown is always redrawn rather than trusted.
   if (section === 'scales') renderScales();
+  else if (section === 'notes') renderNoteBoard(elements.noteFretboard);
   else renderLearning();
 }
 
 function refreshBadges() {
   if (elements.tuningBadge) elements.tuningBadge.textContent = tuningLabel();
+  if (elements.notesBadge) elements.notesBadge.textContent = tuningLabel();
   if (elements.scaleBadge) elements.scaleBadge.textContent = currentScaleLabel();
 }
 
@@ -34,6 +39,7 @@ function renderAll() {
   renderTuningControls();
   renderLearning();
   renderScales();
+  renderNoteBoard(elements.noteFretboard);
   refreshBadges();
 }
 
@@ -79,13 +85,14 @@ function bindEvents() {
   elements.scaleRoot.addEventListener('click', refreshBadges);
   elements.scaleType.addEventListener('click', refreshBadges);
 
-  onTuningChange(() => { renderScales(); refreshBadges(); });
+  onTuningChange(() => { renderScales(); renderNoteBoard(elements.noteFretboard); refreshBadges(); });
   const flipLabels = { vertical: t('common.boardFlipVertical'), horizontal: t('common.boardFlipHorizontal') };
   bindOrientationToggle(document.querySelector('#boardFlip'), flipLabels);
   bindOrientationToggle(document.querySelector('#scaleBoardFlip'), flipLabels);
-  // Both boards are laid out from the same tuning, so both are redrawn when the
+  bindOrientationToggle(document.querySelector('#noteBoardFlip'), flipLabels);
+  // Every board is laid out from the same tuning, so all are redrawn when the
   // neck turns or the window changes shape.
-  const redrawBoards = () => { renderLearning(); renderScales(); };
+  const redrawBoards = () => { renderLearning(); renderScales(); renderNoteBoard(elements.noteFretboard); };
   onOrientationChange(redrawBoards);
   let resizeTimer = 0;
   window.addEventListener('resize', () => {

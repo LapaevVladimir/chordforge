@@ -52,7 +52,7 @@ export default {
       },
       learn: {
         title: 'Lessons',
-        desc: 'Intervals on the neck: pick an interval and a root note, and the map shows every position above and below it.',
+        desc: 'Three maps of the neck: intervals from a note you pick, scales by position, and every note on the board.',
       },
       quiz: {
         title: 'Quiz',
@@ -417,6 +417,8 @@ export default {
       sectionIntervalsHint: 'Distances from an anchor note',
       sectionScales: 'Scales',
       sectionScalesHint: 'Positions and fingerings',
+      sectionNotes: 'Notes',
+      sectionNotesHint: 'Every note on the neck',
       playbackLabel: 'Listen',
       sidebarAria: 'Learning panel',
       eyebrow: 'Learn',
@@ -453,6 +455,14 @@ export default {
       rootLegend: 'root',
       degreeLegend: 'scale degrees',
       hint: 'Pale degrees lie outside the chosen position',
+    },
+    notes: {
+      eyebrow: 'Notes',
+      title: 'Every note on the neck',
+      subtitle: 'The whole fretboard, named. Nothing to pick and nothing to answer \u2014 just the map the other sections assume you know.',
+      boardAria: 'Fretboard with every note named',
+      cellAria: 'String {string}, {fretLabel}, {note}',
+      hint: 'Naturals stand out; sharps sit between them',
     },
     intervalType: {
       legend: 'Interval type',

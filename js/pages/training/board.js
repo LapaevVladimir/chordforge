@@ -158,6 +158,29 @@ export function renderBoard(container, { anchor = null, targets = [], quizPair =
   revealMarks(container, '.quiz-first, .quiz-second, .anchor');
 }
 
+// The plain neck: every fret says which note it is, and nothing is marked,
+// chosen or played. The chart you would tape inside a guitar case — and the one
+// the other two boards quietly assume you already know.
+//
+// Accidentals are drawn back so the naturals read first: those are the ones worth
+// learning by position, and the sharps fall out of them.
+export function renderNoteBoard(container) {
+  renderGrid(container, {
+    decorate: (cell) => {
+      const name = PITCH_NAMES[mod12(cell.midi)];
+      return {
+        marker: name,
+        classes: ['note-map', name.length > 1 ? 'note-map-accidental' : 'note-map-natural'],
+        label: t('training.notes.cellAria', {
+          string: cell.stringNumber,
+          fretLabel: fretLabel(cell.fret),
+          note: noteName(cell.midi),
+        }),
+      };
+    },
+  });
+}
+
 // The scale map. Notes of the scale carry their degree; those outside the chosen
 // position stay visible but dimmed, so the box is seen in the context of the
 // whole neck rather than floating on its own.

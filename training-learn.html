@@ -44,6 +44,7 @@
           <fieldset class="mode-choice">
             <label><input type="radio" name="learnSection" value="intervals" checked /><span><b aria-hidden="true">◎</b><strong data-i18n="training.learn.sectionIntervals">Intervals</strong><small data-i18n="training.learn.sectionIntervalsHint">Distances from an anchor note</small></span></label>
             <label><input type="radio" name="learnSection" value="scales" /><span><b aria-hidden="true">≋</b><strong data-i18n="training.learn.sectionScales">Scales</strong><small data-i18n="training.learn.sectionScalesHint">Positions and fingerings</small></span></label>
+            <label><input type="radio" name="learnSection" value="notes" /><span><b aria-hidden="true">♪</b><strong data-i18n="training.learn.sectionNotes">Notes</strong><small data-i18n="training.learn.sectionNotesHint">Every note on the neck</small></span></label>
           </fieldset>
         </section>
 
@@ -138,6 +139,20 @@
           <span><i class="legend-anchor">1</i> <span data-i18n="training.scales.rootLegend">root</span></span>
           <span><i class="legend-target">5</i> <span data-i18n="training.scales.degreeLegend">scale degrees</span></span>
           <span data-i18n="training.scales.hint">Pale degrees lie outside the chosen position</span>
+        </div>
+      </section>
+
+      <section class="work card" data-learn-panel="notes" hidden>
+        <div class="work-top">
+          <div><span class="eyebrow" data-i18n="training.notes.eyebrow">Notes</span><h1 data-i18n="training.notes.title">Every note on the neck</h1><p class="sub" data-i18n="training.notes.subtitle">The whole fretboard, named. Nothing to pick and nothing to answer — just the map the other sections assume you know.</p></div>
+          <div class="work-header-actions">
+            <span class="pill" id="notesBadge">E · A · D · G · B · E</span>
+            <button type="button" class="board-flip" id="noteBoardFlip" aria-pressed="false"><i aria-hidden="true">⭯</i><span data-i18n="common.boardFlip">Rotate the neck</span></button>
+          </div>
+        </div>
+        <div class="training-board-scroll"><div class="interval-board note-board" id="noteFretboard" data-i18n-attr='{"aria-label":"training.notes.boardAria"}' aria-label="Fretboard with every note named"></div></div>
+        <div class="board-legend">
+          <span data-i18n="training.notes.hint">Naturals stand out; sharps sit between them</span>
         </div>
       </section>
     </main>

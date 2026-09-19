@@ -15,6 +15,8 @@ export const elements = {
   playLearnInterval: document.querySelector('#playLearnInterval'),
   intervalExplainer: document.querySelector('#intervalExplainer'),
   learnFretboard: document.querySelector('#learnFretboard'),
+  noteFretboard: document.querySelector('#noteFretboard'),
+  notesBadge: document.querySelector('#notesBadge'),
   tuning: document.querySelector('#tuning'),
   tuningBadge: document.querySelector('#tuningBadge'),
   tuningDown: document.querySelector('#tuningDown'),

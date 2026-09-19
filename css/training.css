@@ -112,6 +112,12 @@ body.site-ready .interval-board { animation: training-board-in 0.82s 0.42s cubic
    context, but recede far enough that the shape reads on its own. */
 .interval-cell.scale-outside .interval-note { color: rgba(255, 248, 232, 0.6); background: rgba(255, 248, 232, 0.075); box-shadow: inset 0 0 0 1px rgba(255, 248, 232, 0.16); }
 .interval-cell.scale-rest { color: rgba(255, 248, 232, 0.2); }
+/* The note map. Naturals are what gives the neck its shape, so they read first;
+   sharps stay legible but step back. Nothing here is clickable, so the hover
+   response the other boards use would only promise something that never happens. */
+.interval-cell.note-map-natural { color: rgba(255, 248, 232, 0.94); font-weight: 820; }
+.interval-cell.note-map-accidental { color: rgba(255, 248, 232, 0.34); }
+.note-board .interval-cell:hover .interval-note { color: inherit; background: transparent; transform: none; }
 
 .interval-explainer.scale-explainer { grid-template-columns: auto minmax(0, 1fr) auto auto; }
 .scale-formula { display: flex; gap: 5px; }
