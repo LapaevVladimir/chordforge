@@ -14,22 +14,43 @@ export function showToast(message) {
   toastTimer = window.setTimeout(() => toast.classList.remove('show'), 3600);
 }
 
+// A button that is busy loading or playing says so without changing size.
+//
+// It used to swap its label for "Loading sound…", which is what set the width of
+// whatever column or row it sat in — so the first press of any listen button made
+// the table around it jump sideways and back. The label and the box now stay put;
+// the button carries a class instead, and its box is pinned for as long as the
+// class is on, in case the surrounding layout is elastic.
+function markBusy(button) {
+  if (!button) return;
+  const rect = button.getBoundingClientRect();
+  if (rect.width) {
+    button.style.minWidth = `${Math.ceil(rect.width)}px`;
+    button.style.minHeight = `${Math.ceil(rect.height)}px`;
+  }
+  button.classList.add('sound-busy');
+  button.setAttribute('aria-busy', 'true');
+  button.disabled = true;
+}
+
+function clearBusy(button) {
+  if (!button) return;
+  button.classList.remove('sound-busy');
+  button.removeAttribute('aria-busy');
+  button.disabled = false;
+  button.style.minWidth = '';
+  button.style.minHeight = '';
+}
+
 export async function playNotes(rootMidi, targetMidi, mode, sourceButton = null) {
-  const previous = sourceButton?.innerHTML;
   try {
-    if (sourceButton) {
-      sourceButton.disabled = true;
-      sourceButton.innerHTML = t('common.loadingSound');
-    }
+    markBusy(sourceButton);
     await audio.playInterval(rootMidi, targetMidi, mode);
   } catch (error) {
     console.error(error);
     showToast(t('training.toast.samplesLoadFailed'));
   } finally {
-    if (sourceButton) {
-      sourceButton.disabled = false;
-      sourceButton.innerHTML = previous;
-    }
+    clearBusy(sourceButton);
   }
 }
 
@@ -50,18 +71,11 @@ export function playIntervalByType(rootMidi, targetMidi, type, sourceButton = nu
 // cannot stack two runs on top of each other.
 const STEP_MS = 260;
 
-export async function playSequence(midis, sourceButton = null) {
+export async function playSequence(midis, sourceButton = null, { velocity = 0.62 } = {}) {
   if (!midis.length) return;
-  const previous = sourceButton?.innerHTML;
   try {
-    if (sourceButton) {
-      sourceButton.disabled = true;
-      sourceButton.innerHTML = t('common.loadingSound');
-    }
+    markBusy(sourceButton);
     const context = await audio.prepare(midis);
-    // Past this point the samples are in memory, so the button stops claiming to
-    // be loading and says what it is actually doing.
-    if (sourceButton) sourceButton.innerHTML = t('training.scales.playing');
     audio.stop();
     const origin = context.currentTime + 0.05;
     const step = STEP_MS / 1000;
@@ -69,7 +83,7 @@ export async function playSequence(midis, sourceButton = null) {
       const pan = midis.length <= 1 ? 0 : -0.24 + (order / (midis.length - 1)) * 0.48;
       audio.playVoice({ midi, stringIndex: order % 6 }, {
         start: origin + order * step,
-        velocity: 0.62,
+        velocity,
         pan,
         duration: 0.85,
         release: 0.22,
@@ -80,9 +94,6 @@ export async function playSequence(midis, sourceButton = null) {
     console.error(error);
     showToast(t('training.toast.samplesLoadFailed'));
   } finally {
-    if (sourceButton) {
-      sourceButton.disabled = false;
-      sourceButton.innerHTML = previous;
-    }
+    clearBusy(sourceButton);
   }
 }

@@ -99,14 +99,17 @@
 
 /* -------------------------------------------------------- tables (01.3, 03.2) */
 
-.theory-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+/* A five-column table does not fit a phone, and a clipped column is worse than
+   one you can reach: the table scrolls inside the figure instead of the page. */
+.table-scroll { overflow-x: auto; scrollbar-color: color-mix(in srgb, var(--accent) 32%, transparent) transparent; }
+.theory-table { width: 100%; min-width: 320px; border-collapse: collapse; font-size: 0.78rem; }
 .theory-table caption { margin-bottom: 9px; color: var(--muted); font-size: 0.72rem; text-align: left; }
 .theory-table th, .theory-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; }
 .theory-table thead th { color: var(--muted); font-size: 0.65rem; font-weight: 780; letter-spacing: 0.07em; text-transform: uppercase; }
 .theory-table tbody th { font-weight: 760; }
 .theory-table tbody tr:last-child th, .theory-table tbody tr:last-child td { border-bottom: 0; }
 .theory-table tbody tr:hover { background: rgba(var(--accent-rgb), 0.05); }
-.theory-table .mono { color: var(--accent-2); font-variant-numeric: tabular-nums; }
+.theory-table .mono { color: var(--accent-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* ------------------------------------------------------- 01.4  the octaves */
 
@@ -121,6 +124,30 @@
 .ladder-step .mono { color: var(--accent-2); font-size: 0.72rem; font-variant-numeric: tabular-nums; }
 .ladder-step small { color: var(--muted); font-size: 0.6rem; }
 .ladder-step.reference { border-color: rgba(var(--accent-rgb), 0.45); background: rgba(var(--accent-rgb), 0.1); }
+
+/* ------------------------------------------------ 01.5  naming the octaves */
+
+.octave-row-guitar th, .octave-row-guitar td { background: rgba(var(--accent-rgb), 0.06); }
+/* Long enough that the column reads as a sentence rather than one word a line;
+   the figure scrolls sideways to make room. */
+.octave-where { min-width: 158px; color: var(--muted); }
+.octave-row-guitar .octave-where { color: color-mix(in srgb, var(--text) 80%, var(--muted)); }
+
+.border-walk { display: grid; grid-template-columns: repeat(auto-fit, minmax(42px, 1fr)); gap: 5px; }
+.border-note {
+  display: grid; min-width: 0; gap: 1px; padding: 8px 5px; color: var(--text);
+  border: 1px solid var(--line); border-radius: 9px; background: var(--panel-3);
+  cursor: pointer; text-align: center; transition: 0.14s ease;
+}
+.border-note:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.border-note strong { font-size: 0.8rem; font-weight: 820; }
+.border-note small { color: var(--muted); font-size: 0.6rem; font-weight: 700; }
+/* Where the octave number ticks over. */
+.border-note.turn { border-color: rgba(var(--accent-rgb), 0.55); background: rgba(var(--accent-rgb), 0.12); }
+.border-note.turn small { color: var(--accent); }
+.border-split { display: grid; align-content: center; justify-items: center; gap: 2px; padding: 0 2px; }
+.border-split i { color: var(--accent); font-size: 0.9rem; font-style: normal; font-weight: 800; }
+.border-split small { color: var(--accent); font-size: 0.54rem; font-weight: 780; letter-spacing: 0.04em; text-transform: uppercase; }
 
 /* --------------------------------------------------- 01.5  the key strip */
 
@@ -159,6 +186,26 @@
 .walk-step.tight { border-color: color-mix(in srgb, var(--accent-2) 55%, transparent); }
 .walk-step.tight::after { content: ""; position: absolute; }
 
+/* ----------------------------------------------------- 02.1  tuning chain */
+
+.tuning-chain { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
+.chain-node {
+  display: grid; flex: 0 0 auto; min-width: 76px; gap: 1px; padding: 9px 6px; color: var(--text);
+  border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3);
+  cursor: pointer; text-align: center; transition: 0.14s ease;
+}
+.chain-node:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.chain-node strong { font-size: 0.86rem; font-weight: 850; }
+.chain-node small { color: var(--muted); font-size: 0.58rem; font-weight: 720; }
+.chain-node .mono { color: var(--accent-2); font-size: 0.62rem; font-variant-numeric: tabular-nums; }
+.chain-link { display: grid; flex: 0 1 auto; justify-items: center; gap: 1px; padding: 0 3px; text-align: center; }
+.chain-link i { color: var(--muted); font-size: 0.8rem; font-style: normal; }
+.chain-link b { color: var(--muted); font-size: 0.6rem; font-weight: 760; }
+.chain-link small { color: var(--muted); font-size: 0.56rem; }
+/* The one step that is not a fourth. */
+.chain-link.odd b, .chain-link.odd small, .chain-link.odd i { color: var(--accent-2); }
+.chain-link.odd b { font-weight: 850; }
+
 /* --------------------------------------------------------- 02  the neck lab */
 
 .neck-lab { display: grid; gap: 13px; margin-top: 14px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel-2); }
@@ -189,6 +236,28 @@
   font-size: 0.78rem; font-weight: 950; opacity: 1;
 }
 .note-board button.interval-cell { cursor: pointer; }
+
+/* Fret markers: the inlay dots, drawn the way they are on a real neck — a whole
+   column, not six ringed notes — so they read at a glance. */
+.note-board .interval-cell.marker-fret::after {
+  content: ""; position: absolute; z-index: 0; inset: 0;
+  background: color-mix(in srgb, var(--accent-2) 15%, transparent);
+  box-shadow: inset 1px 0 0 color-mix(in srgb, var(--accent-2) 40%, transparent),
+              inset -1px 0 0 color-mix(in srgb, var(--accent-2) 40%, transparent);
+}
+.note-board .interval-cell.marker-double::after { background: color-mix(in srgb, var(--accent-2) 26%, transparent); }
+.note-board .interval-fret-numbers span.marker-fret {
+  color: var(--clip-text); border-radius: 6px 6px 0 0;
+  background: color-mix(in srgb, var(--accent-2) 82%, transparent); font-weight: 860;
+}
+.note-board .interval-fret-numbers span.marker-double { background: var(--accent-2); }
+
+/* -------------------------------------------------- 03.5  shapes on the neck */
+
+.control-group.wide { flex: 1 1 100%; }
+.shape-chip { display: inline-flex; align-items: baseline; gap: 6px; }
+.shape-chip strong { color: var(--accent-2); font-size: 0.72rem; }
+.shape-chip.active strong { color: var(--clip-text); }
 
 /* ------------------------------------------------------- 02.3  the gap map */
 

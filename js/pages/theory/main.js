@@ -52,6 +52,8 @@ const state = {
   showOctaves: false,
   showMarkers: false,
   intervalId: 'M3',
+  shapeId: 'octave-two-two',
+  shapeRoot: { stringIndex: 0, fret: 5, midi: OPEN_MIDIS[0] + 5 },
   ear: { current: null, correct: 0, wrong: 0, locked: false },
 };
 
@@ -59,8 +61,8 @@ const state = {
 
 // Every "listen" button on the page goes through the sampled guitar the rest of
 // the site uses, so the theory sounds like the tool it is teaching.
-function playMidi(midi, button = null) {
-  return playSequence([Math.round(midi)], button);
+function playMidi(midi, button = null, velocity = 0.62) {
+  return playSequence([Math.round(midi)], button, { velocity });
 }
 
 function formatHz(frequency) {
@@ -139,6 +141,15 @@ function renderWave() {
   $('waveNote').textContent = midiLabel(Math.round(frequencyToMidi(frequency)));
 }
 
+// The amplitude slider was drawing a taller wave and nothing else, which made
+// the lesson's own point ("amplitude is loudness") impossible to hear. The
+// slider's range is mapped onto the sampler's velocity, so pressing Listen at
+// each end is quiet and loud.
+function waveVelocity() {
+  const range = (state.waveAmplitude - 8) / (64 - 8);
+  return 0.14 + range * 0.8;
+}
+
 function bindWave() {
   $('waveFrequency').addEventListener('input', (event) => {
     state.waveFrequency = Number(event.target.value);
@@ -149,7 +160,7 @@ function bindWave() {
     renderWave();
   });
   $('wavePlay').addEventListener('click', (event) => {
-    playMidi(frequencyToMidi(state.waveFrequency), event.currentTarget);
+    playMidi(frequencyToMidi(state.waveFrequency), event.currentTarget, waveVelocity());
   });
 }
 
@@ -201,6 +212,50 @@ function renderOctaveLadder() {
       <span class="mono">${formatHz(frequency)}</span>
       ${reference ? `<small>${t('theory.octaves.reference')}</small>` : ''}
     </button>`;
+  }).join('');
+}
+
+/* ------------------------------------------------- 01.5  naming the octaves */
+
+// Seven octaves, each named twice: by the number that follows a note name, and
+// by the older word a piano teacher would use. The guitar occupies four of them.
+const OCTAVE_ROWS = [0, 1, 2, 3, 4, 5, 6];
+// Below this the sampled guitar has nothing near enough to stretch to, so those
+// rows are read rather than heard — which is also the truth about the instrument.
+const OCTAVE_AUDIBLE_FROM = 2;
+
+function renderOctaveTable() {
+  $('octaveTable').querySelector('tbody').innerHTML = OCTAVE_ROWS.map((number) => {
+    const cMidi = 12 + number * 12;
+    const guitar = number >= 2 && number <= 5;
+    const listen = number >= OCTAVE_AUDIBLE_FROM
+      ? `<button type="button" class="ghost-button tiny" data-play-midi="${cMidi}"
+          aria-label="${t('theory.playAria', { note: midiLabel(cMidi) })}">${t('theory.listen')}</button>`
+      : '';
+    return `
+    <tr class="${guitar ? 'octave-row-guitar' : ''}">
+      <th scope="row" class="mono">${number}</th>
+      <td>${t(`theory.octavenames.name${number}`)}</td>
+      <td class="mono">${midiLabel(cMidi)} — ${midiLabel(cMidi + 11)}</td>
+      <td class="octave-where">${t(`theory.octavenames.where${number}`)}</td>
+      <td>${listen}</td>
+    </tr>`;
+  }).join('');
+}
+
+// G3 up to E4: an ordinary run of notes that happens to cross the place where
+// the octave number changes. Seeing it land on C rather than on A is the lesson.
+function renderOctaveBorder() {
+  // A3 up to E4: short enough to stay on one line, long enough to show that the
+  // number changes in the middle of an ordinary run.
+  const midis = Array.from({ length: 8 }, (_, index) => 57 + index);
+  $('octaveBorder').innerHTML = midis.map((midi) => {
+    const turn = mod12(midi) === 0;
+    return `${turn ? `<span class="border-split"><i aria-hidden="true">|</i><small>${t('theory.octavenames.borderMark')}</small></span>` : ''}
+      <button type="button" class="border-note${turn ? ' turn' : ''}" data-play-midi="${midi}"
+        aria-label="${t('theory.playAria', { note: midiLabel(midi) })}">
+        <strong>${SHARP_NAMES[mod12(midi)]}</strong><small>${Math.floor(midi / 12) - 1}</small>
+      </button>`;
   }).join('');
 }
 
@@ -266,6 +321,31 @@ function setStepFret(fret) {
 
 /* -------------------------------------------------------- 02  the fretboard */
 
+// Standard tuning is a chain, not a list: E2, then a perfect fourth at a time —
+// except for the one step to the B string, which is a major third. The odd step
+// is the reason for most of what is strange about the neck, so it is drawn.
+function renderTuningChain() {
+  $('tuningChain').innerHTML = OPEN_MIDIS.map((midi, stringIndex) => {
+    const stringNumber = OPEN_MIDIS.length - stringIndex;
+    const node = `<button type="button" class="chain-node" data-play-midi="${midi}"
+      aria-label="${t('theory.playAria', { note: midiLabel(midi) })}">
+      <small>${t('theory.tuning.stringShort', { n: stringNumber })}</small>
+      <strong>${midiLabel(midi)}</strong>
+      <span class="mono">${formatHz(midiToFrequency(midi))}</span>
+    </button>`;
+    if (stringIndex === 0) return node;
+    const step = midi - OPEN_MIDIS[stringIndex - 1];
+    const interval = INTERVALS.find((entry) => entry.semitones === step);
+    // Whatever is not a fourth is the exception, whichever tuning is loaded.
+    const odd = step !== 5;
+    return `<span class="chain-link${odd ? ' odd' : ''}">
+      <i aria-hidden="true">→</i>
+      <b>${interval ? intervalName(interval.id) : ''}</b>
+      <small>${t('theory.tuning.chainFrets', { n: step, frets: pluralize('interval.unit.fret', step) })}</small>
+    </span>${node}`;
+  }).join('');
+}
+
 function renderStringPicker() {
   $('stringPicker').innerHTML = OPEN_MIDIS.map((midi, stringIndex) => {
     const stringNumber = OPEN_MIDIS.length - stringIndex;
@@ -306,15 +386,35 @@ function renderRunStrip() {
   }).join('');
 }
 
-function renderNeck() {
-  const highlight = [];
-  if (state.showOctaves) highlight.push(...findTargets(state.neckCell, getInterval('p8')));
-  if (state.showMarkers) {
-    for (const fret of MARKER_FRETS) {
-      if (fret > MAX_FRET) continue;
-      for (let stringIndex = 0; stringIndex < OPEN_MIDIS.length; stringIndex += 1) highlight.push(cellAt(stringIndex, fret));
-    }
+// An inlay is a whole column of the neck, not six separate notes: ringing each
+// note in the column read as "here are more notes", which is the opposite of
+// what a marker is for. The column — the fret number above it included — is
+// tinted instead, straight from the fret list rather than from a second copy of
+// it in the stylesheet.
+function paintMarkerFrets(container) {
+  container.querySelectorAll('.marker-fret').forEach((element) => element.classList.remove('marker-fret'));
+  if (!state.showMarkers) return;
+  const numbers = container.querySelector('.interval-fret-numbers');
+  const rows = [...container.querySelectorAll('.interval-string')];
+  for (const fret of MARKER_FRETS) {
+    if (fret > MAX_FRET) continue;
+    // Every row starts with a header cell, so the column for fret N is child N+1.
+    numbers?.children[fret + 1]?.classList.add('marker-fret');
+    if (fret === 12) numbers?.children[fret + 1]?.classList.add('marker-double');
+    rows.forEach((row) => {
+      const cell = row.children[fret + 1];
+      if (!cell) return;
+      cell.classList.add('marker-fret');
+      if (fret === 12) cell.classList.add('marker-double');
+    });
   }
+}
+
+function renderNeck() {
+  // Octaves mark individual notes; the fret markers are whole columns of the
+  // neck, and ringing each note in them one by one read as more notes rather
+  // than as an inlay. The columns are tinted in CSS from this one class.
+  const highlight = state.showOctaves ? findTargets(state.neckCell, getInterval('p8')) : [];
   renderNoteBoard($('neckBoard'), {
     interactive: true,
     selected: state.neckCell,
@@ -322,6 +422,7 @@ function renderNeck() {
     highlight,
     cellAttr: 'data-neck-cell',
   });
+  paintMarkerFrets($('neckBoard'));
   $('neckTuningBadge').textContent = tuningLabel();
   renderStringPicker();
   renderNeckReadout();
@@ -421,9 +522,101 @@ function renderIntervalStage() {
   renderIntervalTable();
   renderRuler();
   renderIntervalRail();
+  settleShapeRoot();
+  renderShapePicker();
+  renderShapeBoard();
   renderCharacterList();
   renderIntervalBoard();
   renderEarAnswers();
+}
+
+/* ------------------------------------------------ 03.5  shapes on the neck */
+
+// A shape is "cross this many strings, move this many frets". Which strings it
+// works on is not written down here: it is worked out from the tuning, because
+// the whole point of the lesson is that the tuning is what decides.
+const NECK_SHAPES = [
+  { id: 'octave-two-two', interval: 'p8', stringDelta: 2, fretDelta: 2 },
+  { id: 'octave-two-three', interval: 'p8', stringDelta: 2, fretDelta: 3 },
+  { id: 'octave-same', interval: 'p8', stringDelta: 0, fretDelta: 12 },
+  { id: 'fourth-flat', interval: 'p4', stringDelta: 1, fretDelta: 0 },
+  { id: 'fifth-up', interval: 'p5', stringDelta: 1, fretDelta: 2 },
+  { id: 'third-back', interval: 'M3', stringDelta: 1, fretDelta: -1 },
+];
+
+const shapeById = (id) => NECK_SHAPES.find((shape) => shape.id === id) ?? NECK_SHAPES[0];
+
+// The strings the shape holds on, given how the instrument is tuned right now.
+function shapeStrings(shape) {
+  const wanted = getInterval(shape.interval).semitones;
+  const strings = [];
+  for (let stringIndex = 0; stringIndex < OPEN_MIDIS.length; stringIndex += 1) {
+    const other = stringIndex + shape.stringDelta;
+    if (other < 0 || other >= OPEN_MIDIS.length) continue;
+    if (OPEN_MIDIS[other] + shape.fretDelta - OPEN_MIDIS[stringIndex] === wanted) strings.push(stringIndex);
+  }
+  return strings;
+}
+
+// A shape that stays on one string works everywhere, so listing "6→6, 5→5, …"
+// would be noise; it gets a sentence of its own instead of a list.
+function shapeWhere(shape) {
+  if (shape.stringDelta === 0) return t('theory.shapes.worksAnywhere');
+  const pairs = shapeStrings(shape)
+    .map((stringIndex) => `${OPEN_MIDIS.length - stringIndex}→${OPEN_MIDIS.length - stringIndex - shape.stringDelta}`)
+    .join(' · ');
+  return t('theory.shapes.worksOn', { pairs });
+}
+
+function shapePartner(shape, cell) {
+  const stringIndex = cell.stringIndex + shape.stringDelta;
+  const fret = cell.fret + shape.fretDelta;
+  if (stringIndex < 0 || stringIndex >= OPEN_MIDIS.length) return null;
+  if (fret < 0 || fret > MAX_FRET) return null;
+  const partner = cellAt(stringIndex, fret);
+  return partner.midi - cell.midi === getInterval(shape.interval).semitones ? partner : null;
+}
+
+// Choosing a shape that does not exist where the reader last tapped would answer
+// with an empty neck, so the first note slides to a string where the shape lives.
+function settleShapeRoot() {
+  const shape = shapeById(state.shapeId);
+  if (shapePartner(shape, state.shapeRoot)) return;
+  const strings = shapeStrings(shape);
+  if (!strings.length) return;
+  const fret = Math.max(Math.max(0, -shape.fretDelta), Math.min(state.shapeRoot.fret, MAX_FRET - Math.max(0, shape.fretDelta)));
+  const stringIndex = strings.includes(state.shapeRoot.stringIndex) ? state.shapeRoot.stringIndex : strings[0];
+  state.shapeRoot = cellAt(stringIndex, fret);
+}
+
+function renderShapePicker() {
+  $('shapePicker').innerHTML = NECK_SHAPES.map((shape) => {
+    const active = shape.id === state.shapeId;
+    return `<button type="button" role="radio" class="toggle-chip shape-chip${active ? ' active' : ''}"
+      aria-checked="${active}" data-shape="${shape.id}">
+      <strong>${intervalShort(shape.interval)}</strong> ${t(`theory.shapes.${shape.id}`)}
+    </button>`;
+  }).join('');
+}
+
+function renderShapeBoard() {
+  const shape = shapeById(state.shapeId);
+  const partner = shapePartner(shape, state.shapeRoot);
+  renderBoard($('shapeBoard'), {
+    anchor: state.shapeRoot,
+    targets: partner ? [partner] : [],
+    interactive: true,
+    targetMarker: intervalShort(shape.interval),
+  });
+  $('shapeReadout').innerHTML = partner
+    ? `<span class="readout-note">${midiLabel(state.shapeRoot.midi)} → ${midiLabel(partner.midi)}</span>
+       <span class="readout-facts">
+         <span>${intervalName(shape.interval)}</span>
+         <span>${shapeWhere(shape)}</span>
+       </span>
+       <button type="button" class="ghost-button" data-play-pair="${state.shapeRoot.midi}:${partner.midi}"
+         aria-label="${t('theory.playIntervalAria', { name: intervalName(shape.interval) })}">${t('theory.listen')}</button>`
+    : `<span class="readout-facts"><span>${t('theory.shapes.notHere', { where: shapeWhere(shape) })}</span></span>`;
 }
 
 /* ------------------------------------------------------ 03.6  ear training */
@@ -499,9 +692,12 @@ function renderAll() {
   renderNoteRing();
   renderStringTable();
   renderOctaveLadder();
+  renderOctaveTable();
+  renderOctaveBorder();
   renderKeyboard();
   renderStepWalk();
   renderGapMap();
+  renderTuningChain();
   renderNeck();
   renderIntervalStage();
 }
@@ -519,6 +715,12 @@ function bindEvents() {
     if (intervalButton) {
       const interval = getInterval(intervalButton.dataset.playInterval);
       void playIntervalByType(45, 45 + interval.semitones, 'ascending', intervalButton);
+      return;
+    }
+    const pairButton = event.target.closest('[data-play-pair]');
+    if (pairButton) {
+      const [low, high] = pairButton.dataset.playPair.split(':').map(Number);
+      void playIntervalByType(low, high, 'ascending', pairButton);
     }
   });
 
@@ -619,6 +821,23 @@ function bindEvents() {
     void playMidi(state.neckCell.midi);
   });
 
+  $('shapePicker').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-shape]');
+    if (!button) return;
+    state.shapeId = shapeById(button.dataset.shape).id;
+    settleShapeRoot();
+    renderShapePicker();
+    renderShapeBoard();
+  });
+  $('shapeBoard').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-learn-cell]');
+    if (!button) return;
+    const [stringIndex, fret] = button.dataset.learnCell.split(':').map(Number);
+    state.shapeRoot = cellAt(stringIndex, fret);
+    renderShapeBoard();
+    void playMidi(state.shapeRoot.midi);
+  });
+
   $('earPlay').addEventListener('click', (event) => { void playEarQuestion(event.currentTarget); });
   $('earAnswers').addEventListener('click', (event) => {
     const button = event.target.closest('[data-ear-answer]');
@@ -630,7 +849,7 @@ function bindEvents() {
   bindOrientationToggle($('intervalFlip'), flipLabels);
   // Both boards are laid out from the same tuning, so both are redrawn when the
   // neck turns or the window changes shape.
-  const redraw = () => { renderNeck(); renderIntervalBoard(); };
+  const redraw = () => { renderNeck(); renderIntervalBoard(); renderShapeBoard(); };
   onOrientationChange(redraw);
   let resizeTimer = 0;
   window.addEventListener('resize', () => {

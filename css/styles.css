@@ -544,6 +544,18 @@ body.board-vertical .string-controls { border-radius: 11px 11px 0 0; border-righ
 @keyframes theme-bloom { 0% { opacity: 0.82; transform: scale(0.25); } 42% { opacity: 0.38; } 100% { opacity: 0; transform: scale(54); } }
 @keyframes theme-dot-switch { 0%, 100% { transform: scale(1); } 48% { transform: scale(1.32) rotate(12deg); } }
 
+/* A listen button while its samples load and its notes sound. The label stays
+   where it is — swapping it for "loading" text is what used to make every row
+   holding such a button jump — and a ring turns in its place. */
+.sound-busy { position: relative; color: transparent !important; pointer-events: none; }
+.sound-busy > * { opacity: 0; }
+.sound-busy::after {
+  content: ""; position: absolute; top: 50%; left: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+  border: 2px solid rgba(var(--accent-rgb), 0.28); border-top-color: rgb(var(--accent-rgb));
+  border-radius: 50%; animation: sound-busy-spin 0.72s linear infinite;
+}
+@keyframes sound-busy-spin { to { transform: rotate(360deg); } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
