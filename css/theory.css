@@ -149,24 +149,45 @@
 .border-split i { color: var(--accent); font-size: 0.9rem; font-style: normal; font-weight: 800; }
 .border-split small { color: var(--accent); font-size: 0.54rem; font-weight: 780; letter-spacing: 0.04em; text-transform: uppercase; }
 
-/* --------------------------------------------------- 01.5  the key strip */
+/* ----------------------------------------------------- 01.5  the keyboard */
 
 .keys-frame { overflow-x: auto; padding-bottom: 4px; }
-.keys { display: flex; min-width: 420px; gap: 5px; }
-.key-slot { display: grid; flex: 1 1 0; gap: 5px; }
-.key {
-  display: grid; min-height: 46px; place-items: center; padding: 6px 4px; border: 1px solid var(--line-strong);
-  border-radius: 8px; cursor: pointer; font-size: 0.74rem; font-weight: 800; transition: 0.14s ease;
+/* White keys in a grid with no gaps, so the black keys — positioned as a
+   percentage of the whole — land exactly on the joins between them. */
+.piano { position: relative; min-width: 430px; }
+.piano-whites { display: grid; grid-template-columns: repeat(8, 1fr); }
+.piano-key { cursor: pointer; transition: 0.12s ease; }
+.piano-key.white {
+  display: flex; align-items: flex-end; justify-content: center; height: 112px; padding-bottom: 10px;
+  color: #1a222c; border: 1px solid #c9c1b0; border-left-width: 0; border-radius: 0 0 7px 7px;
+  background: linear-gradient(#fdfbf6, #e8e2d5); font-size: 0.82rem; font-weight: 820;
 }
-.key.white { color: #17202a; background: #e9e4d8; }
-.key.white:hover { background: #fff; }
-.key.black { min-height: 38px; color: #e9e4d8; background: #1b2026; font-size: 0.62rem; font-weight: 740; }
-.key.black:hover { border-color: rgba(var(--accent-rgb), 0.6); }
-.key-end { min-height: 38px; }
-.key-gap {
-  display: grid; min-height: 38px; place-items: center; color: var(--danger);
-  border: 1px dashed color-mix(in srgb, var(--danger) 45%, transparent); border-radius: 8px;
-  font-size: 0.66rem; font-weight: 800;
+.piano-key.white:first-child { border-left-width: 1px; border-bottom-left-radius: 9px; }
+.piano-key.white:last-child { border-bottom-right-radius: 9px; }
+.piano-key.white:hover { background: linear-gradient(#ffffff, #f4f1e9); }
+/* The two pairs a semitone apart get a bar along their foot, so the eye joins
+   the missing black key above to the letters it happens between. */
+.piano-key.white.tight { box-shadow: inset 0 -5px 0 color-mix(in srgb, var(--accent-2) 80%, transparent); }
+
+.piano-blacks { position: absolute; top: 0; right: 0; left: 0; height: 68px; pointer-events: none; }
+.piano-key.black {
+  display: grid; position: absolute; top: 0; height: 68px; align-content: end; justify-items: center;
+  padding-bottom: 7px; color: #f2eee4; border: 1px solid #05070a; border-top: 0; border-radius: 0 0 6px 6px;
+  background: linear-gradient(#39424c, #12161b 70%); font-size: 0.56rem; line-height: 1.25;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5); pointer-events: auto;
+}
+.piano-key.black b { font-weight: 850; }
+.piano-key.black i { color: rgba(242, 238, 228, 0.58); font-style: normal; }
+.piano-key.black:hover { background: linear-gradient(#4b5661, #1b2128 70%); }
+/* Where a black key would be, and is not. */
+.piano-gap {
+  position: absolute; top: 0; height: 68px; border: 1px dashed color-mix(in srgb, var(--accent-2) 75%, transparent);
+  border-top: 0; border-radius: 0 0 6px 6px; background: color-mix(in srgb, var(--accent-2) 10%, transparent);
+  pointer-events: auto;
+}
+.piano-gap::after {
+  content: ""; position: absolute; top: 46%; right: 24%; left: 24%; height: 2px; border-radius: 2px;
+  background: color-mix(in srgb, var(--accent-2) 80%, transparent);
 }
 
 /* ---------------------------------------------------- 01.6  walking a string */

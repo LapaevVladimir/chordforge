@@ -265,25 +265,35 @@ function renderOctaveBorder() {
 /* ------------------------------------------------- 01.5  sharps and flats */
 
 function renderKeyboard() {
-  // One octave of keys, C to C. The missing black keys are the lesson, so the
-  // white keys carry a class saying whether a black one follows.
+  // One octave of a real keyboard, C to C: white keys in a row, black ones laid
+  // over the joins between them. Drawn as a piano rather than as two rows of
+  // boxes because the lesson is about a shape you already know how to read —
+  // and because where a black key is missing has to look like an absence.
   const whites = [0, 2, 4, 5, 7, 9, 11, 12];
-  $('keyboardStrip').innerHTML = whites.map((pitchClass, index) => {
-    const base = 60 + pitchClass;
-    const last = index === whites.length - 1;
-    const hasSharp = !last && whites[index + 1] - pitchClass === 2;
-    const sharpName = hasSharp ? `${SHARP_NAMES[mod12(pitchClass + 1)]} / ${FLAT_NAMES[mod12(pitchClass + 1)]}` : '';
-    return `<div class="key-slot">
-      <button type="button" class="key white" data-play-midi="${base}"
-        aria-label="${t('theory.playAria', { note: midiLabel(base) })}"><span>${SHARP_NAMES[mod12(pitchClass)]}</span></button>
-      ${hasSharp
-        ? `<button type="button" class="key black" data-play-midi="${base + 1}"
-             aria-label="${t('theory.playAria', { note: midiLabel(base + 1) })}"><span>${sharpName}</span></button>`
-        : last
-          ? '<span class="key-end" aria-hidden="true"></span>'
-          : `<span class="key-gap" title="${t('theory.accidentals.gapTitle')}">${t('theory.accidentals.gapMark')}</span>`}
-    </div>`;
+  const unit = 100 / whites.length;
+  const blackWidth = unit * 0.62;
+
+  const keys = whites.map((pitchClass, index) => {
+    const midi = 60 + pitchClass;
+    // The two pairs with nothing between them: E–F and B–C.
+    const tight = index === 2 || index === 3 || index === 6 || index === 7;
+    return `<button type="button" class="piano-key white${tight ? ' tight' : ''}" data-play-midi="${midi}"
+      aria-label="${t('theory.playAria', { note: midiLabel(midi) })}">${SHARP_NAMES[mod12(pitchClass)]}</button>`;
   }).join('');
+
+  const overlay = whites.slice(0, -1).map((pitchClass, index) => {
+    const left = unit * (index + 1) - blackWidth / 2;
+    const style = `left:${left.toFixed(3)}%;width:${blackWidth.toFixed(3)}%`;
+    if (whites[index + 1] - pitchClass !== 2) {
+      return `<span class="piano-gap" style="${style}" title="${t('theory.accidentals.gapTitle')}"></span>`;
+    }
+    const midi = 61 + pitchClass;
+    return `<button type="button" class="piano-key black" style="${style}" data-play-midi="${midi}"
+      aria-label="${t('theory.playAria', { note: midiLabel(midi) })}">
+      <b>${SHARP_NAMES[mod12(pitchClass + 1)]}</b><i>${FLAT_NAMES[mod12(pitchClass + 1)]}</i></button>`;
+  }).join('');
+
+  $('keyboardStrip').innerHTML = `<div class="piano-whites">${keys}</div><div class="piano-blacks">${overlay}</div>`;
 }
 
 /* --------------------------------------------- 01.6  semitones and whole tones */

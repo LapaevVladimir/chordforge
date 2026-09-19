@@ -502,8 +502,7 @@ export default {
       p2: 'But two pairs of letters are already only one semitone apart, with nothing between them: <b>E to F</b>, and <b>B to C</b>. There is no E♯ fret to find, because F is already there. This single fact is what makes the fretboard confusing until you know it — and obvious afterwards.',
       keysAria: 'One octave of keys',
       gapTitle: 'No note in between — these two are one semitone apart',
-      gapMark: 'no gap',
-      caption: 'The gaps are the point: everywhere a black key is missing, two letters sit one semitone apart. Press a key to hear it.',
+      caption: 'The two places with no black key are outlined: E–F and B–C. Those pairs are marked along the foot of the white keys. Press any key to hear it.',
     },
     steps: {
       title: 'Semitones and whole tones',
