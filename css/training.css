@@ -113,6 +113,20 @@ body.site-ready .interval-board { animation: training-board-in 0.82s 0.42s cubic
    context, but recede far enough that the shape reads on its own. */
 .interval-cell.scale-outside .interval-note { color: rgba(255, 248, 232, 0.6); background: rgba(255, 248, 232, 0.075); box-shadow: inset 0 0 0 1px rgba(255, 248, 232, 0.16); }
 .interval-cell.scale-rest { color: rgba(255, 248, 232, 0.2); }
+/* The note map. Every fret carries a chip rather than bare lettering: the board
+   is a photograph of rosewood, and a letter laid straight onto it reads at some
+   frets and disappears at others. A filled chip is legible over any of it.
+   Naturals take the accent fill, since they are what gives the neck its shape;
+   accidentals get a dark chip of the same size, so they are still read at a
+   glance without competing. */
+.interval-cell.note-map .interval-note { min-width: 27px; height: 27px; border-radius: 8px; font-size: 0.68rem; font-weight: 880; }
+.interval-cell.note-map-natural .interval-note { color: var(--clip-text); background: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15), 0 5px 11px rgba(0, 0, 0, 0.5); }
+.interval-cell.note-map-accidental .interval-note { color: rgba(255, 248, 232, 0.78); background: rgba(16, 14, 12, 0.86); box-shadow: inset 0 0 0 1px rgba(255, 248, 232, 0.16), 0 4px 9px rgba(0, 0, 0, 0.45); }
+/* Nothing here is clickable, so the lift the other boards give on hover would
+   promise something that never happens — but the chip itself has to stay put. */
+.note-board .interval-cell:hover .interval-note { transform: none; }
+.note-board .interval-cell.note-map-natural:hover .interval-note { color: var(--clip-text); background: var(--accent); }
+.note-board .interval-cell.note-map-accidental:hover .interval-note { color: rgba(255, 248, 232, 0.78); background: rgba(16, 14, 12, 0.86); }
 
 .interval-explainer.scale-explainer { grid-template-columns: auto minmax(0, 1fr) auto auto; }
 .scale-formula { display: flex; gap: 5px; }
@@ -196,6 +210,23 @@ button.interval-cell { cursor: pointer; }
 
 .play-hint { max-width: 460px; margin: 0; color: var(--muted); font-size: 0.76rem; line-height: 1.55; text-align: center; }
 
+/* The interval and scale boards turned upright, the same way the builder's neck
+   is (see styles.css): one rotation, and the text turns back on its own. The
+   rows are squeezed a little first, because after the turn the board's height is
+   what has to fit across a phone. */
+body.board-vertical .training-board-scroll { position: relative; overflow-x: auto; overflow-y: hidden; }
+/* The board's entrance animation ends on a transform of its own, and an
+   animation beats a plain declaration — it would simply undo the rotation. */
+body.board-vertical .interval-board { animation: none; position: absolute; top: 0; left: 0; min-width: 0; width: max-content; transform-origin: top left; transform: rotate(90deg) translateY(-100%); }
+body.board-vertical .interval-fret-numbers,
+body.board-vertical .interval-string { grid-template-columns: 52px repeat(16, minmax(52px, 1fr)); }
+body.board-vertical .interval-string { min-height: 48px; }
+body.board-vertical .interval-note b,
+body.board-vertical .interval-fret-numbers span,
+body.board-vertical .interval-string-label span,
+body.board-vertical .interval-string-label small { display: block; transform: rotate(-90deg); }
+body.board-vertical .interval-string-label { flex-direction: column; justify-content: center; gap: 2px; padding: 0 4px; }
+
 /* Workspace: quiz stage (Quiz page) */
 .session-stats { display: flex; gap: 6px; }
 .session-stats > span { display: flex; flex-direction: column; min-width: 74px; padding: 8px 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 9px; background: var(--panel-3); font-size: 0.7rem; }
@@ -222,6 +253,30 @@ button.interval-cell { cursor: pointer; }
 .quiz-board .interval-string { grid-template-columns: 56px repeat(16, minmax(44px, 1fr)); }
 .quiz-board .interval-string { min-height: 43px; }
 .quiz-board .interval-note { color: transparent; }
+/* The note quiz. The asked fret carries a question mark and nothing else; frets
+   already tried carry the note they really hold, in green or red, because a miss
+   you cannot read teaches nothing. Out-of-range frets are visibly out of reach
+   rather than merely unresponsive. */
+.interval-cell.note-asked .interval-note { min-width: 32px; height: 32px; color: var(--clip-text); border-radius: 10px; background: var(--accent-2); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-2) 22%, transparent), 0 8px 16px rgba(0, 0, 0, 0.52); font-size: 0.92rem; font-weight: 950; }
+.interval-cell.note-hit .interval-note,
+.interval-cell.note-miss .interval-note { min-width: 30px; height: 30px; color: var(--clip-text); border-radius: 9px; font-size: 0.72rem; font-weight: 900; }
+.interval-cell.note-hit .interval-note { background: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.2), 0 6px 13px rgba(0, 0, 0, 0.5); }
+.interval-cell.note-miss .interval-note { color: #fff; background: var(--danger); box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 22%, transparent), 0 6px 13px rgba(0, 0, 0, 0.5); animation: answer-shake 0.25s ease; }
+/* Every fret you may press wears a faint marker. Without one the chosen strings
+   and frets were indistinguishable from the rest of an empty neck: dimming the
+   others says nothing when there is nothing there to dim. */
+.quiz-board button.interval-cell:not(:disabled) { cursor: pointer; }
+.quiz-board button.interval-cell:not(:disabled):not(.note-hit):not(.note-miss) .interval-note { min-width: 22px; height: 22px; border-radius: 7px; background: rgba(255, 248, 232, 0.09); box-shadow: inset 0 0 0 1px rgba(255, 248, 232, 0.14); }
+.quiz-board button.interval-cell:not(:disabled):not(.note-hit):not(.note-miss):hover .interval-note { background: rgba(var(--accent-rgb), 0.3); box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.6); }
+.interval-cell.note-out { opacity: 0.25; }
+.quiz-board button.interval-cell:disabled { cursor: default; }
+/* A three-way choice of fret range reads better in a row than as stacked cards. */
+.mode-choice.compact-choice { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.mode-choice.compact-choice label > span { grid-template-columns: minmax(0, 1fr); padding: 9px 7px; text-align: center; }
+.mode-choice.compact-choice label strong { font-size: 0.72rem; }
+.mode-choice.compact-choice label small { font-size: 0.6rem; }
+.note-checks { grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)); }
+.string-checks { grid-template-columns: repeat(auto-fit, minmax(54px, 1fr)); }
 .ear-question { display: grid; min-height: 320px; place-items: center; align-content: center; text-align: center; }
 .ear-question strong { margin-top: 18px; font-size: 1.08rem; }
 .ear-question p { margin: 5px 0 0; color: var(--muted); font-size: 0.82rem; }
@@ -263,6 +318,14 @@ button.interval-cell { cursor: pointer; }
 @media (max-width: 800px) {
   .quiz-board { min-width: 680px; }
   .quiz-stage { min-height: 520px; padding: 16px; }
+}
+
+/* Touch sizing to match styles.css: a checkbox drawn at 13px is a fiddly target
+   even inside a label. */
+@media (max-width: 980px) {
+  .switch-row { min-height: 42px; }
+  .switch-row input { width: 18px; height: 18px; }
+  .played-slot { min-height: 62px; }
 }
 
 @media (max-width: 650px) {

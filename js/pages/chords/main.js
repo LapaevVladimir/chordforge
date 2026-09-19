@@ -8,9 +8,11 @@ import { clone, readJson } from '../../core/utils.js';
 import { applyTheme, bindThemeDock, THEME_KEY } from '../../core/theme.js';
 import { init as i18nInit, onChange as onLocaleChange, t } from '../../i18n/i18n.js';
 import { syncLocaleDock, bindLocaleDock } from '../../i18n/locale-dock.js';
+import { initOrientation, bindOrientationToggle, onOrientationChange } from '../../core/board-orientation.js';
 import {
   store, STANDARD, PRESETS, normalizeState, tuningFor,
   persistState, currentAnalysis, useStateKey,
+  readSavedTunings, saveTuning, deleteTuning, MAX_SAVED_TUNINGS,
 } from '../builder/store.js';
 import { render, renderBoard, findShape, closeVoicingModal } from '../builder/fretboard.js';
 import { audio, showToast, updateSampleStatus, stopPlayback, setPlaybackTimer, setCurrentPlaybackState } from '../builder/playback.js';
@@ -29,11 +31,28 @@ onLocaleChange(() => {
 });
 
 $('preset').addEventListener('change', (event) => {
-  const preset = PRESETS[event.target.value];
+  const value = event.target.value;
+  // A saved tuning carries no shape or fret count of its own: it retunes the
+  // instrument in hand and leaves everything else as the reader had it.
+  if (value.startsWith('saved:')) {
+    const entry = readSavedTunings().find((saved) => `saved:${saved.id}` === value);
+    if (!entry) { render(); return; }
+    const resized = entry.strings !== store.state.strings;
+    store.state.strings = entry.strings;
+    store.state.register = entry.register;
+    store.state.tuning = [...entry.tuning];
+    if (resized) store.state.shape = Array(entry.strings).fill(0);
+    store.state.preset = 'custom';
+    $('shapeInfo').classList.remove('show');
+    render();
+    return;
+  }
+  const preset = PRESETS[value];
+  if (!preset) return;
   store.state = {
     ...clone(preset),
     capo: 0,
-    preset: event.target.value,
+    preset: value,
     strumInterval: store.state.strumInterval,
     strumPattern: clone(store.state.strumPattern),
     volume: store.state.volume,
@@ -43,9 +62,35 @@ $('preset').addEventListener('change', (event) => {
   $('shapeInfo').classList.remove('show');
   render();
 });
+
+$('saveTuning').addEventListener('click', () => {
+  const field = $('tuningName');
+  const result = saveTuning(field.value);
+  if (!result.ok) {
+    showToast(t(result.reason === 'full' ? 'builder.toast.tuningLimit' : 'builder.toast.tuningNeedsName', { n: MAX_SAVED_TUNINGS }));
+    if (result.reason === 'name') field.focus();
+    return;
+  }
+  field.value = '';
+  render();
+  showToast(t(result.replaced ? 'builder.toast.tuningUpdated' : 'builder.toast.tuningSaved', { name: result.entry.name }));
+});
+
+$('tuningName').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') $('saveTuning').click();
+});
+
+$('forgetTuning').addEventListener('click', () => {
+  const value = $('preset').value;
+  if (!value.startsWith('saved:')) return;
+  const removed = deleteTuning(value.slice('saved:'.length));
+  render();
+  if (removed) showToast(t('builder.toast.tuningForgotten', { name: removed.name }));
+});
 $('stringCount').addEventListener('input', (event) => {
   store.state.strings = Number(event.target.value);
-  store.state.tuning = tuningFor(store.state.strings);
+  // Keep whatever the strings are tuned to; only the count changes here.
+  store.state.tuning = tuningFor(store.state.strings, store.state.tuning);
   store.state.shape = Array(store.state.strings).fill(0);
   store.state.preset = 'custom';
   render();
@@ -110,6 +155,8 @@ $('copyLink').addEventListener('click', async () => {
 bindThemeDock('midnight', { bloom: true });
 bindLocaleDock();
 
+initOrientation();
+
 function finishSiteIntro() {
   const loader = $('siteLoader');
   const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -125,6 +172,17 @@ function finishSiteIntro() {
 
 i18nInit();
 syncLocaleDock();
+
+// After i18nInit so the button's tooltip is in the reader's language.
+bindOrientationToggle($('boardFlip'), { vertical: t('common.boardFlipVertical'), horizontal: t('common.boardFlipHorizontal') });
+// Turning the neck changes the shape of the frame it needs, and so does turning
+// the phone or resizing the window.
+onOrientationChange(() => renderBoard({ stopAudio: false }));
+let resizeTimer = 0;
+window.addEventListener('resize', () => {
+  window.clearTimeout(resizeTimer);
+  resizeTimer = window.setTimeout(() => renderBoard({ stopAudio: false }), 160);
+});
 
 if (location.hash.length > 1) {
   try {

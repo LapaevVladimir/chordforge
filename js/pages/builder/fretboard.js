@@ -1,8 +1,12 @@
 import * as Engine from '../../core/chord-engine.js';
 import * as Audio from '../../core/guitar-audio.js';
 import { escapeHtml } from '../../core/utils.js';
-import { t } from '../../i18n/i18n.js';
-import { store, PITCHES, PRESETS, normalizeState, currentAnalysis, persistState } from './store.js';
+import { t, pluralize } from '../../i18n/i18n.js';
+import {
+  store, PITCHES, PRESETS, normalizeState, currentAnalysis, persistState,
+  matchPreset, matchSavedTuning, readSavedTunings,
+} from './store.js';
+import { layoutRotatedBoard, isVertical } from '../../core/board-orientation.js';
 import { strumActionName, strumCountLabels, renderStrumSteps } from './strum.js';
 import { audio, stopPlayback, showToast, updateSampleStatus, playString } from './playback.js';
 
@@ -24,7 +28,12 @@ function fretWidths() {
   const state = store.state;
   const weights = Array.from({ length: state.frets }, (_, index) => Math.pow(2, -index / 12));
   const viewportWidth = document.getElementById('fretScroll')?.clientWidth || Math.max(760, window.innerWidth - 380);
-  const availableWidth = Math.max(420, viewportWidth - 136);
+  // Standing upright, the neck runs down the screen, so it is the height that
+  // says how long it can be. Measuring it against a phone's width instead would
+  // squeeze every fret to its minimum.
+  const availableWidth = isVertical()
+    ? Math.max(480, window.innerHeight - 250)
+    : Math.max(420, viewportWidth - 136);
   const weightTotal = weights.reduce((sum, weight) => sum + weight, 0);
   return weights.map((weight) => Math.max(30, Math.round(availableWidth * weight / weightTotal)));
 }
@@ -81,14 +90,14 @@ export function renderBoard(options = {}) {
     const noteAtOpen = Engine.noteName(openPitch, state.preferFlats);
     const stateText = selected === null ? '×' : `○ ${noteAtOpen}`;
     const stateTitle = selected === null ? t('builder.fretboard.mutedTitle') : t('builder.fretboard.openTitle', { note: noteAtOpen });
-    stringControlsHtml += `<button class="string-state ${selected === null ? 'muted' : ''}" data-string-state="${stringIndex}" data-midi="${openMidis[stringIndex] + state.capo}" title="${stateTitle}">${stateText}</button>`;
+    stringControlsHtml += `<button class="string-state ${selected === null ? 'muted' : ''}" data-string-state="${stringIndex}" data-midi="${openMidis[stringIndex] + state.capo}" title="${stateTitle}"><b>${stateText}</b></button>`;
     neckRowsHtml += `<div class="string-row ${isWound ? 'wound' : 'plain'}" style="grid-template-columns:${columns};--string-thickness:${thickness}px">`;
     for (let fret = 1; fret <= state.frets; fret += 1) {
       const pitch = Engine.soundingPitch(state.tuning[stringIndex], fret, state.capo);
       const active = selected === fret;
       const blocked = fret <= state.capo;
       const noteAtFret = Engine.noteName(pitch);
-      neckRowsHtml += `<button class="fret-cell ${active ? 'active' : ''} ${blocked ? 'blocked' : ''}" data-string="${stringIndex}" data-fret="${fret}" data-midi="${openMidis[stringIndex] + fret}" ${blocked ? 'aria-disabled="true"' : ''} aria-label="${t('builder.fretboard.fretAria', { string: state.strings - stringIndex, fret, note: noteAtFret })}"><span class="finger-dot ${analysis.root === pitch ? 'root' : ''}">${Engine.noteName(pitch, state.preferFlats)}</span></button>`;
+      neckRowsHtml += `<button class="fret-cell ${active ? 'active' : ''} ${blocked ? 'blocked' : ''}" data-string="${stringIndex}" data-fret="${fret}" data-midi="${openMidis[stringIndex] + fret}" ${blocked ? 'aria-disabled="true"' : ''} aria-label="${t('builder.fretboard.fretAria', { string: state.strings - stringIndex, fret, note: noteAtFret })}"><span class="finger-dot ${analysis.root === pitch ? 'root' : ''}"><b>${Engine.noteName(pitch, state.preferFlats)}</b></span></button>`;
     }
     neckRowsHtml += '</div>';
   }
@@ -107,6 +116,10 @@ export function renderBoard(options = {}) {
   }
 
   document.getElementById('fretboard').innerHTML = `<div class="fret-head"><span class="head-label">${t('builder.fretboard.headLabel')}</span><div class="fret-numbers" style="width:${neckWidth}px">${numbers}</div></div><div class="board-body"><div class="string-controls">${stringControlsHtml}</div><div class="neck-wrap" style="width:${neckWidth}px"><div class="neck-surface">${neckRowsHtml}${inlays}</div>${capo}</div></div>`;
+
+  // The rotated board keeps its old layout box, so the frame it sits in has to be
+  // resized every time the board is redrawn.
+  layoutRotatedBoard(document.querySelector('.fret-scroll'), document.getElementById('fretboard'));
 
   document.querySelectorAll('[data-string]').forEach((cell) => cell.addEventListener('click', () => {
     const stringIndex = Number(cell.dataset.string);
@@ -179,28 +192,41 @@ export function renderStrumEditor(activeIndex = -1) {
   });
 }
 
+// How many frets a chord box shows when the shape does not need more.
+const VOICING_WINDOW = 5;
+
+// Draws a shape as a chord box: a nut column saying how each string is used
+// (× muted, ○ open) and a window of frets wide enough to hold every note.
+//
+// The window used to be pinned to the nut the moment any string rang open, which
+// silently dropped every note above the fourth fret — the shape was drawn with
+// blank rows where those notes should be. That is easy to hit in an altered
+// tuning, where open strings often sit under a hand playing high up the neck:
+// Am11 in DADGAD is x-0-0-4-3-5, and its top string simply vanished.
 function renderVoicingDiagram(shape) {
-  const windowSize = 5;
   const stringOrder = Array.from({ length: shape.length }, (_, index) => shape.length - 1 - index);
-  const usedFrets = shape.filter((position) => position !== null && position > 0);
-  const hasOpen = shape.some((position) => position === 0);
-  const lowest = usedFrets.length ? Math.min(...usedFrets) : 0;
-  const windowStart = hasOpen ? 0 : lowest;
-  return stringOrder.map((stringIndex) => {
+  const fretted = shape.filter((position) => position !== null && position > 0);
+  const lowest = fretted.length ? Math.min(...fretted) : 1;
+  const highest = fretted.length ? Math.max(...fretted) : 1;
+  // Stay at the nut while the notes still fit beside it; otherwise slide the
+  // window up to the hand and say which fret it starts on.
+  const windowStart = highest <= VOICING_WINDOW ? 1 : lowest;
+  const windowEnd = Math.max(windowStart + VOICING_WINDOW - 1, highest);
+  const rows = stringOrder.map((stringIndex) => {
     const value = shape[stringIndex];
-    let cells = '';
-    if (windowStart === 0) {
-      const muted = value === null;
-      const open = value === 0;
-      cells += `<span class="voicing-nut ${muted ? 'muted' : ''} ${open ? 'open' : ''}">${muted ? '×' : open ? '○' : ''}</span>`;
-      for (let fret = 1; fret < windowSize; fret += 1) cells += `<span class="voicing-cell ${value === fret ? 'active' : ''}"></span>`;
-    } else {
-      const muted = value === null;
-      cells += `<span class="voicing-nut ${muted ? 'muted' : ''}">${muted ? '×' : ''}</span>`;
-      for (let fret = windowStart; fret < windowStart + windowSize; fret += 1) cells += `<span class="voicing-cell ${value === fret ? 'active' : ''}"></span>`;
+    const muted = value === null;
+    const open = value === 0;
+    // An open string is marked at the nut wherever the window sits: up the neck
+    // it is exactly the string a reader is most likely to miss.
+    let cells = `<span class="voicing-nut ${muted ? 'muted' : ''} ${open ? 'open' : ''}">${muted ? '×' : open ? '○' : ''}</span>`;
+    for (let fret = windowStart; fret <= windowEnd; fret += 1) {
+      cells += `<span class="voicing-cell ${value === fret ? 'active' : ''}"></span>`;
     }
     return `<div class="voicing-row">${cells}</div>`;
   }).join('');
+  const mark = windowStart > 1 ? `<span class="voicing-fret-mark">${t('builder.voicing.fretMark', { n: windowStart })}</span>` : '';
+  // The mark sits on the left, beside the fret the window opens on.
+  return `${mark}<div class="voicing-rows" style="--voicing-frets:${windowEnd - windowStart + 1}">${rows}</div>`;
 }
 
 export function closeVoicingModal() {
@@ -213,7 +239,7 @@ export function openVoicingModal(parsed, shapes) {
   const state = store.state;
   const chordLabel = `${Engine.noteName(parsed.root, parsed.preferFlats)}${parsed.quality.suffix}${parsed.bass !== null ? `/${Engine.noteName(parsed.bass, parsed.preferFlats)}` : ''}`;
   document.getElementById('voicingModalTitle').textContent = t('builder.voicing.titleNamed', { chord: chordLabel });
-  document.getElementById('voicingModalBody').innerHTML = shapes.map((candidate, index) => `<button type="button" class="voicing-card" data-voicing="${index}"><span class="voicing-position">${candidate.position === 0 ? t('builder.voicing.openPosition') : t('builder.voicing.fretPosition', { n: candidate.position })}</span><div class="voicing-diagram">${renderVoicingDiagram(candidate.shape)}</div></button>`).join('');
+  document.getElementById('voicingModalBody').innerHTML = shapes.map((candidate, index) => `<button type="button" class="voicing-card" data-voicing="${index}"><span class="voicing-position">${candidate.position === 0 ? t('builder.voicing.openPosition') : t('builder.voicing.fretPosition', { n: candidate.position })}<small>${candidate.strings} ${pluralize('builder.voicing.stringCount', candidate.strings)}</small></span><div class="voicing-diagram">${renderVoicingDiagram(candidate.shape)}</div></button>`).join('');
   document.getElementById('voicingModalBody').querySelectorAll('[data-voicing]').forEach((button) => button.addEventListener('click', () => {
     state.shape = shapes[Number(button.dataset.voicing)].shape;
     state.preset = 'custom';
@@ -235,7 +261,9 @@ export function findShape(input) {
     info.classList.add('show', 'error');
     return;
   }
-  const shapes = Engine.generateShapes(parsed, state.tuning, state.capo, state.frets, 8);
+  // Room for six positions and a second voicing of each: the full shape and the
+  // compact one are different answers, and both are worth offering.
+  const shapes = Engine.generateShapes(parsed, state.tuning, state.capo, state.frets, 12);
   if (!shapes.length) {
     info.textContent = t('builder.search.noShapeFound');
     info.classList.add('show', 'error');
@@ -243,6 +271,35 @@ export function findShape(input) {
   }
   info.classList.remove('show', 'error');
   openVoicingModal(parsed, shapes);
+}
+
+// Fills the instrument menu and selects what the instrument actually is.
+//
+// The menu used to show whatever `state.preset` last said, and every fret click
+// sets that to 'custom' — a value with no option behind it, so the menu fell back
+// to "standard" while the neck was plainly in DADGAD. It now matches on the tuning
+// itself, so the menu cannot drift away from the instrument.
+//
+// The saved-tunings group and the "custom" entry exist only on the chord
+// identifier; where the page has neither, this keeps the previous behaviour.
+function renderPresetChoice() {
+  const state = store.state;
+  const select = document.getElementById('preset');
+  const savedGroup = document.getElementById('savedTuningGroup');
+  if (savedGroup) {
+    const saved = readSavedTunings();
+    savedGroup.hidden = !saved.length;
+    savedGroup.innerHTML = saved
+      .map((entry) => `<option value="saved:${entry.id}">${escapeHtml(entry.name)}</option>`)
+      .join('');
+  }
+  const preset = matchPreset(state);
+  const savedMatch = preset ? null : (savedGroup ? matchSavedTuning(state) : null);
+  const desired = preset || (savedMatch ? `saved:${savedMatch.id}` : 'custom');
+  const offered = [...select.options].some((option) => option.value === desired);
+  select.value = offered ? desired : (PRESETS[state.preset] ? state.preset : 'standard');
+  const forget = document.getElementById('forgetTuning');
+  if (forget) forget.hidden = !select.value.startsWith('saved:');
 }
 
 export function render() {
@@ -268,7 +325,7 @@ export function render() {
     document.getElementById('chordReleaseValue').textContent = t('common.template.seconds', { n: state.release.toFixed(2) });
   }
   document.getElementById('capoBadge').textContent = state.capo ? t('builder.capoBadge.at', { n: state.capo }) : t('builder.capoBadge.none');
-  document.getElementById('preset').value = PRESETS[state.preset] ? state.preset : 'standard';
+  renderPresetChoice();
   renderStrumEditor();
   renderTuning();
   renderBoard();

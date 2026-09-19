@@ -44,6 +44,14 @@ export const QUALITIES = [
   { id: 'madd9', suffix: 'm(add9)', intervals: [0, 2, 3, 7], optional: [7] },
   { id: 'add11', suffix: 'add11', intervals: [0, 4, 5, 7], optional: [7] },
   { id: 'madd11', suffix: 'm(add11)', intervals: [0, 3, 5, 7], optional: [7] },
+  // Suspended sevenths. A sus chord with a seventh on top is its own sonority, not a
+  // triad plus an accident: F-G-C-E is Fmaj7sus2, and calling it Cadd11/F (the same
+  // notes read from the wrong root) hides the chord the hand is actually holding.
+  // They sit after add11/madd11 because those spellings share the very same pitch-class
+  // sets, and the earlier entry wins when neither root is in the bass.
+  { id: 'maj7sus2', suffix: 'maj7sus2', intervals: [0, 2, 7, 11] },
+  { id: '7sus2', suffix: '7sus2', intervals: [0, 2, 7, 10] },
+  { id: 'maj7sus4', suffix: 'maj7sus4', intervals: [0, 5, 7, 11] },
   { id: '6', suffix: '6', intervals: [0, 4, 7, 9], optional: [7] },
   { id: 'm6', suffix: 'm6', intervals: [0, 3, 7, 9], optional: [7] },
   { id: 'maj', suffix: '', intervals: [0, 4, 7], optional: [7] },
@@ -63,6 +71,9 @@ const ALIASES = {
   '7#5': '7s5', '7♯5': '7s5', '7b9': '7b9', '7♭9': '7b9', '7#9': '7s9', '7♯9': '7s9',
   add9: 'add9', madd9: 'madd9', 'm(add9)': 'madd9', add11: 'add11', madd11: 'madd11',
   sus: 'sus4', sus2: 'sus2', sus4: 'sus4', '7sus4': '7sus4', '5': 'power',
+  '7sus2': '7sus2', 'maj7sus2': 'maj7sus2', 'M7sus2': 'maj7sus2', 'Δsus2': 'maj7sus2',
+  'sus2maj7': 'maj7sus2', 'maj7sus4': 'maj7sus4', 'M7sus4': 'maj7sus4', 'Δsus4': 'maj7sus4',
+  'maj7sus': 'maj7sus4', 'sus4maj7': 'maj7sus4', 'dom7sus2': '7sus2',
   '6': '6', m6: 'm6', '6/9': '69', '69': '69', 'm6/9': 'm69', maj9: 'maj9', M9: 'maj9',
   '9': '9', m9: 'm9', '11': '11', m11: 'm11', '13': '13', maj13: 'maj13', m13: 'm13',
   'maj7#11': 'maj7s11', 'maj7♯11': 'maj7s11',
@@ -209,7 +220,16 @@ function fingersNeeded(shape) {
   if (!fretted.length) return 0;
   const lowest = Math.min(...fretted);
   const above = fretted.filter((position) => position > lowest).length;
-  return 1 + above;
+  // One finger normally lies across everything at the lowest fret. It cannot,
+  // though, if a string is meant to ring open between the outermost strings it
+  // would cover — the barre would stop that string dead. Then each note at the
+  // lowest fret costs a finger of its own, which is usually more than a hand has.
+  const atLowest = [];
+  shape.forEach((position, stringIndex) => { if (position === lowest) atLowest.push(stringIndex); });
+  const first = atLowest[0];
+  const last = atLowest[atLowest.length - 1];
+  const openUnderBarre = shape.some((position, stringIndex) => position === 0 && stringIndex > first && stringIndex < last);
+  return (openUnderBarre ? atLowest.length : 1) + above;
 }
 
 // The actual stretch the hand has to cover: open strings are not held down, so
@@ -226,7 +246,13 @@ function frettedSpan(shape) {
 // open-position voicing (which is always cheapest when it's available).
 // With `strict`, shapes no hand can form are discarded outright rather than merely
 // scored down; callers fall back to a non-strict pass if nothing survives.
-function bestShapeInWindow(target, targetMask, rootBit, bassTarget, tuning, capo, fretCount, windowStart, allowOpen, strict = true) {
+// A position usually has two shapes worth knowing: the full one, which sounds
+// every string it can, and a compact one on the top strings. They are different
+// answers to the same question, so the search returns the best of each rather
+// than making them compete.
+const FULL_VOICING_GAP = 1; // sounding at most this many strings short of all of them
+
+function shapesInWindow(target, targetMask, rootBit, bassTarget, tuning, capo, fretCount, windowStart, allowOpen, strict = true) {
   const windowEnd = Math.min(fretCount, windowStart + 4);
   let beam = [{ shape: [], mask: 0, sounds: 0, min: Infinity, max: -Infinity, muted: 0, internalMutes: 0, started: false, hasOpen: false, score: 0, bass: null }];
   for (let stringIndex = 0; stringIndex < tuning.length; stringIndex += 1) {
@@ -256,7 +282,10 @@ function bestShapeInWindow(target, targetMask, rootBit, bassTarget, tuning, capo
           else {
             copy.min = Math.min(copy.min, position);
             copy.max = Math.max(copy.max, position);
-            copy.score += position * 0.07;
+            // Relative to the window, not absolute. An absolute cost per string
+            // quietly charges a shape for every string it sounds, which is how a
+            // full barre used to lose to a thinner voicing at the same fret.
+            copy.score += (position - windowStart) * 0.05;
             if (copy.max - copy.min > 4) copy.score += 9;
           }
         }
@@ -266,21 +295,28 @@ function bestShapeInWindow(target, targetMask, rootBit, bassTarget, tuning, capo
     next.sort((a, b) => a.score - b.score);
     beam = next.slice(0, 1800);
   }
-  let best = null;
+  const best = { full: null, compact: null };
   for (const candidate of beam) {
     if ((candidate.mask & targetMask) !== targetMask || !(candidate.mask & rootBit) || candidate.sounds < Math.min(3, tuning.length)) continue;
     candidate.fingers = fingersNeeded(candidate.shape);
     candidate.span = frettedSpan(candidate.shape);
     if (strict && (candidate.fingers > MAX_FINGERS || candidate.span > MAX_STRETCH || candidate.internalMutes > 1)) continue;
-    candidate.position = candidate.hasOpen ? 0 : (candidate.min === Infinity ? windowStart : candidate.min);
+    // Open strings alone do not put the hand at the nut: a barre at the fifth
+    // fret with two open strings is a fifth-position shape, and saying otherwise
+    // made it collide with the real open chord in the list.
+    const lowestFretted = candidate.min === Infinity ? 0 : candidate.min;
+    candidate.position = candidate.hasOpen && lowestFretted <= 3 ? 0 : (lowestFretted || windowStart);
     // Among playable shapes, prefer the ones that ask less of the hand.
     candidate.selectionScore = candidate.score + candidate.span * 1.1 + candidate.fingers * 0.5
-      + candidate.internalMutes * 1.2 + (candidate.bass === bassTarget ? 0 : 4.5);
-    if (!best || candidate.selectionScore < best.selectionScore) best = candidate;
+      + candidate.internalMutes * 1.2 + candidate.position * 0.32
+      + (candidate.bass === bassTarget ? 0 : 4.5);
+    candidate.bucket = candidate.sounds >= tuning.length - FULL_VOICING_GAP ? 'full' : 'compact';
+    const incumbent = best[candidate.bucket];
+    if (!incumbent || candidate.selectionScore < incumbent.selectionScore) best[candidate.bucket] = candidate;
     // score is finalized by the caller once the bass penalty (which depends on the
     // requested chord, not the window) has been applied.
   }
-  return best;
+  return [best.full, best.compact].filter(Boolean);
 }
 
 // Returns up to `limit` distinct fingerings for a chord, ordered from the lowest
@@ -310,18 +346,19 @@ export function generateShapes(parsed, tuning, capo, fretCount, limit = 8) {
       if ((fullMask & (1 << pitch)) && !(candidate.mask & (1 << pitch))) dropped += 1;
     }
     candidate.score += candidate.span * 1.1 + candidate.fingers * 0.5
-      + candidate.internalMutes * 1.2 + bassPenalty + dropped * 2.2;
+      + candidate.internalMutes * 1.2 + candidate.position * 0.32 + bassPenalty + dropped * 2.2;
     return candidate;
   };
 
   const collect = (strict) => {
     const shapes = [];
-    const openCandidate = bestShapeInWindow(target, targetMask, rootBit, bassTarget, tuning, capo, fretCount, capo + 1, true, strict);
-    if (openCandidate) shapes.push(finalize(openCandidate));
-    for (let windowStart = capo + 1; windowStart <= maxStart; windowStart += 1) {
-      const candidate = bestShapeInWindow(target, targetMask, rootBit, bassTarget, tuning, capo, fretCount, windowStart, false, strict);
-      if (candidate) shapes.push(finalize(candidate));
-    }
+    const gather = (windowStart, allowOpen) => {
+      for (const candidate of shapesInWindow(target, targetMask, rootBit, bassTarget, tuning, capo, fretCount, windowStart, allowOpen, strict)) {
+        shapes.push(finalize(candidate));
+      }
+    };
+    gather(capo + 1, true);
+    for (let windowStart = capo + 1; windowStart <= maxStart; windowStart += 1) gather(windowStart, false);
     return shapes;
   };
 
@@ -337,19 +374,40 @@ export function generateShapes(parsed, tuning, capo, fretCount, limit = 8) {
     if (!existing || candidate.score < existing.score) bySignature.set(key, candidate);
   }
 
-  // Keep at most one shape per neck position (favoring the best-scoring one there)
-  // so the results read as distinct positions up the neck rather than near-duplicates.
-  const byPosition = new Map();
+  // At most one full and one compact shape per neck position, so the list reads as
+  // distinct positions up the neck rather than a drift of near-duplicates.
+  const byBucket = new Map();
   for (const candidate of bySignature.values()) {
+    const key = `${candidate.position}:${candidate.bucket}`;
+    const existing = byBucket.get(key);
+    if (!existing || candidate.score < existing.score) byBucket.set(key, candidate);
+  }
+
+  const byPosition = new Map();
+  for (const candidate of byBucket.values()) {
     const existing = byPosition.get(candidate.position);
     if (!existing || candidate.score < existing.score) byPosition.set(candidate.position, candidate);
   }
 
-  return [...byPosition.values()]
+  // Half the slots go to distinct positions and half to second voicings of them,
+  // so the list covers the neck and still shows both ways to play each spot.
+  const positionCap = Math.max(1, Math.ceil(limit / 2));
+  const primary = [...byPosition.values()].sort((a, b) => a.score - b.score).slice(0, positionCap);
+  const chosen = new Set(primary);
+  // A second voicing has to be a different chord shape, not the same one with a
+  // string dropped: it must sound at least two strings more or fewer than the one
+  // already shown at that position.
+  const alternates = [...byBucket.values()]
+    .filter((candidate) => {
+      const main = byPosition.get(candidate.position);
+      return !chosen.has(candidate) && chosen.has(main) && Math.abs(candidate.sounds - main.sounds) >= 2;
+    })
     .sort((a, b) => a.score - b.score)
-    .slice(0, limit)
-    .sort((a, b) => a.position - b.position)
-    .map((candidate) => ({ shape: candidate.shape, position: candidate.position, score: candidate.score }));
+    .slice(0, Math.max(0, limit - primary.length));
+
+  return [...primary, ...alternates]
+    .sort((a, b) => a.position - b.position || a.score - b.score)
+    .map((candidate) => ({ shape: candidate.shape, position: candidate.position, score: candidate.score, strings: candidate.sounds }));
 }
 
 export function generateShape(parsed, tuning, capo, fretCount) {

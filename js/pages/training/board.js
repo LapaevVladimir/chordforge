@@ -1,6 +1,7 @@
 import { createTuning, STANDARD_TUNING, PITCH_NAMES } from '../../core/tuning.js';
 import { DEGREE_LABELS } from '../../core/scales.js';
 import { t } from '../../i18n/i18n.js';
+import { layoutRotatedBoard } from '../../core/board-orientation.js';
 
 export const MAX_FRET = 15;
 export { STANDARD_TUNING, PITCH_NAMES };
@@ -84,16 +85,42 @@ function renderGrid(container, { interactive = false, cellAttr = '', decorate })
     html += `<div class="interval-string-label"><span>${stringNumber}</span><small>${noteName(OPEN_MIDIS[stringIndex])}</small></div>`;
     for (let fret = 0; fret <= MAX_FRET; fret += 1) {
       const cell = { stringIndex, fret, midi: OPEN_MIDIS[stringIndex] + fret, stringNumber };
-      const { marker, classes = [], label } = decorate(cell);
+      const { marker, classes = [], label, disabled = false } = decorate(cell);
       const allClasses = ['interval-cell', ...(stringNumber >= 4 ? ['wound'] : []), ...classes];
       const attrs = `class="${allClasses.join(' ')}" style="--training-string:${stringThickness}px" aria-label="${label}"`;
       html += interactive
-        ? `<button ${attrs} type="button" ${cellAttr}="${cellKey(cell)}"><span class="interval-note">${marker}</span></button>`
-        : `<div ${attrs} role="img"><span class="interval-note">${marker}</span></div>`;
+        ? `<button ${attrs} type="button" ${disabled ? 'disabled' : ''} ${cellAttr}="${cellKey(cell)}"><span class="interval-note"><b>${marker}</b></span></button>`
+        : `<div ${attrs} role="img"><span class="interval-note"><b>${marker}</b></span></div>`;
     }
     html += '</div>';
   }
   container.innerHTML = html;
+  layoutRotatedBoard(container.closest('.training-board-scroll'), container);
+}
+
+// The neck is wider than a phone, so whatever has been marked on it can easily
+// sit off the right edge — being asked which interval is marked while the marks
+// are out of view is no question at all. After drawing, the scroller is nudged so
+// the marked frets are centred. On a screen wide enough to show the whole neck
+// nothing moves.
+function revealMarks(container, selector) {
+  const scroller = container?.closest('.training-board-scroll');
+  if (!scroller || scroller.scrollWidth <= scroller.clientWidth) return;
+  const marks = container.querySelectorAll(selector);
+  if (!marks.length) return;
+  const base = scroller.getBoundingClientRect().left - scroller.scrollLeft;
+  let left = Infinity;
+  let right = -Infinity;
+  marks.forEach((mark) => {
+    const rect = mark.getBoundingClientRect();
+    left = Math.min(left, rect.left - base);
+    right = Math.max(right, rect.right - base);
+  });
+  // Already on screen: leave the board where the reader put it. Recentring on
+  // every render would yank the neck out from under the finger that just tapped it.
+  if (left >= scroller.scrollLeft && right <= scroller.scrollLeft + scroller.clientWidth) return;
+  const centred = (left + right) / 2 - scroller.clientWidth / 2;
+  scroller.scrollLeft = Math.max(0, Math.min(centred, scroller.scrollWidth - scroller.clientWidth));
 }
 
 // The "Learn" interval map and the quiz board. `targetMarker` is the symbol shown
@@ -122,6 +149,79 @@ export function renderBoard(container, { anchor = null, targets = [], quizPair =
       if (isQuizTarget) classes.push('quiz-second');
       const extra = (isAnchor || isQuizRoot ? t('training.board.firstNoteSuffix') : '') + (isTarget || isQuizTarget ? t('training.board.secondNoteSuffix') : '');
       return { marker, classes, label: t('training.board.cellAria', { string: cell.stringNumber, fretLabel: fretLabel(cell.fret), note: noteName(cell.midi), extra }) };
+    },
+  });
+
+  // The anchor and the quiz pair, but not every matched position: on the interval
+  // map the matches can span the whole neck, and centring on all of them would
+  // leave the note you actually chose off the edge.
+  revealMarks(container, '.quiz-first, .quiz-second, .anchor');
+}
+
+// The note quiz. Two shapes of the same board:
+//
+//   "name the note" marks one cell with a question mark and leaves the rest of
+//   the neck silent — the whole point is that nothing tells you where you are;
+//   "find the note" names the note in the question instead and makes the neck
+//   itself the answer sheet, with everything outside the chosen strings and
+//   frets put out of reach rather than merely discouraged.
+//
+// Cells already tried carry the note they really are, right or wrong, because a
+// miss you cannot read teaches nothing.
+export function renderNoteQuizBoard(container, { target = null, interactive = false, marks = new Map(), inRange = null } = {}) {
+  const targetKey = target ? cellKey(target) : '';
+
+  renderGrid(container, {
+    interactive,
+    cellAttr: 'data-note-cell',
+    decorate: (cell) => {
+      const key = cellKey(cell);
+      const mark = marks.get(key);
+      const reachable = !interactive || !inRange || inRange(cell);
+      const classes = [];
+      let marker = '';
+      if (mark) {
+        classes.push(mark === 'hit' ? 'note-hit' : 'note-miss');
+        marker = PITCH_NAMES[mod12(cell.midi)];
+      } else if (key === targetKey) {
+        classes.push('note-asked');
+        marker = '?';
+      } else if (!reachable) {
+        classes.push('note-out');
+      }
+      return {
+        marker,
+        classes,
+        disabled: !reachable,
+        // The note is deliberately left out of the label: a screen reader would
+        // otherwise read out the answer the question is asking for.
+        label: t('training.noteQuiz.cellAria', { string: cell.stringNumber, fretLabel: fretLabel(cell.fret) }),
+      };
+    },
+  });
+
+  revealMarks(container, '.note-asked, .note-hit, .note-miss');
+}
+
+// The plain neck: every fret says which note it is, and nothing is marked,
+// chosen or played. The chart you would tape inside a guitar case — and the one
+// the other two boards quietly assume you already know.
+//
+// Accidentals are drawn back so the naturals read first: those are the ones worth
+// learning by position, and the sharps fall out of them.
+export function renderNoteBoard(container) {
+  renderGrid(container, {
+    decorate: (cell) => {
+      const name = PITCH_NAMES[mod12(cell.midi)];
+      return {
+        marker: name,
+        classes: ['note-map', name.length > 1 ? 'note-map-accidental' : 'note-map-natural'],
+        label: t('training.notes.cellAria', {
+          string: cell.stringNumber,
+          fretLabel: fretLabel(cell.fret),
+          note: noteName(cell.midi),
+        }),
+      };
     },
   });
 }
@@ -160,4 +260,6 @@ export function renderScaleBoard(container, { cells = [], position = null, showN
       };
     },
   });
+
+  revealMarks(container, position ? '.scale-note:not(.scale-outside)' : '.scale-root');
 }
