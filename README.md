@@ -22,7 +22,7 @@ linked from the landing page.
 
 ## What is in it
 
-- **43 chord qualities** with aliases, inversions and a search that only offers
+- **46 chord qualities** with aliases, inversions and a search that only offers
   shapes a hand can actually hold: fingers and stretch are counted, and a barre
   that an open string would have to ring through is counted as the several
   fingers it really costs.

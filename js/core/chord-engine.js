@@ -44,6 +44,14 @@ export const QUALITIES = [
   { id: 'madd9', suffix: 'm(add9)', intervals: [0, 2, 3, 7], optional: [7] },
   { id: 'add11', suffix: 'add11', intervals: [0, 4, 5, 7], optional: [7] },
   { id: 'madd11', suffix: 'm(add11)', intervals: [0, 3, 5, 7], optional: [7] },
+  // Suspended sevenths. A sus chord with a seventh on top is its own sonority, not a
+  // triad plus an accident: F-G-C-E is Fmaj7sus2, and calling it Cadd11/F (the same
+  // notes read from the wrong root) hides the chord the hand is actually holding.
+  // They sit after add11/madd11 because those spellings share the very same pitch-class
+  // sets, and the earlier entry wins when neither root is in the bass.
+  { id: 'maj7sus2', suffix: 'maj7sus2', intervals: [0, 2, 7, 11] },
+  { id: '7sus2', suffix: '7sus2', intervals: [0, 2, 7, 10] },
+  { id: 'maj7sus4', suffix: 'maj7sus4', intervals: [0, 5, 7, 11] },
   { id: '6', suffix: '6', intervals: [0, 4, 7, 9], optional: [7] },
   { id: 'm6', suffix: 'm6', intervals: [0, 3, 7, 9], optional: [7] },
   { id: 'maj', suffix: '', intervals: [0, 4, 7], optional: [7] },
@@ -63,6 +71,9 @@ const ALIASES = {
   '7#5': '7s5', '7♯5': '7s5', '7b9': '7b9', '7♭9': '7b9', '7#9': '7s9', '7♯9': '7s9',
   add9: 'add9', madd9: 'madd9', 'm(add9)': 'madd9', add11: 'add11', madd11: 'madd11',
   sus: 'sus4', sus2: 'sus2', sus4: 'sus4', '7sus4': '7sus4', '5': 'power',
+  '7sus2': '7sus2', 'maj7sus2': 'maj7sus2', 'M7sus2': 'maj7sus2', 'Δsus2': 'maj7sus2',
+  'sus2maj7': 'maj7sus2', 'maj7sus4': 'maj7sus4', 'M7sus4': 'maj7sus4', 'Δsus4': 'maj7sus4',
+  'maj7sus': 'maj7sus4', 'sus4maj7': 'maj7sus4', 'dom7sus2': '7sus2',
   '6': '6', m6: 'm6', '6/9': '69', '69': '69', 'm6/9': 'm69', maj9: 'maj9', M9: 'maj9',
   '9': '9', m9: 'm9', '11': '11', m11: 'm11', '13': '13', maj13: 'maj13', m13: 'm13',
   'maj7#11': 'maj7s11', 'maj7♯11': 'maj7s11',
