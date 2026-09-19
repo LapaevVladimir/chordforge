@@ -34,7 +34,7 @@ import { audio, showToast, playSequence, playIntervalByType } from '../training/
 const $ = (id) => document.getElementById(id);
 const mod12 = (value) => ((value % 12) + 12) % 12;
 
-const STAGES = ['basics', 'fretboard', 'intervals'];
+const STAGES = ['basics', 'fretboard', 'intervals', 'shapes'];
 const MARKER_FRETS = [3, 5, 7, 9, 12, 15];
 // The seven letters, and the gap to the next one. Two of them are a single fret,
 // which is the whole lesson.
@@ -119,6 +119,7 @@ function showStage(stage, { scroll = true } = {}) {
   // whichever one just came on screen is drawn again.
   if (stage === 'fretboard') renderNeck();
   if (stage === 'intervals') renderIntervalStage();
+  if (stage === 'shapes') renderShapeStage();
   if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -522,15 +523,20 @@ function renderIntervalStage() {
   renderIntervalTable();
   renderRuler();
   renderIntervalRail();
-  settleShapeRoot();
-  renderShapePicker();
-  renderShapeBoard();
   renderCharacterList();
   renderIntervalBoard();
   renderEarAnswers();
 }
 
-/* ------------------------------------------------ 03.5  shapes on the neck */
+function renderShapeStage() {
+  renderStringSteps();
+  settleShapeRoot();
+  renderShapePicker();
+  renderShapeMath();
+  renderShapeBoard();
+}
+
+/* ------------------------------------------------- 04  shapes on the neck */
 
 // A shape is "cross this many strings, move this many frets". Which strings it
 // works on is not written down here: it is worked out from the tuning, because
@@ -545,6 +551,112 @@ const NECK_SHAPES = [
 ];
 
 const shapeById = (id) => NECK_SHAPES.find((shape) => shape.id === id) ?? NECK_SHAPES[0];
+
+// What each string crossing is worth in frets. Read off the tuning rather than
+// written down, so a reader in DADGAD is not being told a comfortable lie.
+function stringStepsFrom(stringIndex, count) {
+  return Array.from({ length: count }, (_, step) => OPEN_MIDIS[stringIndex + step + 1] - OPEN_MIDIS[stringIndex + step]);
+}
+
+function renderStringSteps() {
+  $('stringSteps').innerHTML = OPEN_MIDIS.slice(0, -1).map((midi, stringIndex) => {
+    const step = OPEN_MIDIS[stringIndex + 1] - midi;
+    const odd = step !== 5;
+    return `<span class="string-step${odd ? ' odd' : ''}">
+      <b>${OPEN_MIDIS.length - stringIndex}<i aria-hidden="true">→</i>${OPEN_MIDIS.length - stringIndex - 1}</b>
+      <strong>+${step}</strong>
+      <small>${pluralize('interval.unit.fret', step)}</small>
+    </span>`;
+  }).join('');
+}
+
+// The whole point of the stage, drawn: the move split into the part that comes
+// from crossing strings and the part that comes from sliding frets, each labelled
+// with what it is worth, adding up to the interval.
+// A minus sign, not a hyphen: these are read as arithmetic.
+const signed = (value) => (value === 0 ? '' : `${value > 0 ? '+' : '−'}${Math.abs(value)}`);
+
+function renderShapeMath() {
+  const shape = shapeById(state.shapeId);
+  const strings = OPEN_MIDIS.length;
+  // Drawn from a string the shape actually exists on, which is not necessarily
+  // the one the reader last tapped: the board below is allowed to show the shape
+  // failing to fit, but a sum that does not add up to its own interval would be
+  // teaching the wrong thing.
+  const valid = shapeStrings(shape);
+  if (!valid.length) return;
+  const fromString = valid.includes(state.shapeRoot.stringIndex) ? state.shapeRoot.stringIndex : valid[0];
+  const targetString = fromString + shape.stringDelta;
+  if (targetString < 0 || targetString >= strings) return;
+  const steps = stringStepsFrom(fromString, shape.stringDelta);
+  const stringPart = steps.reduce((sum, step) => sum + step, 0);
+  const total = stringPart + shape.fretDelta;
+  const interval = getInterval(shape.interval);
+
+  // Frets are numbered from the start of the move, not from the nut: the shape is
+  // the same everywhere, so where on the neck it is drawn would be a distraction.
+  const startFret = Math.max(1, 1 - shape.fretDelta);
+  const endFret = startFret + shape.fretDelta;
+  const lastFret = Math.max(startFret, endFret) + 1;
+  const fretWidth = lastFret > 8 ? 30 : 46;
+  const rowHeight = 22;
+  const padX = 30;
+  const padY = 34;
+  const width = padX + (lastFret + 1) * fretWidth + 14;
+  const height = padY + strings * rowHeight;
+  const x = (fret) => padX + fret * fretWidth + fretWidth / 2;
+  const y = (stringIndex) => padY + (strings - 1 - stringIndex) * rowHeight;
+
+  const parts = [];
+  for (let fret = 0; fret <= lastFret + 1; fret += 1) {
+    const lineX = padX + fret * fretWidth;
+    parts.push(`<line class="math-fretline" x1="${lineX}" y1="${y(strings - 1) - 9}" x2="${lineX}" y2="${y(0) + 9}" />`);
+  }
+  for (let stringIndex = 0; stringIndex < strings; stringIndex += 1) {
+    parts.push(`<line class="math-string" x1="${padX}" y1="${y(stringIndex)}" x2="${padX + (lastFret + 1) * fretWidth}" y2="${y(stringIndex)}" />`);
+    parts.push(`<text class="math-side" x="${padX - 9}" y="${y(stringIndex) + 3.5}" text-anchor="end">${strings - stringIndex}</text>`);
+  }
+
+  // One arrow per string crossed, each carrying what that crossing costs — which
+  // is where the odd one out becomes visible rather than merely stated.
+  for (let step = 0; step < shape.stringDelta; step += 1) {
+    const from = fromString + step;
+    const plain = steps[step] === 5;
+    parts.push(`<line class="math-arrow${plain ? '' : ' odd'}" x1="${x(startFret)}" y1="${y(from) - 9}" x2="${x(startFret)}" y2="${y(from + 1) + 11}" marker-end="url(#${plain ? 'mathHead' : 'mathHeadOdd'})" />`);
+    parts.push(`<text class="math-label${plain ? '' : ' odd'}" x="${x(startFret) - 9}" y="${(y(from) + y(from + 1)) / 2 + 3.5}" text-anchor="end">+${steps[step]}</text>`);
+  }
+  if (shape.fretDelta !== 0) {
+    const lineY = y(targetString);
+    const back = shape.fretDelta > 0 ? -11 : 11;
+    parts.push(`<line class="math-arrow" x1="${x(startFret) + (shape.fretDelta > 0 ? 11 : -11)}" y1="${lineY}" x2="${x(endFret) + back}" y2="${lineY}" marker-end="url(#mathHead)" />`);
+    parts.push(`<text class="math-label" x="${(x(startFret) + x(endFret)) / 2}" y="${lineY - 11}" text-anchor="middle">${signed(shape.fretDelta)}</text>`);
+  }
+
+  parts.push(`<g class="math-dot start"><circle cx="${x(startFret)}" cy="${y(fromString)}" r="10" /><text x="${x(startFret)}" y="${y(fromString) + 4}" text-anchor="middle">1</text></g>`);
+  parts.push(`<g class="math-dot end"><circle cx="${x(endFret)}" cy="${y(targetString)}" r="10" /><text x="${x(endFret)}" y="${y(targetString) + 4}" text-anchor="middle">${intervalShort(shape.interval)}</text></g>`);
+
+  const sum = [...steps.map((step) => `+${step}`), signed(shape.fretDelta)].filter(Boolean).join(' ');
+  $('shapeMath').innerHTML = `
+    <div class="math-sum">
+      <span class="math-terms">${sum}</span>
+      <i aria-hidden="true">=</i>
+      <span class="math-total">${t('theory.shapes.math.semitones', { n: total, semitones: pluralize('interval.unit.semitone', total) })}</span>
+      <span class="math-name">${intervalName(shape.interval)}</span>
+    </div>
+    <div class="math-legend">
+      ${shape.stringDelta ? `<span>${t('theory.shapes.math.stringsLabel', { n: signed(stringPart) })}</span>` : ''}
+      ${shape.fretDelta ? `<span>${t('theory.shapes.math.fretsLabel', { n: signed(shape.fretDelta) })}</span>` : ''}
+    </div>
+    <svg class="math-neck" viewBox="0 0 ${width} ${height}" role="img"
+      aria-label="${t('theory.shapes.math.figureAria', { name: intervalName(shape.interval), n: total })}">
+      <defs>
+        <marker id="mathHead" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" /></marker>
+        <marker id="mathHeadOdd" class="odd" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" /></marker>
+      </defs>
+      ${parts.join('')}
+    </svg>`;
+  $('shapeBadge').textContent = `${intervalShort(shape.interval)} · ${interval.semitones}`;
+}
 
 // The strings the shape holds on, given how the instrument is tuned right now.
 function shapeStrings(shape) {
@@ -700,6 +812,7 @@ function renderAll() {
   renderTuningChain();
   renderNeck();
   renderIntervalStage();
+  renderShapeStage();
 }
 
 /* ------------------------------------------------------------------- events */
@@ -827,6 +940,7 @@ function bindEvents() {
     state.shapeId = shapeById(button.dataset.shape).id;
     settleShapeRoot();
     renderShapePicker();
+    renderShapeMath();
     renderShapeBoard();
   });
   $('shapeBoard').addEventListener('click', (event) => {
@@ -834,6 +948,7 @@ function bindEvents() {
     if (!button) return;
     const [stringIndex, fret] = button.dataset.learnCell.split(':').map(Number);
     state.shapeRoot = cellAt(stringIndex, fret);
+    renderShapeMath();
     renderShapeBoard();
     void playMidi(state.shapeRoot.midi);
   });
@@ -847,6 +962,7 @@ function bindEvents() {
   const flipLabels = { vertical: t('common.boardFlipVertical'), horizontal: t('common.boardFlipHorizontal') };
   bindOrientationToggle($('neckFlip'), flipLabels);
   bindOrientationToggle($('intervalFlip'), flipLabels);
+  bindOrientationToggle($('shapeFlip'), flipLabels);
   // Both boards are laid out from the same tuning, so both are redrawn when the
   // neck turns or the window changes shape.
   const redraw = () => { renderNeck(); renderIntervalBoard(); renderShapeBoard(); };

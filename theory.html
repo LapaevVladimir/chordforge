@@ -360,26 +360,8 @@
             </div>
           </article>
 
-          <article class="lesson" id="lesson-shapes">
-            <h2><span class="lesson-index">5</span><span data-i18n="theory.shapes.title">Shapes worth knowing by heart</span></h2>
-            <p data-i18n="theory.shapes.p1">An interval between two strings is always the same shape, because the strings are always tuned the same distance apart. Learn a handful of these shapes and you stop counting frets: you see the pair instead.</p>
-            <p data-i18n-html="theory.shapes.p2">The octave is the one to learn first. Two strings across and two frets up is an octave on strings <b>6 → 4</b> and <b>5 → 3</b>; on strings <b>4 → 2</b> and <b>3 → 1</b> it is three frets, because of that odd major-third step to the B string.</p>
-            <p data-i18n="theory.shapes.p3">Pick a shape, then press any fret on the neck to move the first note. The second note is drawn wherever the shape lands.</p>
-
-            <div class="neck-lab">
-              <div class="neck-lab-controls">
-                <div class="control-group wide">
-                  <span class="control-label" data-i18n="theory.shapes.pickLabel">Shape</span>
-                  <div class="chip-row" id="shapePicker" role="radiogroup" data-i18n-attr='{"aria-label":"theory.shapes.pickAria"}' aria-label="Shape to show"></div>
-                </div>
-              </div>
-              <div class="training-board-scroll"><div class="interval-board" id="shapeBoard" data-i18n-attr='{"aria-label":"theory.shapes.boardAria"}' aria-label="The shape on the neck"></div></div>
-              <div class="neck-readout" id="shapeReadout" aria-live="polite"></div>
-            </div>
-          </article>
-
           <article class="lesson" id="lesson-character">
-            <h2><span class="lesson-index">6</span><span data-i18n="theory.character.title">How they sound</span></h2>
+            <h2><span class="lesson-index">5</span><span data-i18n="theory.character.title">How they sound</span></h2>
             <p data-i18n="theory.character.p1">Intervals have a character, and it is worth having words for it. Treat what follows as a first impression, not a rule: context changes everything. A tritone is harsh on its own and completely ordinary inside a dominant seventh chord.</p>
             <figure class="theory-figure">
               <ul class="character-list" id="characterList"></ul>
@@ -387,7 +369,7 @@
           </article>
 
           <article class="lesson" id="lesson-ear">
-            <h2><span class="lesson-index">7</span><span data-i18n="theory.ear.title">Train your ear</span></h2>
+            <h2><span class="lesson-index">6</span><span data-i18n="theory.ear.title">Train your ear</span></h2>
             <p data-i18n="theory.ear.p1">Naming an interval by sight is one skill; hearing it is another. Play the pair below and pick what you heard. Nothing is timed, and you can listen as many times as you like.</p>
             <div class="ear-trainer" id="earTrainer">
               <div class="ear-head">
@@ -403,6 +385,63 @@
 
         <nav class="stage-pager" data-i18n-attr='{"aria-label":"theory.pagerAria"}' aria-label="Stage navigation">
           <button type="button" class="pager-button prev" data-goto="fretboard"><i aria-hidden="true">←</i><span data-i18n="theory.previous">Back</span><b data-i18n="theory.fretboard.eyebrowShort">Guitar Fretboard</b></button>
+          <button type="button" class="pager-button next" data-goto="shapes"><span data-i18n="theory.next">Next</span><b data-i18n="theory.shapes.eyebrowShort">Shapes</b><i aria-hidden="true">→</i></button>
+        </nav>
+      </section>
+
+
+      <!-- ======================= 04 — Shapes on the neck ======================= -->
+      <section class="work card theory-stage" data-stage="shapes" role="tabpanel" hidden data-i18n-attr='{"aria-label":"theory.shapes.title"}' aria-label="04 — Shapes on the neck">
+        <div class="work-top">
+          <div>
+            <span class="eyebrow" data-i18n="theory.shapes.eyebrow">04 — Shapes on the neck</span>
+            <h1 data-i18n="theory.shapes.title">The shapes that repeat</h1>
+            <p class="sub" data-i18n="theory.shapes.subtitle">Why an interval between two strings is always the same shape, and how to work any of them out.</p>
+          </div>
+          <div class="work-header-actions">
+            <span class="pill" id="shapeBadge">Octave</span>
+            <button type="button" class="board-flip" id="shapeFlip" aria-pressed="false"><i aria-hidden="true">⭯</i><span data-i18n="common.boardFlip">Rotate the neck</span></button>
+          </div>
+        </div>
+
+        <div class="theory-body">
+
+          <article class="lesson" id="lesson-stringstep">
+            <h2><span class="lesson-index">1</span><span data-i18n="theory.shapes.why.title">One string is five frets</span></h2>
+            <p data-i18n-html="theory.shapes.why.p1">Every string is tuned a perfect fourth above the one below it, and a perfect fourth is five semitones. So <b>stepping across to the next string is the same move as sliding five frets up the string you are on</b>. That single sentence is where every shape on this page comes from.</p>
+            <p data-i18n-html="theory.shapes.why.p2">With one exception, the one from stage 02: from string 3 to string 2 the step is a major third, so that crossing is worth <b>four</b> frets, not five. Every shape that crosses the B string shifts by a fret because of it.</p>
+            <figure class="theory-figure">
+              <div class="string-steps" id="stringSteps" role="group" data-i18n-attr='{"aria-label":"theory.shapes.why.stepsAria"}' aria-label="What each string crossing is worth"></div>
+              <figcaption data-i18n="theory.shapes.why.caption">What each crossing is worth in frets. Five every time, except the one marked.</figcaption>
+            </figure>
+          </article>
+
+          <article class="lesson" id="lesson-shapemath">
+            <h2><span class="lesson-index">2</span><span data-i18n="theory.shapes.math.title">Where a shape comes from</span></h2>
+            <p data-i18n="theory.shapes.math.p1">Now any shape is just addition. Count what the string crossings are worth, add the frets you slide, and the total is the distance in semitones — which is the interval, by name.</p>
+            <div class="control-group wide shape-pick">
+              <span class="control-label" data-i18n="theory.shapes.math.pickLabel">Shape</span>
+              <div class="chip-row" id="shapePicker" role="radiogroup" data-i18n-attr='{"aria-label":"theory.shapes.math.pickAria"}' aria-label="Shape to show"></div>
+            </div>
+            <figure class="theory-figure">
+              <div class="shape-math" id="shapeMath"></div>
+              <figcaption data-i18n="theory.shapes.math.caption">The arrows are the move; the numbers beside them are what each part of it is worth. They always add up to the interval.</figcaption>
+            </figure>
+          </article>
+
+          <article class="lesson" id="lesson-shapeboard">
+            <h2><span class="lesson-index">3</span><span data-i18n="theory.shapes.lab.title">Try it on the neck</span></h2>
+            <p data-i18n="theory.shapes.lab.p1">The same shape, on the whole neck. Press any fret and the first note moves there; the second one appears wherever the shape lands. If the shape does not exist from that string, the panel says which strings it does work on.</p>
+            <div class="neck-lab">
+              <div class="training-board-scroll"><div class="interval-board" id="shapeBoard" data-i18n-attr='{"aria-label":"theory.shapes.lab.boardAria"}' aria-label="The shape on the neck"></div></div>
+              <div class="neck-readout" id="shapeReadout" aria-live="polite"></div>
+            </div>
+          </article>
+
+        </div>
+
+        <nav class="stage-pager" data-i18n-attr='{"aria-label":"theory.pagerAria"}' aria-label="Stage navigation">
+          <button type="button" class="pager-button prev" data-goto="intervals"><i aria-hidden="true">←</i><span data-i18n="theory.previous">Back</span><b data-i18n="theory.intervals.eyebrowShort">Intervals</b></button>
           <a class="pager-button next" href="training-learn.html"><span data-i18n="theory.keepGoing">Keep going</span><b data-i18n="nav.learnLink">Lessons</b><i aria-hidden="true">→</i></a>
         </nav>
       </section>

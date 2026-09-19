@@ -12,7 +12,7 @@ module and the browser resolves the rest.
 | [index.html](index.html) | Landing page: what the five tools are and where they live. |
 | [tuner.html](tuner.html) | Microphone tuner. Guitar mode measures against the strings of the current tuning, automatically or one string you pin by hand; chromatic mode names whatever it hears. Built on a YIN pitch detector running off the UI thread — see [docs/TUNER.md](docs/TUNER.md). |
 | [chords.html](chords.html) | Chord identifier. Press frets and the chord names itself, or search by name and pick from the voicings — full barre and compact shapes, up the neck. |
-| [theory.html](theory.html) | Guitar theory in three stages — sound and notes, the fretboard, intervals — each explained and then put straight onto the neck, with the same boards and the same sampled guitar the tools use. |
+| [theory.html](theory.html) | Guitar theory in four stages — sound and notes, the fretboard, intervals, and the shapes intervals make on the neck — each explained and then put straight onto the neck, with the same boards and the same sampled guitar the tools use. |
 | [training-learn.html](training-learn.html) | Three maps of the neck: every position of a chosen interval from a note you pick, any of eight scales laid out by position with the degrees marked, and the whole fretboard with every note named. |
 | [training-quiz.html](training-quiz.html) | Quizzes: name a marked note, find a named note on the neck, or identify an interval by sight, by ear, or by playing it back — the microphone judges that last one. Which notes, strings and frets are in play is up to you. |
 

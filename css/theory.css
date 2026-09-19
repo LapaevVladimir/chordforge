@@ -252,12 +252,49 @@
 }
 .note-board .interval-fret-numbers span.marker-double { background: var(--accent-2); }
 
-/* -------------------------------------------------- 03.5  shapes on the neck */
+/* --------------------------------------------------- 04  shapes on the neck */
 
 .control-group.wide { flex: 1 1 100%; }
+.shape-pick { margin: 14px 0 0; }
 .shape-chip { display: inline-flex; align-items: baseline; gap: 6px; }
 .shape-chip strong { color: var(--accent-2); font-size: 0.72rem; }
 .shape-chip.active strong { color: var(--clip-text); }
+
+/* What each string crossing is worth. */
+.string-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 6px; }
+.string-step {
+  display: grid; min-width: 0; justify-items: center; gap: 1px; padding: 9px 6px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3); text-align: center;
+}
+.string-step b { display: flex; align-items: center; gap: 3px; color: var(--muted); font-size: 0.64rem; font-weight: 760; }
+.string-step b i { font-style: normal; }
+.string-step strong { color: var(--accent); font-size: 1rem; font-weight: 880; }
+.string-step small { color: var(--muted); font-size: 0.58rem; }
+.string-step.odd { border-color: color-mix(in srgb, var(--accent-2) 55%, transparent); background: color-mix(in srgb, var(--accent-2) 9%, var(--panel-3)); }
+.string-step.odd strong { color: var(--accent-2); }
+
+/* The sum, and the same sum drawn on a neck. */
+.shape-math { display: grid; gap: 10px; }
+.math-sum { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 10px; }
+.math-terms { color: var(--accent); font-size: 1.15rem; font-weight: 880; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.math-sum i { color: var(--muted); font-size: 1.05rem; font-style: normal; }
+.math-total { color: var(--accent-2); font-size: 1.15rem; font-weight: 880; }
+.math-name { color: var(--muted); font-size: 0.78rem; font-weight: 740; }
+.math-legend { display: flex; flex-wrap: wrap; gap: 4px 18px; color: var(--muted); font-size: 0.7rem; }
+
+.math-neck { display: block; width: 100%; height: auto; overflow: visible; border-radius: 10px; background: var(--panel-3); }
+.math-fretline { stroke: var(--line-strong); stroke-width: 1.5; }
+.math-string { stroke: color-mix(in srgb, var(--text) 40%, transparent); stroke-width: 1.5; }
+.math-side { fill: var(--muted); font-size: 11px; font-weight: 700; }
+.math-arrow { stroke: var(--accent); stroke-width: 2.2; fill: none; }
+.math-arrow.odd { stroke: var(--accent-2); }
+.math-neck marker path { fill: var(--accent); }
+.math-neck marker.odd path { fill: var(--accent-2); }
+.math-label { fill: var(--accent); font-size: 13px; font-weight: 880; }
+.math-label.odd { fill: var(--accent-2); }
+.math-dot circle { fill: var(--accent-2); }
+.math-dot.end circle { fill: var(--accent); }
+.math-dot text { fill: var(--clip-text); font-size: 11px; font-weight: 900; }
 
 /* ------------------------------------------------------- 02.3  the gap map */
 
@@ -351,7 +388,9 @@
   .theory-figure, .neck-lab, .ear-trainer { padding: 13px; }
   .control-row { grid-template-columns: 70px minmax(0, 1fr) 60px; gap: 8px; }
   .stage-pager { padding: 14px 16px 18px; }
-  .pager-button { flex: 1 1 0; justify-content: center; }
+  /* Two pagers side by side on a phone: they have to be allowed to shrink and
+     wrap, or the wider label pushes its button past the card. */
+  .pager-button { flex: 1 1 0; min-width: 0; flex-wrap: wrap; justify-content: center; }
   .character-list li { grid-template-columns: 40px minmax(0, 1fr); row-gap: 8px; }
   .character-list li .ghost-button { grid-column: 1 / -1; justify-self: start; }
   .neck-lab-controls { gap: 12px; }
