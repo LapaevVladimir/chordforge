@@ -6,10 +6,9 @@ import { audio, playIntervalByType } from './playback.js';
 import { midiLabel } from '../../core/pitch/note.js';
 import { armAttempt, pauseCapture, startMic, stopMic, isListening, waitForQuiet } from './play-quiz.js';
 
-// How many notes an answer is made of. The question supplies the note it starts
-// from, so the answer is the single note that completes the interval: the work is
-// finding that note, not reproducing the one you were just given.
-const PLAY_NOTES = 1;
+// The question supplies the note it starts from, so the answer is the single note
+// that completes the interval: the work is finding that note, not reproducing the
+// one you were just given.
 // Long enough to read the feedback and let the strings stop ringing before the
 // next attempt starts listening again.
 const PLAY_RETRY_MS = 1400;
@@ -254,9 +253,8 @@ export function resetPlayedSlots() {
   elements.playedDistance.textContent = '—';
 }
 
-function renderPlayedSlots(notes) {
+function renderPlayedSlots(note) {
   const pitches = playPitches();
-  const note = notes[0];
   elements.givenNote.textContent = pitches ? midiLabel(pitches.given) : '—';
   elements.playedNote.textContent = note ? midiLabel(note.midi) : '—';
   elements.playedSlots.querySelector('.played-slot.answer')?.classList.toggle('filled', Boolean(note));
@@ -266,16 +264,25 @@ function renderPlayedSlots(notes) {
 }
 
 // Called for every note the microphone hears while a question is open.
-export function handlePlayedNote(unusedNote, notes) {
+export function handlePlayedNote(note) {
   if (!session.running || session.locked || !session.current) return;
   if (checkedValue('trainingMode', 'visual') !== 'play') return;
-  renderPlayedSlots(notes);
-  if (notes.length < PLAY_NOTES) return;
+  const pitches = playPitches();
 
+  // The note you were given is there to play against — to hear where you are and
+  // measure from — so it is not taken for an answer. Unless the question is a
+  // unison, where that note is the answer and there is nothing to ignore.
+  if (pitches.expected !== pitches.given && note.midi === pitches.given) {
+    renderPlayedSlots(null);
+    elements.answerFeedback.textContent = t('training.play.referenceHeard', { played: midiLabel(note.midi) });
+    elements.answerFeedback.className = 'quiz-feedback';
+    return;
+  }
+
+  renderPlayedSlots(note);
   pauseCapture();
   session.locked = true;
-  const pitches = playPitches();
-  const verdict = judgePlayed(notes[0].midi, pitches.expected);
+  const verdict = judgePlayed(note.midi, pitches.expected);
   const interval = session.current.interval;
 
   if (verdict.exact) {

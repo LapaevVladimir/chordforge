@@ -18,11 +18,23 @@
 export const DEFAULT_NOTE_STREAM_OPTIONS = {
   // How long one pitch has to hold before it counts as a note played on purpose,
   // rather than a string being brushed or a note on its way somewhere else.
-  // Shorter than a comfortable quarter note, longer than the attack transient the
-  // detector needs to settle.
+  //
+  // A fixed number of milliseconds asks a very different thing at each end of the
+  // neck. 150 ms is twelve cycles of a low E and a hundred of the E three octaves
+  // up — so the high note had to prove itself many times over, in the little time
+  // it has before it decays. That is why high notes had to be hit harder to
+  // register. What actually settles a pitch estimate is cycles, so that is what is
+  // asked for, with a ceiling so low notes are not asked to ring forever and a
+  // floor so a high note still has to be a note rather than a click.
+  holdCycles: 16,
   minHoldMs: 150,
-  // Below this RMS nothing is being played.
-  minLevel: 0.012,
+  minHoldFloorMs: 70,
+  // Below this RMS nothing is being played. Noise is not what this keeps out —
+  // YIN's clarity does that, and measured against both white noise and a steady
+  // hum the level gate makes almost no difference to false notes. What it does
+  // decide is how far into a note's decay the detector keeps listening, and a high
+  // note has much less of that to spare.
+  minLevel: 0.006,
   // A new note is heard when the level climbs this much above the quietest it has
   // been since the last one. Measuring the rise rather than the fall is the whole
   // trick: a decaying note never rises, however far it falls, so it is reported
@@ -39,6 +51,14 @@ export const DEFAULT_NOTE_STREAM_OPTIONS = {
 
 export function createNoteStream(options = {}) {
   const config = { ...DEFAULT_NOTE_STREAM_OPTIONS, ...options };
+
+  // The hold in milliseconds for the pitch being heard: a fixed number of cycles,
+  // kept between a floor and a ceiling.
+  function holdMsFor(frequency) {
+    if (!(frequency > 0)) return config.minHoldMs;
+    const cycles = (config.holdCycles / frequency) * 1000;
+    return Math.min(config.minHoldMs, Math.max(config.minHoldFloorMs, cycles));
+  }
 
   let candidateMidi = null;   // nearest midi of the pitch currently being held
   let candidateSince = 0;
@@ -108,7 +128,7 @@ export function createNoteStream(options = {}) {
 
     candidateSum += midi;
     candidateCount += 1;
-    if (now - candidateSince < config.minHoldMs) return null;
+    if (now - candidateSince < holdMsFor(reading?.frequency)) return null;
 
     if (!armed) {
       // A different pitch taking over while the previous note still rings is the
