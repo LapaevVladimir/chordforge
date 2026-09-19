@@ -504,8 +504,10 @@ body.board-vertical .string-controls { border-radius: 11px 11px 0 0; border-righ
    says how many strings it sounds. */
 .voicing-position { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; color: var(--accent); font-size: 0.7rem; font-weight: 740; }
 .voicing-position small { color: var(--muted); font-size: 0.62rem; font-weight: 700; }
-.voicing-diagram { display: grid; gap: 2px; }
-.voicing-row { display: grid; grid-template-columns: 16px repeat(5, 1fr); align-items: center; gap: 2px; }
+.voicing-diagram { display: flex; align-items: center; gap: 7px; }
+.voicing-rows { display: grid; flex: 1; gap: 2px; }
+.voicing-row { display: grid; grid-template-columns: 16px repeat(var(--voicing-frets, 5), 1fr); align-items: center; gap: 2px; }
+.voicing-fret-mark { flex: none; color: var(--muted); font-size: 0.6rem; font-weight: 740; letter-spacing: 0.03em; }
 .voicing-nut, .voicing-cell { display: grid; place-items: center; height: 15px; border-radius: 3px; background: rgba(255, 255, 255, 0.06); }
 .voicing-nut { color: var(--muted); background: transparent; font-size: 0.68rem; }
 .voicing-nut.open { color: var(--accent); }

@@ -208,6 +208,7 @@ export default {
     sidebar: { ariaLabel: 'Tool panel' },
     current: {
       heading: 'Current chord',
+      altTitle: 'Also reads as',
       dragAriaLabel: 'Drag the current chord onto the timeline',
       dragAriaLabelNamed: 'Drag the {name} chord onto the timeline',
       addToTimeline: 'Add to timeline',
@@ -318,6 +319,7 @@ export default {
       titleNamed: 'Voicings for “{chord}”',
       hint: 'Choose a position to set it on the fretboard',
       closeAria: 'Close dialog',
+      fretMark: '{n}fr',
       openPosition: 'Open position',
       fretPosition: 'fret {n}',
       stringCount: { one: 'string', other: 'strings' },

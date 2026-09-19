@@ -48,6 +48,7 @@
             <div><p class="chord-name" id="chordName">Em</p><p class="result-desc" id="chordDesc">E minor triad</p></div>
           </div>
           <div class="notes" id="notes"></div>
+          <div class="alternatives"><div class="alt-title" data-i18n="builder.current.altTitle">Also reads as</div><div id="alternatives"></div></div>
           <button class="play-chord" id="playChord" data-i18n-attr='{"aria-label":"builder.play.chordAria"}' aria-label="Play the current chord"><span class="play-icon" aria-hidden="true">▶</span><span id="playLabel" data-i18n="common.listen">Listen</span></button>
           <div class="sample-status" id="sampleStatus" data-state="loading"><i></i><span data-i18n="builder.sampleStatus.loading">loading samples</span></div>
         </section>
@@ -56,7 +57,6 @@
           <div class="section-kicker" data-i18n="builder.search.heading">Voicing search</div>
           <div class="search-row"><input id="chordSearch" data-i18n-attr='{"aria-label":"builder.search.inputAriaLabel","placeholder":"builder.search.placeholder"}' aria-label="Chord name" placeholder="Cmaj7, F♯m7, B♭9…" autocomplete="off" /><button id="findChord" data-i18n="builder.search.button">Find</button></div>
           <div class="shape-info" id="shapeInfo"></div>
-          <div class="alternatives"><div class="alt-title" data-i18n="builder.search.altTitle">Possible readings</div><div id="alternatives"></div></div>
         </section>
 
         <section class="tool-section">

@@ -46,7 +46,8 @@ $('preset').addEventListener('change', (event) => {
 });
 $('stringCount').addEventListener('input', (event) => {
   store.state.strings = Number(event.target.value);
-  store.state.tuning = tuningFor(store.state.strings);
+  // Keep whatever the strings are tuned to; only the count changes here.
+  store.state.tuning = tuningFor(store.state.strings, store.state.tuning);
   store.state.shape = Array(store.state.strings).fill(0);
   store.state.preset = 'custom';
   render();

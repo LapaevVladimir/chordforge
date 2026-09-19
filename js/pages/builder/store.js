@@ -46,8 +46,13 @@ export const store = {
   dragPayload: null,
 };
 
-export function tuningFor(count) {
-  const tuning = [...STANDARD];
+// Resizes a tuning to `count` strings: strings are added below the current
+// lowest in fourths and removed from the same end, which is how a seven- or
+// twelve-string is laid out next to a six. `base` defaults to standard tuning,
+// so a caller that has no tuning to keep still gets one; passing the tuning in
+// hand keeps an altered one (DADGAD, open G) instead of silently resetting it.
+export function tuningFor(count, base = STANDARD) {
+  const tuning = base.length ? [...base] : [...STANDARD];
   while (tuning.length < count) tuning.unshift(Engine.mod12(tuning[0] - 5));
   while (tuning.length > count) tuning.shift();
   return tuning;

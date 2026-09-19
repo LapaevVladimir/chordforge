@@ -189,28 +189,41 @@ export function renderStrumEditor(activeIndex = -1) {
   });
 }
 
+// How many frets a chord box shows when the shape does not need more.
+const VOICING_WINDOW = 5;
+
+// Draws a shape as a chord box: a nut column saying how each string is used
+// (× muted, ○ open) and a window of frets wide enough to hold every note.
+//
+// The window used to be pinned to the nut the moment any string rang open, which
+// silently dropped every note above the fourth fret — the shape was drawn with
+// blank rows where those notes should be. That is easy to hit in an altered
+// tuning, where open strings often sit under a hand playing high up the neck:
+// Am11 in DADGAD is x-0-0-4-3-5, and its top string simply vanished.
 function renderVoicingDiagram(shape) {
-  const windowSize = 5;
   const stringOrder = Array.from({ length: shape.length }, (_, index) => shape.length - 1 - index);
-  const usedFrets = shape.filter((position) => position !== null && position > 0);
-  const hasOpen = shape.some((position) => position === 0);
-  const lowest = usedFrets.length ? Math.min(...usedFrets) : 0;
-  const windowStart = hasOpen ? 0 : lowest;
-  return stringOrder.map((stringIndex) => {
+  const fretted = shape.filter((position) => position !== null && position > 0);
+  const lowest = fretted.length ? Math.min(...fretted) : 1;
+  const highest = fretted.length ? Math.max(...fretted) : 1;
+  // Stay at the nut while the notes still fit beside it; otherwise slide the
+  // window up to the hand and say which fret it starts on.
+  const windowStart = highest <= VOICING_WINDOW ? 1 : lowest;
+  const windowEnd = Math.max(windowStart + VOICING_WINDOW - 1, highest);
+  const rows = stringOrder.map((stringIndex) => {
     const value = shape[stringIndex];
-    let cells = '';
-    if (windowStart === 0) {
-      const muted = value === null;
-      const open = value === 0;
-      cells += `<span class="voicing-nut ${muted ? 'muted' : ''} ${open ? 'open' : ''}">${muted ? '×' : open ? '○' : ''}</span>`;
-      for (let fret = 1; fret < windowSize; fret += 1) cells += `<span class="voicing-cell ${value === fret ? 'active' : ''}"></span>`;
-    } else {
-      const muted = value === null;
-      cells += `<span class="voicing-nut ${muted ? 'muted' : ''}">${muted ? '×' : ''}</span>`;
-      for (let fret = windowStart; fret < windowStart + windowSize; fret += 1) cells += `<span class="voicing-cell ${value === fret ? 'active' : ''}"></span>`;
+    const muted = value === null;
+    const open = value === 0;
+    // An open string is marked at the nut wherever the window sits: up the neck
+    // it is exactly the string a reader is most likely to miss.
+    let cells = `<span class="voicing-nut ${muted ? 'muted' : ''} ${open ? 'open' : ''}">${muted ? '×' : open ? '○' : ''}</span>`;
+    for (let fret = windowStart; fret <= windowEnd; fret += 1) {
+      cells += `<span class="voicing-cell ${value === fret ? 'active' : ''}"></span>`;
     }
     return `<div class="voicing-row">${cells}</div>`;
   }).join('');
+  const mark = windowStart > 1 ? `<span class="voicing-fret-mark">${t('builder.voicing.fretMark', { n: windowStart })}</span>` : '';
+  // The mark sits on the left, beside the fret the window opens on.
+  return `${mark}<div class="voicing-rows" style="--voicing-frets:${windowEnd - windowStart + 1}">${rows}</div>`;
 }
 
 export function closeVoicingModal() {

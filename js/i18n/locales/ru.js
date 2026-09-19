@@ -208,6 +208,7 @@ export default {
     sidebar: { ariaLabel: 'Панель инструментов' },
     current: {
       heading: 'Текущий аккорд',
+      altTitle: 'Также читается как',
       dragAriaLabel: 'Перетащить текущий аккорд на таймлайн',
       dragAriaLabelNamed: 'Перетащить аккорд {name} на таймлайн',
       addToTimeline: 'Добавить на таймлайн',
@@ -318,6 +319,7 @@ export default {
       titleNamed: 'Аппликатуры «{chord}»',
       hint: 'Выберите позицию, чтобы выставить её на грифе',
       closeAria: 'Закрыть окно',
+      fretMark: '{n} л.',
       openPosition: 'Открытая позиция',
       fretPosition: '{n}-й лад',
       stringCount: { one: 'струна', few: 'струны', many: 'струн' },
