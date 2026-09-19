@@ -256,6 +256,9 @@
 
 .control-group.wide { flex: 1 1 100%; }
 .shape-pick { margin: 14px 0 0; }
+.shape-groups { display: grid; gap: 10px; }
+.shape-group { display: grid; gap: 5px; }
+.shape-group-label { color: color-mix(in srgb, var(--text) 66%, var(--muted)); font-size: 0.68rem; font-weight: 780; }
 .shape-chip { display: inline-flex; align-items: baseline; gap: 6px; }
 .shape-chip strong { color: var(--accent-2); font-size: 0.72rem; }
 .shape-chip.active strong { color: var(--clip-text); }
@@ -273,8 +276,8 @@
 .string-step.odd { border-color: color-mix(in srgb, var(--accent-2) 55%, transparent); background: color-mix(in srgb, var(--accent-2) 9%, var(--panel-3)); }
 .string-step.odd strong { color: var(--accent-2); }
 
-/* The sum, and the same sum drawn on a neck. */
-.shape-math { display: grid; gap: 10px; }
+/* The sum, above the neck it is drawn on. */
+.shape-math { display: grid; gap: 6px; padding: 10px 13px; border: 1px solid rgba(var(--accent-rgb), 0.24); border-radius: 10px; background: rgba(var(--accent-rgb), 0.06); }
 .math-sum { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 10px; }
 .math-terms { color: var(--accent); font-size: 1.15rem; font-weight: 880; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
 .math-sum i { color: var(--muted); font-size: 1.05rem; font-style: normal; }
@@ -282,86 +285,22 @@
 .math-name { color: var(--muted); font-size: 0.78rem; font-weight: 740; }
 .math-legend { display: flex; flex-wrap: wrap; gap: 4px 18px; color: var(--muted); font-size: 0.7rem; }
 
-.math-neck { display: block; width: 100%; height: auto; overflow: visible; border-radius: 10px; background: var(--panel-3); }
-.math-fretline { stroke: var(--line-strong); stroke-width: 1.5; }
-.math-string { stroke: color-mix(in srgb, var(--text) 40%, transparent); stroke-width: 1.5; }
-.math-side { fill: var(--muted); font-size: 11px; font-weight: 700; }
-.math-arrow { stroke: var(--accent); stroke-width: 2.2; fill: none; }
-.math-arrow.odd { stroke: var(--accent-2); }
-.math-neck marker path { fill: var(--accent); }
-.math-neck marker.odd path { fill: var(--accent-2); }
-.math-label { fill: var(--accent); font-size: 13px; font-weight: 880; }
-.math-label.odd { fill: var(--accent-2); }
-.math-dot circle { fill: var(--accent-2); }
-.math-dot.end circle { fill: var(--accent); }
-.math-dot text { fill: var(--clip-text); font-size: 11px; font-weight: 900; }
-
-/* ------------------------------------------------------- 02.3  the gap map */
-
-.gap-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 6px; }
-.gap-pair {
-  display: grid; min-width: 0; grid-template-columns: auto auto auto; align-items: center;
-  justify-content: center; gap: 5px; padding: 9px 8px; border: 1px solid var(--line); border-radius: 10px;
-  background: var(--panel-3); text-align: center;
-}
-.gap-pair b { color: var(--text); font-size: 0.8rem; font-weight: 820; }
-.gap-pair i { color: var(--muted); font-size: 0.7rem; font-style: normal; }
-.gap-pair small { grid-column: 1 / -1; color: var(--muted); font-size: 0.62rem; font-weight: 700; }
-.gap-pair.tight { border-color: color-mix(in srgb, var(--accent-2) 55%, transparent); background: color-mix(in srgb, var(--accent-2) 9%, var(--panel-3)); }
-.gap-pair.tight small { color: var(--accent-2); }
-
-/* ------------------------------------------------- 02.4  one string, fret by fret */
-
-.run-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(42px, 1fr)); gap: 4px; }
-.run-step {
-  display: grid; min-width: 0; gap: 1px; padding: 7px 4px; color: var(--text);
-  border: 1px solid var(--line); border-radius: 8px; background: var(--panel-3);
-  cursor: pointer; text-align: center; transition: 0.14s ease;
-}
-.run-step small { color: var(--muted); font-size: 0.56rem; font-weight: 700; }
-.run-step strong { font-size: 0.78rem; font-weight: 820; }
-.run-step:hover { border-color: rgba(var(--accent-rgb), 0.5); }
-.run-step.tight strong { color: var(--accent-2); text-decoration: underline; text-underline-offset: 3px; }
-
-/* ------------------------------------------------------- 03.3  the ruler */
-
-.ruler { display: grid; grid-template-columns: repeat(auto-fit, minmax(46px, 1fr)); gap: 4px; }
-.ruler-step {
-  display: grid; min-width: 0; gap: 1px; padding: 8px 4px; color: var(--text);
-  border: 1px solid var(--line); border-radius: 8px; background: var(--panel-3);
-  cursor: pointer; text-align: center; transition: 0.14s ease;
-}
-.ruler-step strong { font-size: 0.82rem; font-weight: 850; font-variant-numeric: tabular-nums; }
-.ruler-step small { color: var(--muted); font-size: 0.58rem; font-weight: 740; }
-.ruler-step:hover { border-color: rgba(var(--accent-rgb), 0.5); }
-.ruler-step.active { color: var(--clip-text); border-color: transparent; background: var(--accent); }
-.ruler-step.active small { color: color-mix(in srgb, var(--clip-text) 72%, transparent); }
-
-/* ------------------------------------------------------ 03.5  how they sound */
-
-.character-list { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
-.character-list li {
-  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px;
-  padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3);
-}
-.character-mark {
-  display: grid; height: 28px; place-items: center; color: var(--clip-text); border-radius: 7px;
-  background: var(--accent); font-size: 0.7rem; font-weight: 850;
-}
-.character-mark.minor { background: var(--accent-2); }
-.character-mark.tritone { background: var(--danger); color: #fff; }
-.character-mark.perfect { background: var(--accent); }
-.character-copy { display: grid; gap: 2px; min-width: 0; }
-.character-copy strong { font-size: 0.79rem; }
-.character-copy span { color: var(--muted); font-size: 0.72rem; line-height: 1.45; }
-
-/* --------------------------------------------------------- 03.6  ear trainer */
-
-.ear-trainer { margin-top: 14px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel-2); }
-.ear-head { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
-.ear-score { color: var(--muted); font-size: 0.75rem; }
-.ear-score strong { color: var(--text); font-variant-numeric: tabular-nums; }
-.ear-trainer .answer-grid { margin-top: 14px; }
+/* The arrows themselves live on the board, drawn over the real neck. The board is
+   the positioning context so the overlay scrolls — and turns — with it. */
+#shapeBoard { position: relative; }
+.shape-overlay { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+.shape-halo { stroke: rgba(8, 6, 4, 0.9); stroke-width: 8; stroke-linecap: round; fill: none; }
+.shape-arrow { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; fill: none; }
+.shape-arrow.odd { stroke: var(--accent-2); }
+.shape-overlay marker path { fill: var(--accent); }
+.shape-overlay marker.odd path { fill: var(--accent-2); }
+.shape-tag rect { fill: rgba(10, 8, 6, 0.9); stroke: var(--accent); stroke-width: 1.5; }
+.shape-tag text { fill: var(--accent); font-size: 13px; font-weight: 900; }
+.shape-tag.odd rect { stroke: var(--accent-2); }
+.shape-tag.odd text { fill: var(--accent-2); }
+/* Stood upright, the board is a rotated box — so each tag is turned back to
+   upright on its own, the way the fret numbers and string labels already are. */
+body.board-vertical .shape-overlay .shape-tag { transform: rotate(-90deg); transform-box: fill-box; transform-origin: center; }
 
 /* ------------------------------------------------------------------ the pager */
 

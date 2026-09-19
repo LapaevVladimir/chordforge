@@ -140,12 +140,14 @@ export function renderBoard(container, { anchor = null, targets = [], quizPair =
       const isTarget = targetKeys.has(key);
       const isQuizRoot = key === pairRootKey;
       const isQuizTarget = key === pairTargetKey;
-      const direction = anchor && cell.midi > anchor.midi ? 'higher' : 'lower';
+      // A target at the same pitch as the anchor is neither above nor below it,
+      // and an arrow either way would be a lie: unisons get no direction mark.
+      const direction = !anchor || cell.midi === anchor.midi ? '' : (cell.midi > anchor.midi ? 'higher' : 'lower');
       const marker = isQuizRoot ? '1' : isQuizTarget ? '2' : isAnchor ? '1' : isTarget ? targetMarker : noteName(cell.midi).replace(/\d+$/, '') || '•';
       const classes = [];
       if (isAnchor) classes.push('anchor');
       if (isQuizRoot) classes.push('quiz-first');
-      if (isTarget) classes.push('target', direction);
+      if (isTarget) classes.push('target', ...(direction ? [direction] : []));
       if (isQuizTarget) classes.push('quiz-second');
       const extra = (isAnchor || isQuizRoot ? t('training.board.firstNoteSuffix') : '') + (isTarget || isQuizTarget ? t('training.board.secondNoteSuffix') : '');
       return { marker, classes, label: t('training.board.cellAria', { string: cell.stringNumber, fretLabel: fretLabel(cell.fret), note: noteName(cell.midi), extra }) };
