@@ -71,6 +71,35 @@ export function armAttempt() {
   engine.resetSmoothing();
 }
 
+// Waits for the room to fall quiet, so the question's own sound cannot be taken
+// for an answer.
+//
+// The obvious way — wait for the playback promise — does not work: playInterval
+// schedules the notes and returns, so awaiting it opens the microphone while the
+// speakers are still talking. Nor is a fixed delay right, since how long a
+// speaker takes to fall below the detector's floor depends on how loud it is and
+// whether there are headphones in at all. So the level itself is the signal: it
+// has to stay down for a moment before the answer is allowed to begin.
+export function waitForQuiet({ level = 0.02, steadyMs = 260, minMs = 420, maxMs = 4000 } = {}) {
+  if (!engine.running) return Promise.resolve();
+  return new Promise((resolve) => {
+    const started = performance.now();
+    let quietSince = 0;
+    const stop = onPlayLive((live) => {
+      const now = performance.now();
+      // Nothing counts as quiet before minMs: the first note of the question has
+      // not even been scheduled to sound yet when this starts waiting.
+      if (now - started < minMs) return;
+      if (live.level > level) quietSince = 0;
+      else if (!quietSince) quietSince = now;
+      if ((quietSince && now - quietSince >= steadyMs) || now - started >= maxMs) {
+        stop();
+        resolve();
+      }
+    });
+  });
+}
+
 export function pauseCapture() {
   capturing = false;
 }

@@ -182,6 +182,10 @@ button.interval-cell { cursor: pointer; }
 .played-slot strong { margin-top: 3px; color: var(--muted); font-size: 1.3rem; font-weight: 880; }
 .played-slot.filled { border-style: solid; border-color: rgba(var(--accent-rgb), 0.6); background: rgba(var(--accent-rgb), 0.09); }
 .played-slot.filled strong { color: var(--accent); }
+/* The note the question hands you is not a blank waiting to be filled, so it is
+   drawn as a settled value rather than as an empty slot. */
+.played-slot.given { border-style: solid; border-color: var(--line-strong); background: var(--panel-2); }
+.played-slot.given strong { color: var(--accent-2); }
 .played-arrow { color: var(--muted); font-size: 1.1rem; }
 .played-distance { padding: 6px 12px; color: var(--accent-2); border: 1px solid var(--line); border-radius: 99px; background: var(--panel-3); font-size: 0.78rem; font-weight: 800; }
 

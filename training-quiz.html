@@ -43,7 +43,7 @@
           <fieldset class="mode-choice">
             <label><input type="radio" name="trainingMode" value="visual" checked /><span><b aria-hidden="true">◉</b><strong data-i18n="training.trainer.modeVisual">Интервал на грифе</strong><small data-i18n="training.trainer.modeVisualHint">Угадайте по двум отмеченным позициям</small></span></label>
             <label><input type="radio" name="trainingMode" value="ear" /><span><b aria-hidden="true">♪</b><strong data-i18n="training.trainer.modeEar">Интервал на слух</strong><small data-i18n="training.trainer.modeEarHint">Угадайте только по звучанию</small></span></label>
-            <label><input type="radio" name="trainingMode" value="play" /><span><b aria-hidden="true">🎙</b><strong data-i18n="training.trainer.modePlay">Сыграть на гитаре</strong><small data-i18n="training.trainer.modePlayHint">Услышали — повторите, микрофон проверит</small></span></label>
+            <label><input type="radio" name="trainingMode" value="play" /><span><b aria-hidden="true">🎙</b><strong data-i18n="training.trainer.modePlay">Сыграть на гитаре</strong><small data-i18n="training.trainer.modePlayHint">Первая нота дана — сыграйте вторую, микрофон проверит</small></span></label>
           </fieldset>
         </section>
 
@@ -102,12 +102,12 @@
                 <div class="play-mic-level" id="playMicLevel" aria-hidden="true"><i></i></div>
               </div>
               <div class="played-slots" id="playedSlots">
-                <div class="played-slot"><small data-i18n="training.play.firstNote">Первая нота</small><strong>—</strong></div>
+                <div class="played-slot given"><small data-i18n="training.play.givenNote">Дана</small><strong id="givenNote">—</strong></div>
                 <span class="played-arrow" aria-hidden="true">→</span>
-                <div class="played-slot"><small data-i18n="training.play.secondNote">Вторая нота</small><strong>—</strong></div>
+                <div class="played-slot answer"><small data-i18n="training.play.yourNote">Ваша нота</small><strong id="playedNote">—</strong></div>
                 <span class="played-distance" id="playedDistance">—</span>
               </div>
-              <p class="play-hint" id="playHint" data-i18n="training.play.hint">Повторите интервал в любом месте грифа — важно расстояние, а не те же самые ноты. Играйте ноты по одной.</p>
+              <p class="play-hint" id="playHint" data-i18n="training.play.hint">Первую ноту играть не нужно — она уже прозвучала и написана слева. Сыграйте вторую в любом месте грифа, где она есть.</p>
               <button class="text-button" id="playRetry" type="button" data-i18n="training.play.retry">Сыграть заново</button>
             </div>
             <div class="answer-grid" id="answerGrid" data-i18n-attr='{"aria-label":"training.quiz.answerGridAria"}' aria-label="Варианты ответа"></div>

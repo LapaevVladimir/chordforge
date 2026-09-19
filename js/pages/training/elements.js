@@ -38,6 +38,8 @@ export const elements = {
   playMicLevel: document.querySelector('#playMicLevel'),
   playLiveNote: document.querySelector('#playLiveNote'),
   playedSlots: document.querySelector('#playedSlots'),
+  givenNote: document.querySelector('#givenNote'),
+  playedNote: document.querySelector('#playedNote'),
   playedDistance: document.querySelector('#playedDistance'),
   playHint: document.querySelector('#playHint'),
   playRetry: document.querySelector('#playRetry'),

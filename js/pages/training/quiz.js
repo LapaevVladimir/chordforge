@@ -4,10 +4,12 @@ import { boardCells, renderBoard } from './board.js';
 import { elements, checkedValue } from './elements.js';
 import { audio, playIntervalByType } from './playback.js';
 import { midiLabel } from '../../core/pitch/note.js';
-import { armAttempt, pauseCapture, startMic, stopMic, isListening } from './play-quiz.js';
+import { armAttempt, pauseCapture, startMic, stopMic, isListening, waitForQuiet } from './play-quiz.js';
 
-// How many notes an answer is made of in "play it back" mode.
-const PLAY_NOTES = 2;
+// How many notes an answer is made of. The question supplies the note it starts
+// from, so the answer is the single note that completes the interval: the work is
+// finding that note, not reproducing the one you were just given.
+const PLAY_NOTES = 1;
 // Long enough to read the feedback and let the strings stop ringing before the
 // next attempt starts listening again.
 const PLAY_RETRY_MS = 1400;
@@ -93,9 +95,10 @@ function renderAnswers(intervals) {
 }
 
 export function playCurrentQuestion(button = null) {
-  if (!session.current) return;
+  if (!session.current) return Promise.resolve();
   const { pair } = session.current;
-  playIntervalByType(pair.root.midi, pair.target.midi, checkedValue('quizIntervalType', 'ascending'), button);
+  // Returned so a caller can wait for the last note to stop before it listens.
+  return playIntervalByType(pair.root.midi, pair.target.midi, checkedValue('quizIntervalType', 'ascending'), button);
 }
 
 export const QUESTION_KEYS = {
@@ -129,9 +132,12 @@ export function nextQuestion() {
   if (mode === 'play') {
     resetPlayedSlots();
     elements.answerFeedback.textContent = t('training.play.listenThenPlay');
-    armAttempt();
+    // Deliberately not armed yet: see askPlayQuestion.
+    pauseCapture();
+    window.setTimeout(() => askPlayQuestion(), 180);
+    return;
   }
-  if (mode === 'ear' || mode === 'play') window.setTimeout(() => playCurrentQuestion(), 180);
+  if (mode === 'ear') window.setTimeout(() => playCurrentQuestion(), 180);
 }
 
 export async function startTraining() {
@@ -209,35 +215,53 @@ export function handleAnswer(button) {
 
 /* ------------------------------------------------- play-it-back mode */
 
-// The distance alone is the answer: a major third is a major third wherever you
-// put it on the neck, and being able to find it in a comfortable position is the
-// point of the exercise.
-function describePlayed(notes) {
-  const distance = Math.abs(notes[1].midi - notes[0].midi);
-  const match = INTERVALS.find((interval) => interval.semitones === distance);
+// Which note the question hands over and which one it wants back. The given note
+// is the one the question starts on: the lower of the pair going up, the higher
+// coming down. A harmonic question sounds both at once and has no first note, so
+// the lower one is given and the upper is the answer.
+export function playPitches() {
+  if (!session.current?.pair) return null;
+  const { root, target } = session.current.pair;
+  const low = Math.min(root.midi, target.midi);
+  const high = Math.max(root.midi, target.midi);
+  return checkedValue('quizIntervalType', 'ascending') === 'descending'
+    ? { given: high, expected: low }
+    : { given: low, expected: high };
+}
+
+// What was played, against what was asked. The note is judged as a pitch, not as
+// a distance from wherever: the question named where to start, so there is one
+// note that answers it — though it may be taken at any of the places on the neck
+// that hold it.
+function judgePlayed(played, expected) {
+  const offBy = played - expected;
   return {
-    distance,
-    played: `${midiLabel(notes[0].midi)} → ${midiLabel(notes[1].midi)}`,
-    name: match ? intervalName(match.id) : t('training.play.semitones', { n: distance }),
+    label: midiLabel(played),
+    exact: offBy === 0,
+    sameNote: ((offBy % 12) + 12) % 12 === 0,
+    octaves: Math.round(offBy / 12),
   };
 }
 
+// The first slot always shows the note the question gave; only the second is
+// waiting to be filled.
 export function resetPlayedSlots() {
   if (!elements.playedSlots) return;
-  elements.playedSlots.querySelectorAll('strong').forEach((slot) => { slot.textContent = '—'; });
-  elements.playedSlots.querySelectorAll('.played-slot').forEach((slot) => slot.classList.remove('filled'));
+  const pitches = playPitches();
+  elements.givenNote.textContent = pitches ? midiLabel(pitches.given) : '—';
+  elements.playedNote.textContent = '—';
+  elements.playedSlots.querySelector('.played-slot.answer')?.classList.remove('filled');
   elements.playedDistance.textContent = '—';
 }
 
 function renderPlayedSlots(notes) {
-  const slots = elements.playedSlots.querySelectorAll('.played-slot');
-  slots.forEach((slot, index) => {
-    const note = notes[index];
-    slot.classList.toggle('filled', Boolean(note));
-    slot.querySelector('strong').textContent = note ? midiLabel(note.midi) : '—';
-  });
-  elements.playedDistance.textContent = notes.length >= PLAY_NOTES
-    ? t('training.play.semitones', { n: Math.abs(notes[1].midi - notes[0].midi) })
+  const pitches = playPitches();
+  const note = notes[0];
+  elements.givenNote.textContent = pitches ? midiLabel(pitches.given) : '—';
+  elements.playedNote.textContent = note ? midiLabel(note.midi) : '—';
+  elements.playedSlots.querySelector('.played-slot.answer')?.classList.toggle('filled', Boolean(note));
+  elements.playedDistance.textContent = note && pitches
+    ? t('training.play.semitones', { n: Math.abs(note.midi - pitches.given) })
     : '—';
 }
 
@@ -250,17 +274,16 @@ export function handlePlayedNote(unusedNote, notes) {
 
   pauseCapture();
   session.locked = true;
-  const { distance, played, name } = describePlayed(notes);
-  const expected = session.current.interval;
-  const type = checkedValue('quizIntervalType', 'ascending');
-  const step = notes[1].midi - notes[0].midi;
-  // A harmonic question cannot be answered as a chord — the detector follows one
-  // note at a time — so it is played as two notes in either order.
-  const directionOk = type === 'ascending' ? step >= 0 : type === 'descending' ? step <= 0 : true;
+  const pitches = playPitches();
+  const verdict = judgePlayed(notes[0].midi, pitches.expected);
+  const interval = session.current.interval;
 
-  if (distance === expected.semitones && directionOk) {
+  if (verdict.exact) {
     session.correct += 1;
-    elements.answerFeedback.textContent = t('training.play.correctFeedback', { played, name: intervalName(expected.id) });
+    elements.answerFeedback.textContent = t('training.play.correctFeedback', {
+      played: verdict.label,
+      name: intervalName(interval.id),
+    });
     elements.answerFeedback.className = 'quiz-feedback success';
     updateStats();
     session.nextTimer = window.setTimeout(nextQuestion, 1100);
@@ -268,9 +291,12 @@ export function handlePlayedNote(unusedNote, notes) {
   }
 
   session.errors += 1;
-  elements.answerFeedback.textContent = distance === expected.semitones
-    ? t('training.play.wrongDirection', { played })
-    : t('training.play.wrongFeedback', { played, name });
+  // The right note in the wrong octave is worth saying out loud: the interval was
+  // heard correctly and only the register slipped, which is a different mistake
+  // from playing the wrong note.
+  elements.answerFeedback.textContent = verdict.sameNote
+    ? t(verdict.octaves > 0 ? 'training.play.octaveHigh' : 'training.play.octaveLow', { played: verdict.label })
+    : t('training.play.wrongFeedback', { played: verdict.label });
   elements.answerFeedback.className = 'quiz-feedback error';
   updateStats();
   session.nextTimer = window.setTimeout(retryPlayAttempt, PLAY_RETRY_MS);
@@ -286,4 +312,27 @@ export function retryPlayAttempt() {
   elements.answerFeedback.textContent = t('training.play.tryAgain');
   elements.answerFeedback.className = 'quiz-feedback';
   armAttempt();
+}
+
+// Sounds the question, and only then starts listening.
+//
+// Arming before playback meant the microphone was open while the speakers were
+// answering the question for you: in a room, the note the app plays is heard by
+// the app. Now the attempt opens once the last note has been sounded, so the only
+// thing that can be captured is the guitar.
+export async function askPlayQuestion(button = null) {
+  if (!session.running || !session.current) return;
+  pauseCapture();
+  // Say so, so the pause between hearing and playing is understood as a cue
+  // rather than as the app being slow.
+  elements.answerFeedback.textContent = t('training.play.listenThenPlay');
+  elements.answerFeedback.className = 'quiz-feedback';
+  await playCurrentQuestion(button);
+  // playCurrentQuestion resolves once the notes are scheduled, not once they have
+  // stopped sounding, so the wait is for silence rather than for the promise.
+  await waitForQuiet();
+  if (!session.running || session.locked) return;
+  armAttempt();
+  elements.answerFeedback.textContent = t('training.play.yourTurn');
+  elements.answerFeedback.className = 'quiz-feedback';
 }

@@ -6,7 +6,7 @@ import { audio } from './playback.js';
 import { syncLocaleDock, bindLocaleDock } from '../../i18n/locale-dock.js';
 import {
   session, renderIntervalFilterOptions, playCurrentQuestion, startTraining, stopTraining, handleAnswer,
-  handlePlayedNote, retryPlayAttempt, QUESTION_KEYS,
+  handlePlayedNote, retryPlayAttempt, askPlayQuestion, QUESTION_KEYS,
 } from './quiz.js';
 import { onPlayNote, onPlayLive, startMic, stopMic, isListening } from './play-quiz.js';
 import { TUNER_STATES } from '../../core/tuner/tuner-engine.js';
@@ -89,7 +89,12 @@ function bindEvents() {
   elements.playRetry.addEventListener('click', retryPlayAttempt);
   onPlayNote(handlePlayedNote);
   onPlayLive(renderLive);
-  elements.replayQuestion.addEventListener('click', () => playCurrentQuestion(elements.replayQuestion));
+  elements.replayQuestion.addEventListener('click', () => {
+    // In play mode the replay has to close the microphone while the speakers are
+    // talking, and reopen it afterwards; elsewhere it is just a replay.
+    if (checkedValue('trainingMode', 'visual') === 'play') askPlayQuestion(elements.replayQuestion);
+    else playCurrentQuestion(elements.replayQuestion);
+  });
   elements.answerGrid.addEventListener('click', (event) => {
     const button = event.target.closest('[data-answer]');
     if (button) handleAnswer(button);
