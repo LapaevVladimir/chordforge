@@ -204,7 +204,7 @@ body.site-ready .timeline-scroll { animation: stage-reveal 0.72s 0.63s cubic-bez
 .status-dot { display: inline-block; width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent); }
 /* Section switcher, identical on every tool page: same order, same labels, same
    place, with the page you are on marked. */
-.app-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 9px 11px; border-bottom: 1px solid var(--line); }
+.app-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; padding: 9px 11px; border-bottom: 1px solid var(--line); }
 /* On a wide screen the brand above the nav is the way home, so the extra link
    would be a duplicate. It appears only where that brand scrolls out of reach. */
 .app-nav .nav-home { display: none; }
@@ -579,7 +579,7 @@ body.board-vertical .string-controls { border-radius: 11px 11px 0 0; border-righ
   body.site-ready .tool-panel { animation: none; }
   .app-nav {
     position: fixed; z-index: 95; right: 0; bottom: 0; left: 0;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 2px; padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--line-strong); border-bottom: 0;
     background: color-mix(in srgb, var(--panel) 93%, transparent);

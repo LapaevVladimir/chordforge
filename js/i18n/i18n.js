@@ -59,6 +59,14 @@ export function applyStatic(root = document) {
   root.querySelectorAll('[data-i18n]').forEach((element) => {
     element.textContent = t(element.dataset.i18n);
   });
+  // Opt-in rich text, for prose that needs a <b> around the term it is defining.
+  // The source is always a locale module in this repo, never anything a reader can
+  // supply, and the only markup used is inline emphasis — so this does not open a
+  // door that `data-i18n` deliberately keeps shut. Anything carrying interpolated
+  // values still goes through textContent.
+  root.querySelectorAll('[data-i18n-html]').forEach((element) => {
+    element.innerHTML = t(element.dataset.i18nHtml);
+  });
   root.querySelectorAll('[data-i18n-attr]').forEach((element) => {
     let map;
     try { map = JSON.parse(element.dataset.i18nAttr); }

@@ -209,13 +209,32 @@ export function renderNoteQuizBoard(container, { target = null, interactive = fa
 //
 // Accidentals are drawn back so the naturals read first: those are the ones worth
 // learning by position, and the sharps fall out of them.
-export function renderNoteBoard(container) {
+//
+// Everything in `options` is optional, so renderNoteBoard(container) still draws
+// exactly the plain map the Lessons page asks for. The theory page adds to it: a
+// string it wants read on its own, a fret the reader has chosen, and frets to
+// point at.
+export function renderNoteBoard(container, {
+  interactive = false, selected = null, focusString = null, highlight = [], cellAttr = 'data-note-cell',
+} = {}) {
+  const selectedKey = selected ? cellKey(selected) : '';
+  const highlighted = new Set(highlight.map(cellKey));
+
   renderGrid(container, {
+    interactive,
+    cellAttr,
     decorate: (cell) => {
       const name = PITCH_NAMES[mod12(cell.midi)];
+      const key = cellKey(cell);
+      const classes = ['note-map', name.length > 1 ? 'note-map-accidental' : 'note-map-natural'];
+      // Reading one string at a time is how the neck is actually learned, so the
+      // others stay visible but step back rather than disappearing.
+      if (focusString !== null && cell.stringIndex !== focusString) classes.push('note-map-aside');
+      if (highlighted.has(key)) classes.push('note-map-marked');
+      if (key === selectedKey) classes.push('note-map-chosen');
       return {
         marker: name,
-        classes: ['note-map', name.length > 1 ? 'note-map-accidental' : 'note-map-natural'],
+        classes,
         label: t('training.notes.cellAria', {
           string: cell.stringNumber,
           fretLabel: fretLabel(cell.fret),
@@ -224,6 +243,8 @@ export function renderNoteBoard(container) {
       };
     },
   });
+
+  if (selected) revealMarks(container, '.note-map-chosen');
 }
 
 // The scale map. Notes of the scale carry their degree; those outside the chosen

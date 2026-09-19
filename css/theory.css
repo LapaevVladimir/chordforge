@@ -1,0 +1,296 @@
+/* Theory page only. Loaded by theory.html and nothing else, so no rule here can
+   reach another page. Everything is built from the tokens in styles.css — no new
+   colours, no new radii, no gradients that the rest of the site does not use. */
+
+/* ----------------------------------------------------------------- sidebar */
+
+.stage-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.stage-item {
+  display: grid; width: 100%; grid-template-columns: 30px minmax(0, 1fr) 14px; align-items: center; gap: 10px;
+  padding: 10px 11px; color: var(--text); border: 1px solid var(--line); border-radius: 11px;
+  background: var(--panel-3); text-align: left; cursor: pointer; transition: 0.16s ease;
+}
+.stage-item:hover { border-color: rgba(var(--accent-rgb), 0.45); }
+.stage-item.active { border-color: rgba(var(--accent-rgb), 0.5); background: rgba(var(--accent-rgb), 0.1); }
+.stage-number { color: var(--muted); font-size: 0.72rem; font-weight: 820; font-variant-numeric: tabular-nums; }
+.stage-item.active .stage-number { color: var(--accent); }
+.stage-copy { display: grid; gap: 2px; min-width: 0; }
+.stage-copy strong { font-size: 0.79rem; }
+.stage-copy small { color: var(--muted); font-size: 0.65rem; line-height: 1.3; }
+.stage-state { color: var(--accent); font-size: 0.6rem; }
+.stage-item.seen .stage-state { color: var(--accent-2); }
+
+.lesson-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.lesson-list a {
+  display: grid; grid-template-columns: 18px minmax(0, 1fr); align-items: baseline; gap: 8px;
+  padding: 6px 7px; color: var(--muted); border-radius: 8px; font-size: 0.73rem; text-decoration: none;
+  transition: 0.14s ease;
+}
+.lesson-list a:hover { color: var(--text); background: var(--panel-3); }
+.lesson-list a span { color: var(--accent-2); font-size: 0.65rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.chromatic-strip { display: flex; flex-wrap: wrap; gap: 4px; }
+.chromatic-note {
+  display: grid; min-width: 30px; height: 26px; place-items: center; padding: 0 5px;
+  color: var(--text); border: 1px solid var(--line); border-radius: 7px; background: var(--panel-3);
+  font-size: 0.7rem; font-weight: 800;
+}
+.chromatic-note.accidental { color: var(--muted); background: transparent; }
+
+.theory-note { margin: 0 0 9px; color: var(--muted); font-size: 0.72rem; line-height: 1.5; }
+
+/* -------------------------------------------------------------- the lessons */
+
+.theory-body { display: grid; gap: 30px; padding: 24px 25px 8px; }
+.lesson { min-width: 0; scroll-margin-top: 18px; }
+.lesson h2 {
+  display: flex; align-items: baseline; gap: 11px; margin: 0 0 11px;
+  font-size: 1.04rem; font-weight: 800; letter-spacing: -0.01em;
+}
+.lesson-index {
+  display: grid; width: 24px; height: 24px; flex: 0 0 auto; place-items: center;
+  color: var(--accent); border: 1px solid rgba(var(--accent-rgb), 0.35); border-radius: 7px;
+  background: rgba(var(--accent-rgb), 0.09); font-size: 0.68rem; font-weight: 820;
+}
+.lesson p { max-width: 74ch; margin: 0 0 10px; color: color-mix(in srgb, var(--text) 86%, var(--muted)); font-size: 0.86rem; line-height: 1.68; }
+.lesson p b { color: var(--text); font-weight: 780; }
+
+.theory-figure { margin: 14px 0 0; padding: 15px 16px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel-2); }
+.theory-figure figcaption { margin-top: 12px; color: var(--muted); font-size: 0.74rem; line-height: 1.55; }
+
+.figure-controls { display: grid; gap: 10px; margin-top: 13px; }
+.figure-controls.inline { display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.control-row { display: grid; grid-template-columns: 82px minmax(0, 1fr) 68px; align-items: center; gap: 11px; font-size: 0.74rem; color: var(--muted); }
+.control-row output { color: var(--accent-2); font-size: 0.74rem; font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+.figure-readout { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 0.74rem; color: var(--muted); }
+.figure-readout strong { color: var(--accent-2); font-size: 0.95rem; font-weight: 850; }
+.figure-readout.compact { min-width: 150px; justify-content: center; text-align: center; }
+.figure-readout .equals { color: var(--muted); }
+
+.ghost-button {
+  padding: 7px 12px; color: var(--accent); border: 1px solid rgba(var(--accent-rgb), 0.3); border-radius: 8px;
+  background: rgba(var(--accent-rgb), 0.07); font-size: 0.72rem; font-weight: 760; cursor: pointer; transition: 0.14s ease;
+}
+.ghost-button:hover { border-color: rgba(var(--accent-rgb), 0.6); background: rgba(var(--accent-rgb), 0.13); }
+.ghost-button.tiny { padding: 5px 9px; font-size: 0.66rem; }
+
+/* -------------------------------------------------------- 01.1  the wave */
+
+.wave-frame { overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3); }
+#waveCanvas { display: block; width: 100%; height: 132px; }
+.wave-axis { stroke: var(--line-strong); stroke-width: 1; }
+.wave-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
+
+/* --------------------------------------------------------- 01.2  the notes */
+
+.note-ring { display: flex; flex-wrap: wrap; gap: 6px; }
+.ring-note {
+  display: grid; min-width: 52px; gap: 1px; padding: 8px 9px; color: var(--text);
+  border: 1px solid var(--line); border-radius: 9px; background: var(--panel-3);
+  cursor: pointer; text-align: center; transition: 0.14s ease;
+}
+.ring-note strong { font-size: 0.86rem; font-weight: 820; }
+.ring-note small { color: var(--muted); font-size: 0.6rem; font-weight: 700; }
+.ring-note.accidental { color: var(--muted); }
+.ring-note:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.ring-note.active { color: var(--clip-text); border-color: transparent; background: var(--accent); }
+.ring-note.active small { color: color-mix(in srgb, var(--clip-text) 72%, transparent); }
+.figure-readout.wide { margin-top: 13px; }
+
+/* -------------------------------------------------------- tables (01.3, 03.2) */
+
+.theory-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+.theory-table caption { margin-bottom: 9px; color: var(--muted); font-size: 0.72rem; text-align: left; }
+.theory-table th, .theory-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+.theory-table thead th { color: var(--muted); font-size: 0.65rem; font-weight: 780; letter-spacing: 0.07em; text-transform: uppercase; }
+.theory-table tbody th { font-weight: 760; }
+.theory-table tbody tr:last-child th, .theory-table tbody tr:last-child td { border-bottom: 0; }
+.theory-table tbody tr:hover { background: rgba(var(--accent-rgb), 0.05); }
+.theory-table .mono { color: var(--accent-2); font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------- 01.4  the octaves */
+
+.octave-ladder { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 7px; }
+.ladder-step {
+  display: grid; min-width: 0; gap: 2px; padding: 10px; color: var(--text);
+  border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3);
+  cursor: pointer; text-align: center; transition: 0.14s ease;
+}
+.ladder-step:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.ladder-step strong { font-size: 0.86rem; font-weight: 820; }
+.ladder-step .mono { color: var(--accent-2); font-size: 0.72rem; font-variant-numeric: tabular-nums; }
+.ladder-step small { color: var(--muted); font-size: 0.6rem; }
+.ladder-step.reference { border-color: rgba(var(--accent-rgb), 0.45); background: rgba(var(--accent-rgb), 0.1); }
+
+/* --------------------------------------------------- 01.5  the key strip */
+
+.keys-frame { overflow-x: auto; padding-bottom: 4px; }
+.keys { display: flex; min-width: 420px; gap: 5px; }
+.key-slot { display: grid; flex: 1 1 0; gap: 5px; }
+.key {
+  display: grid; min-height: 46px; place-items: center; padding: 6px 4px; border: 1px solid var(--line-strong);
+  border-radius: 8px; cursor: pointer; font-size: 0.74rem; font-weight: 800; transition: 0.14s ease;
+}
+.key.white { color: #17202a; background: #e9e4d8; }
+.key.white:hover { background: #fff; }
+.key.black { min-height: 38px; color: #e9e4d8; background: #1b2026; font-size: 0.62rem; font-weight: 740; }
+.key.black:hover { border-color: rgba(var(--accent-rgb), 0.6); }
+.key-end { min-height: 38px; }
+.key-gap {
+  display: grid; min-height: 38px; place-items: center; color: var(--danger);
+  border: 1px dashed color-mix(in srgb, var(--danger) 45%, transparent); border-radius: 8px;
+  font-size: 0.66rem; font-weight: 800;
+}
+
+/* ---------------------------------------------------- 01.6  walking a string */
+
+.step-walk { display: grid; grid-template-columns: repeat(auto-fit, minmax(46px, 1fr)); gap: 5px; }
+.walk-step {
+  display: grid; min-width: 0; gap: 1px; padding: 8px 4px; color: var(--text);
+  border: 1px solid var(--line); border-radius: 9px; background: var(--panel-3);
+  cursor: pointer; text-align: center; transition: 0.14s ease;
+}
+.walk-step strong { font-size: 0.8rem; font-weight: 820; }
+.walk-step small { color: var(--muted); font-size: 0.58rem; font-weight: 700; }
+.walk-step:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.walk-step.active { color: var(--clip-text); border-color: transparent; background: var(--accent); }
+.walk-step.active small { color: color-mix(in srgb, var(--clip-text) 72%, transparent); }
+/* A step with no fret in between: E–F and B–C. */
+.walk-step.tight { border-color: color-mix(in srgb, var(--accent-2) 55%, transparent); }
+.walk-step.tight::after { content: ""; position: absolute; }
+
+/* --------------------------------------------------------- 02  the neck lab */
+
+.neck-lab { display: grid; gap: 13px; margin-top: 14px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel-2); }
+.neck-lab-controls { display: flex; flex-wrap: wrap; gap: 16px 26px; }
+.control-group { display: grid; gap: 7px; }
+.control-label { color: var(--muted); font-size: 0.64rem; font-weight: 780; letter-spacing: 0.08em; text-transform: uppercase; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.toggle-chip {
+  padding: 7px 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel-3); font-size: 0.71rem; font-weight: 740; cursor: pointer; transition: 0.14s ease;
+}
+.toggle-chip strong { color: var(--text); font-weight: 820; }
+.toggle-chip:hover { color: var(--text); border-color: rgba(var(--accent-rgb), 0.45); }
+.toggle-chip.active { color: var(--clip-text); border-color: transparent; background: var(--accent); }
+.toggle-chip.active strong { color: var(--clip-text); }
+
+.neck-readout { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3); }
+.readout-note { color: var(--accent-2); font-size: 1.25rem; font-weight: 880; }
+.readout-facts { display: flex; flex: 1 1 auto; flex-wrap: wrap; gap: 5px 16px; color: var(--muted); font-size: 0.75rem; }
+.readout-facts .mono { color: var(--text); font-variant-numeric: tabular-nums; }
+
+/* Cells outside the string being read, and the ones being pointed at. */
+.interval-cell.note-map-aside .interval-note { opacity: 0.3; }
+.interval-cell.note-map-marked .interval-note { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-2) 60%, transparent); }
+.interval-cell.note-map-chosen .interval-note {
+  min-width: 32px; height: 32px; color: var(--clip-text); background: var(--accent-2);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-2) 22%, transparent), 0 8px 16px rgba(0, 0, 0, 0.5);
+  font-size: 0.78rem; font-weight: 950; opacity: 1;
+}
+.note-board button.interval-cell { cursor: pointer; }
+
+/* ------------------------------------------------------- 02.3  the gap map */
+
+.gap-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 6px; }
+.gap-pair {
+  display: grid; min-width: 0; grid-template-columns: auto auto auto; align-items: center;
+  justify-content: center; gap: 5px; padding: 9px 8px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel-3); text-align: center;
+}
+.gap-pair b { color: var(--text); font-size: 0.8rem; font-weight: 820; }
+.gap-pair i { color: var(--muted); font-size: 0.7rem; font-style: normal; }
+.gap-pair small { grid-column: 1 / -1; color: var(--muted); font-size: 0.62rem; font-weight: 700; }
+.gap-pair.tight { border-color: color-mix(in srgb, var(--accent-2) 55%, transparent); background: color-mix(in srgb, var(--accent-2) 9%, var(--panel-3)); }
+.gap-pair.tight small { color: var(--accent-2); }
+
+/* ------------------------------------------------- 02.4  one string, fret by fret */
+
+.run-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(42px, 1fr)); gap: 4px; }
+.run-step {
+  display: grid; min-width: 0; gap: 1px; padding: 7px 4px; color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px; background: var(--panel-3);
+  cursor: pointer; text-align: center; transition: 0.14s ease;
+}
+.run-step small { color: var(--muted); font-size: 0.56rem; font-weight: 700; }
+.run-step strong { font-size: 0.78rem; font-weight: 820; }
+.run-step:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.run-step.tight strong { color: var(--accent-2); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ------------------------------------------------------- 03.3  the ruler */
+
+.ruler { display: grid; grid-template-columns: repeat(auto-fit, minmax(46px, 1fr)); gap: 4px; }
+.ruler-step {
+  display: grid; min-width: 0; gap: 1px; padding: 8px 4px; color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px; background: var(--panel-3);
+  cursor: pointer; text-align: center; transition: 0.14s ease;
+}
+.ruler-step strong { font-size: 0.82rem; font-weight: 850; font-variant-numeric: tabular-nums; }
+.ruler-step small { color: var(--muted); font-size: 0.58rem; font-weight: 740; }
+.ruler-step:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.ruler-step.active { color: var(--clip-text); border-color: transparent; background: var(--accent); }
+.ruler-step.active small { color: color-mix(in srgb, var(--clip-text) 72%, transparent); }
+
+/* ------------------------------------------------------ 03.5  how they sound */
+
+.character-list { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.character-list li {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3);
+}
+.character-mark {
+  display: grid; height: 28px; place-items: center; color: var(--clip-text); border-radius: 7px;
+  background: var(--accent); font-size: 0.7rem; font-weight: 850;
+}
+.character-mark.minor { background: var(--accent-2); }
+.character-mark.tritone { background: var(--danger); color: #fff; }
+.character-mark.perfect { background: var(--accent); }
+.character-copy { display: grid; gap: 2px; min-width: 0; }
+.character-copy strong { font-size: 0.79rem; }
+.character-copy span { color: var(--muted); font-size: 0.72rem; line-height: 1.45; }
+
+/* --------------------------------------------------------- 03.6  ear trainer */
+
+.ear-trainer { margin-top: 14px; padding: 15px 16px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel-2); }
+.ear-head { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+.ear-score { color: var(--muted); font-size: 0.75rem; }
+.ear-score strong { color: var(--text); font-variant-numeric: tabular-nums; }
+.ear-trainer .answer-grid { margin-top: 14px; }
+
+/* ------------------------------------------------------------------ the pager */
+
+.stage-pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 25px 20px; border-top: 1px solid var(--line); }
+.pager-button {
+  display: inline-flex; align-items: baseline; gap: 8px; padding: 10px 15px; color: var(--text);
+  border: 1px solid var(--line-strong); border-radius: 10px; background: var(--panel-3);
+  font-size: 0.74rem; font-weight: 740; text-decoration: none; cursor: pointer; transition: 0.16s ease;
+}
+.pager-button:hover { border-color: rgba(var(--accent-rgb), 0.55); background: rgba(var(--accent-rgb), 0.08); }
+.pager-button b { color: var(--accent); font-weight: 820; }
+.pager-button i { color: var(--muted); font-style: normal; }
+.pager-button.next { margin-left: auto; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- narrow screens */
+
+@media (max-width: 980px) {
+  .theory-body { gap: 26px; padding: 18px 16px 6px; }
+  .lesson h2 { font-size: 0.98rem; }
+  .theory-figure, .neck-lab, .ear-trainer { padding: 13px; }
+  .control-row { grid-template-columns: 70px minmax(0, 1fr) 60px; gap: 8px; }
+  .stage-pager { padding: 14px 16px 18px; }
+  .pager-button { flex: 1 1 0; justify-content: center; }
+  .character-list li { grid-template-columns: 40px minmax(0, 1fr); row-gap: 8px; }
+  .character-list li .ghost-button { grid-column: 1 / -1; justify-self: start; }
+  .neck-lab-controls { gap: 12px; }
+}
+
+@media (max-width: 650px) {
+  .lesson p { font-size: 0.83rem; }
+  .ring-note { min-width: 46px; }
+  .theory-table { font-size: 0.74rem; }
+  .theory-table th, .theory-table td { padding: 7px 6px; }
+}

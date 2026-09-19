@@ -1,0 +1,666 @@
+// The theory page: three stages of curriculum, each one explained and then put
+// straight onto the neck.
+//
+// Nothing here draws a fretboard, defines a note, works out an interval or makes
+// a sound of its own. Those all exist already and are imported:
+//
+//   core/pitch/note.js        pitch <-> frequency, note names, the open strings
+//   core/tuning.js            PITCH_NAMES, the tuning model
+//   training/board.js         every fretboard on the site
+//   training/intervals-data.js the thirteen intervals
+//   training/learn.js         findTargets(), which maps an interval onto the neck
+//   training/playback.js      the sampled guitar
+//
+// What this module owns is the lesson flow: which stage is open, what the figures
+// show, and the two small exercises.
+
+import { applyTheme, bindThemeDock, THEME_KEY } from '../../core/theme.js';
+import { init as i18nInit, onChange as onLocaleChange, t, pluralize } from '../../i18n/i18n.js';
+import { syncLocaleDock, bindLocaleDock } from '../../i18n/locale-dock.js';
+import { initOrientation, bindOrientationToggle, onOrientationChange } from '../../core/board-orientation.js';
+import {
+  A4_FREQUENCY, SHARP_NAMES, FLAT_NAMES, midiToFrequency, midiLabel, midiNoteName,
+  frequencyToMidi, buildStrings, STANDARD_GUITAR_MIDIS,
+} from '../../core/pitch/note.js';
+import { PITCH_NAMES } from '../../core/tuning.js';
+import {
+  OPEN_MIDIS, MAX_FRET, boardCells, cellKey, noteName, fretLabel,
+  renderBoard, renderNoteBoard, tuningLabel,
+} from '../training/board.js';
+import { INTERVALS, getInterval, intervalShort, intervalName, intervalDescription } from '../training/intervals-data.js';
+import { findTargets } from '../training/learn.js';
+import { audio, showToast, playSequence, playIntervalByType } from '../training/playback.js';
+
+const $ = (id) => document.getElementById(id);
+const mod12 = (value) => ((value % 12) + 12) % 12;
+
+const STAGES = ['basics', 'fretboard', 'intervals'];
+const MARKER_FRETS = [3, 5, 7, 9, 12, 15];
+// The seven letters, and the gap to the next one. Two of them are a single fret,
+// which is the whole lesson.
+const LETTERS = [0, 2, 4, 5, 7, 9, 11];
+
+const state = {
+  stage: 'basics',
+  visited: new Set(['basics']),
+  waveFrequency: 220,
+  waveAmplitude: 40,
+  ringPitchClass: 0,
+  stepFret: 0,
+  neckCell: { stringIndex: 0, fret: 5, midi: OPEN_MIDIS[0] + 5 },
+  focusString: 0,
+  showOctaves: false,
+  showMarkers: false,
+  intervalId: 'M3',
+  ear: { current: null, correct: 0, wrong: 0, locked: false },
+};
+
+/* --------------------------------------------------------------- shared bits */
+
+// Every "listen" button on the page goes through the sampled guitar the rest of
+// the site uses, so the theory sounds like the tool it is teaching.
+function playMidi(midi, button = null) {
+  return playSequence([Math.round(midi)], button);
+}
+
+function formatHz(frequency) {
+  return t('theory.hzValue', { n: frequency >= 100 ? frequency.toFixed(0) : frequency.toFixed(1) });
+}
+
+function cellAt(stringIndex, fret) {
+  return { stringIndex, fret, midi: OPEN_MIDIS[stringIndex] + fret };
+}
+
+/* ------------------------------------------------------------- stage routing */
+
+function renderStageList() {
+  const list = $('stageList');
+  list.innerHTML = STAGES.map((stage, index) => {
+    const active = stage === state.stage;
+    const done = state.visited.has(stage) && !active;
+    return `<li>
+      <button type="button" role="tab" class="stage-item${active ? ' active' : ''}${done ? ' seen' : ''}"
+        aria-selected="${active}" data-stage-go="${stage}">
+        <span class="stage-number">${String(index + 1).padStart(2, '0')}</span>
+        <span class="stage-copy">
+          <strong>${t(`theory.${stage}.eyebrowShort`)}</strong>
+          <small>${t(`theory.${stage}.tagline`)}</small>
+        </span>
+        <span class="stage-state" aria-hidden="true">${active ? '●' : done ? '✓' : ''}</span>
+      </button>
+    </li>`;
+  }).join('');
+  $('stageCounter').textContent = t('theory.stageCounter', { n: STAGES.indexOf(state.stage) + 1, total: STAGES.length });
+}
+
+// The contents list doubles as the reader's place in the stage: it is built from
+// the lesson headings actually present, so it cannot drift from the page.
+function renderLessonList() {
+  const panel = document.querySelector(`[data-stage="${state.stage}"]`);
+  const lessons = [...panel.querySelectorAll('.lesson')];
+  $('lessonList').innerHTML = lessons.map((lesson, index) => {
+    const title = lesson.querySelector('h2 span:last-child')?.textContent ?? '';
+    return `<li><a href="#${lesson.id}" data-lesson-link="${lesson.id}"><span>${index + 1}</span>${title}</a></li>`;
+  }).join('');
+}
+
+function showStage(stage, { scroll = true } = {}) {
+  if (!STAGES.includes(stage)) return;
+  state.stage = stage;
+  state.visited.add(stage);
+  document.querySelectorAll('.theory-stage').forEach((panel) => {
+    panel.hidden = panel.dataset.stage !== stage;
+  });
+  renderStageList();
+  renderLessonList();
+  // A board laid out while its panel was hidden has no width to measure, so
+  // whichever one just came on screen is drawn again.
+  if (stage === 'fretboard') renderNeck();
+  if (stage === 'intervals') renderIntervalStage();
+  if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ------------------------------------------------- 01.1  what is sound */
+
+function renderWave() {
+  const frequency = state.waveFrequency;
+  const amplitude = state.waveAmplitude;
+  // Cycles across the drawing, not real time: the picture is about the shape of
+  // the wave, and a real 220 Hz would be a solid block of ink.
+  const cycles = Math.max(1, Math.round(frequency / 55));
+  const points = [];
+  for (let x = 0; x <= 640; x += 4) {
+    const phase = (x / 640) * cycles * Math.PI * 2;
+    points.push(`${x},${(75 - Math.sin(phase) * amplitude).toFixed(1)}`);
+  }
+  $('wavePath').setAttribute('d', `M${points.join('L')}`);
+  $('waveFrequencyValue').textContent = formatHz(frequency);
+  $('waveAmplitudeValue').textContent = t('theory.percentValue', { n: Math.round((amplitude / 64) * 100) });
+  $('waveNote').textContent = midiLabel(Math.round(frequencyToMidi(frequency)));
+}
+
+function bindWave() {
+  $('waveFrequency').addEventListener('input', (event) => {
+    state.waveFrequency = Number(event.target.value);
+    renderWave();
+  });
+  $('waveAmplitude').addEventListener('input', (event) => {
+    state.waveAmplitude = Number(event.target.value);
+    renderWave();
+  });
+  $('wavePlay').addEventListener('click', (event) => {
+    playMidi(frequencyToMidi(state.waveFrequency), event.currentTarget);
+  });
+}
+
+/* ------------------------------------------------------- 01.2  the twelve notes */
+
+function renderNoteRing() {
+  $('noteRing').innerHTML = PITCH_NAMES.map((name, pitchClass) => {
+    const accidental = name.length > 1;
+    const active = pitchClass === state.ringPitchClass;
+    return `<button type="button" class="ring-note${accidental ? ' accidental' : ''}${active ? ' active' : ''}"
+      data-ring="${pitchClass}" aria-pressed="${active}">
+      <strong>${name}</strong>${accidental ? `<small>${FLAT_NAMES[pitchClass]}</small>` : ''}
+    </button>`;
+  }).join('');
+  const pitchClass = state.ringPitchClass;
+  const accidental = PITCH_NAMES[pitchClass].length > 1;
+  $('ringSharp').textContent = SHARP_NAMES[pitchClass];
+  $('ringFlat').textContent = FLAT_NAMES[pitchClass];
+  $('ringExplain').textContent = t(accidental ? 'theory.notes.enharmonic' : 'theory.notes.natural');
+  document.querySelector('.figure-readout .equals').hidden = !accidental;
+  $('ringFlat').hidden = !accidental;
+}
+
+/* -------------------------------------------------------------- 01.3  pitch */
+
+function renderStringTable() {
+  const strings = buildStrings(STANDARD_GUITAR_MIDIS);
+  $('stringTable').querySelector('tbody').innerHTML = strings.slice().reverse().map((string) => `
+    <tr>
+      <th scope="row">${t('theory.pitch.stringN', { n: string.stringNumber })}</th>
+      <td class="mono">${string.label}</td>
+      <td class="mono">${formatHz(string.frequency)}</td>
+      <td><button type="button" class="ghost-button tiny" data-play-midi="${string.midi}"
+        aria-label="${t('theory.playAria', { note: string.label })}">${t('theory.listen')}</button></td>
+    </tr>`).join('');
+}
+
+/* ------------------------------------------------------------ 01.4  octaves */
+
+function renderOctaveLadder() {
+  // A1 to A6: six rungs, each double the one below it.
+  const midis = [33, 45, 57, 69, 81, 93];
+  $('octaveLadder').innerHTML = midis.map((midi) => {
+    const frequency = midiToFrequency(midi);
+    const reference = midi === 69;
+    return `<button type="button" class="ladder-step${reference ? ' reference' : ''}" data-play-midi="${midi}"
+      aria-label="${t('theory.playAria', { note: midiLabel(midi) })}">
+      <strong>${midiLabel(midi)}</strong>
+      <span class="mono">${formatHz(frequency)}</span>
+      ${reference ? `<small>${t('theory.octaves.reference')}</small>` : ''}
+    </button>`;
+  }).join('');
+}
+
+/* ------------------------------------------------- 01.5  sharps and flats */
+
+function renderKeyboard() {
+  // One octave of keys, C to C. The missing black keys are the lesson, so the
+  // white keys carry a class saying whether a black one follows.
+  const whites = [0, 2, 4, 5, 7, 9, 11, 12];
+  $('keyboardStrip').innerHTML = whites.map((pitchClass, index) => {
+    const base = 60 + pitchClass;
+    const last = index === whites.length - 1;
+    const hasSharp = !last && whites[index + 1] - pitchClass === 2;
+    const sharpName = hasSharp ? `${SHARP_NAMES[mod12(pitchClass + 1)]} / ${FLAT_NAMES[mod12(pitchClass + 1)]}` : '';
+    return `<div class="key-slot">
+      <button type="button" class="key white" data-play-midi="${base}"
+        aria-label="${t('theory.playAria', { note: midiLabel(base) })}"><span>${SHARP_NAMES[mod12(pitchClass)]}</span></button>
+      ${hasSharp
+        ? `<button type="button" class="key black" data-play-midi="${base + 1}"
+             aria-label="${t('theory.playAria', { note: midiLabel(base + 1) })}"><span>${sharpName}</span></button>`
+        : last
+          ? '<span class="key-end" aria-hidden="true"></span>'
+          : `<span class="key-gap" title="${t('theory.accidentals.gapTitle')}">${t('theory.accidentals.gapMark')}</span>`}
+    </div>`;
+  }).join('');
+}
+
+/* --------------------------------------------- 01.6  semitones and whole tones */
+
+function renderStepWalk() {
+  const upTo = 12;
+  $('stepWalk').innerHTML = Array.from({ length: upTo + 1 }, (_, fret) => {
+    const midi = OPEN_MIDIS[0] + fret;
+    const previous = OPEN_MIDIS[0] + fret - 1;
+    // A "tight" step is one where the two letters have no sharp between them.
+    const tight = fret > 0 && SHARP_NAMES[mod12(midi)].length === 1 && SHARP_NAMES[mod12(previous)].length === 1;
+    const active = fret === state.stepFret;
+    return `<button type="button" class="walk-step${active ? ' active' : ''}${tight ? ' tight' : ''}"
+      data-walk="${fret}" aria-pressed="${active}">
+      <strong>${SHARP_NAMES[mod12(midi)]}</strong>
+      <small>${fret === 0 ? t('theory.steps.openShort') : fret}</small>
+    </button>`;
+  }).join('');
+
+  const midi = OPEN_MIDIS[0] + state.stepFret;
+  $('stepNote').textContent = midiLabel(midi);
+  if (state.stepFret === 0) {
+    $('stepGap').textContent = t('theory.steps.openString');
+  } else {
+    const previousName = SHARP_NAMES[mod12(midi - 1)];
+    const tight = previousName.length === 1 && SHARP_NAMES[mod12(midi)].length === 1;
+    $('stepGap').textContent = t(tight ? 'theory.steps.fromTight' : 'theory.steps.fromNormal', {
+      from: previousName, to: SHARP_NAMES[mod12(midi)],
+    });
+  }
+}
+
+function setStepFret(fret) {
+  state.stepFret = Math.max(0, Math.min(12, fret));
+  renderStepWalk();
+  void playMidi(OPEN_MIDIS[0] + state.stepFret);
+}
+
+/* -------------------------------------------------------- 02  the fretboard */
+
+function renderStringPicker() {
+  $('stringPicker').innerHTML = OPEN_MIDIS.map((midi, stringIndex) => {
+    const stringNumber = OPEN_MIDIS.length - stringIndex;
+    const active = stringIndex === state.focusString;
+    return `<button type="button" role="radio" class="toggle-chip${active ? ' active' : ''}"
+      aria-checked="${active}" data-focus-string="${stringIndex}">
+      <strong>${stringNumber}</strong> ${midiNoteName(midi)}
+    </button>`;
+  }).reverse().join('');
+}
+
+function renderNeckReadout() {
+  const cell = state.neckCell;
+  const frequency = midiToFrequency(cell.midi);
+  const octaves = findTargets(cell, getInterval('p8'));
+  $('neckReadout').innerHTML = `
+    <span class="readout-note">${midiLabel(cell.midi)}</span>
+    <span class="readout-facts">
+      <span>${t('theory.frets.readoutPlace', { string: OPEN_MIDIS.length - cell.stringIndex, fretLabel: fretLabel(cell.fret) })}</span>
+      <span class="mono">${formatHz(frequency)}</span>
+      <span>${t('theory.frets.readoutOctaves', { n: octaves.length, positions: pluralize('interval.unit.position', octaves.length) })}</span>
+    </span>
+    <button type="button" class="ghost-button" data-play-midi="${cell.midi}"
+      aria-label="${t('theory.playAria', { note: midiLabel(cell.midi) })}">${t('theory.listen')}</button>`;
+}
+
+function renderRunStrip() {
+  const stringIndex = state.focusString;
+  $('runStrip').innerHTML = Array.from({ length: 13 }, (_, fret) => {
+    const midi = OPEN_MIDIS[stringIndex] + fret;
+    const tight = fret > 0
+      && SHARP_NAMES[mod12(midi)].length === 1
+      && SHARP_NAMES[mod12(midi - 1)].length === 1;
+    return `<button type="button" class="run-step${tight ? ' tight' : ''}" data-run="${fret}"
+      aria-label="${t('theory.finding.stepAria', { fretLabel: fretLabel(fret), note: midiLabel(midi) })}">
+      <small>${fret}</small><strong>${SHARP_NAMES[mod12(midi)]}</strong>
+    </button>`;
+  }).join('');
+}
+
+function renderNeck() {
+  const highlight = [];
+  if (state.showOctaves) highlight.push(...findTargets(state.neckCell, getInterval('p8')));
+  if (state.showMarkers) {
+    for (const fret of MARKER_FRETS) {
+      if (fret > MAX_FRET) continue;
+      for (let stringIndex = 0; stringIndex < OPEN_MIDIS.length; stringIndex += 1) highlight.push(cellAt(stringIndex, fret));
+    }
+  }
+  renderNoteBoard($('neckBoard'), {
+    interactive: true,
+    selected: state.neckCell,
+    focusString: state.focusString,
+    highlight,
+    cellAttr: 'data-neck-cell',
+  });
+  $('neckTuningBadge').textContent = tuningLabel();
+  renderStringPicker();
+  renderNeckReadout();
+  renderRunStrip();
+}
+
+function renderGapMap() {
+  $('gapMap').innerHTML = LETTERS.map((pitchClass, index) => {
+    const next = LETTERS[(index + 1) % LETTERS.length];
+    const gap = mod12(next - pitchClass);
+    return `<span class="gap-pair${gap === 1 ? ' tight' : ''}">
+      <b>${SHARP_NAMES[pitchClass]}</b><i aria-hidden="true">→</i><b>${SHARP_NAMES[next]}</b>
+      <small>${t(gap === 1 ? 'theory.halfsteps.oneFret' : 'theory.halfsteps.twoFrets')}</small>
+    </span>`;
+  }).join('');
+}
+
+/* ----------------------------------------------------------- 03  intervals */
+
+function renderIntervalTable() {
+  const root = 45; // the open A string, which every example is measured from
+  $('intervalTable').querySelector('tbody').innerHTML = INTERVALS.map((interval) => `
+    <tr>
+      <th scope="row">${intervalName(interval.id)}</th>
+      <td class="mono">${intervalShort(interval.id)}</td>
+      <td class="mono">${interval.semitones}</td>
+      <td class="mono">${midiNoteName(root)} → ${midiNoteName(root + interval.semitones)}</td>
+      <td><button type="button" class="ghost-button tiny" data-play-interval="${interval.id}"
+        aria-label="${t('theory.playIntervalAria', { name: intervalName(interval.id) })}">${t('theory.listen')}</button></td>
+    </tr>`).join('');
+}
+
+function renderRuler() {
+  $('intervalRuler').innerHTML = INTERVALS.map((interval) => {
+    const active = interval.id === state.intervalId;
+    return `<button type="button" class="ruler-step${active ? ' active' : ''}" data-ruler="${interval.id}"
+      aria-pressed="${active}" title="${intervalName(interval.id)}">
+      <strong>${interval.semitones}</strong><small>${intervalShort(interval.id)}</small>
+    </button>`;
+  }).join('');
+}
+
+function intervalFamily(id) {
+  if (id === 'tt') return 'tritone';
+  if (id.startsWith('p')) return 'perfect';
+  return id.startsWith('m') ? 'minor' : 'major';
+}
+
+function renderIntervalRail() {
+  $('theoryIntervalRail').innerHTML = INTERVALS.map((interval) => {
+    const active = interval.id === state.intervalId;
+    return `<button type="button" role="radio" class="interval-chip ${intervalFamily(interval.id)}${active ? ' active' : ''}"
+      aria-checked="${active}" data-interval="${interval.id}"
+      title="${intervalName(interval.id)}" aria-label="${intervalName(interval.id)}">
+      <strong>${intervalShort(interval.id)}</strong><small>${interval.semitones}</small>
+    </button>`;
+  }).join('');
+}
+
+function renderCharacterList() {
+  $('characterList').innerHTML = INTERVALS.map((interval) => `
+    <li>
+      <span class="character-mark ${intervalFamily(interval.id)}">${intervalShort(interval.id)}</span>
+      <span class="character-copy">
+        <strong>${intervalName(interval.id)}</strong>
+        <span>${intervalDescription(interval.id)}</span>
+      </span>
+      <button type="button" class="ghost-button tiny" data-play-interval="${interval.id}"
+        aria-label="${t('theory.playIntervalAria', { name: intervalName(interval.id) })}">${t('theory.listen')}</button>
+    </li>`).join('');
+}
+
+function renderIntervalBoard() {
+  const interval = getInterval(state.intervalId);
+  const targets = findTargets(state.neckCell, interval);
+  renderBoard($('intervalBoard'), {
+    anchor: state.neckCell,
+    targets,
+    interactive: true,
+    targetMarker: intervalShort(interval.id),
+  });
+  $('intervalBadge').textContent = intervalName(interval.id);
+  $('intervalExplainer').innerHTML = `
+    <span class="interval-symbol">${intervalShort(interval.id)}</span>
+    <span class="interval-copy">
+      <strong>${t('theory.onneck.fromTo', {
+        from: midiLabel(state.neckCell.midi),
+        to: midiLabel(state.neckCell.midi + interval.semitones),
+        name: intervalName(interval.id),
+      })}</strong>
+      <span>${intervalDescription(interval.id)}</span>
+    </span>
+    <span class="interval-distance">${t('theory.onneck.distance', { n: interval.semitones, semitones: pluralize('interval.unit.semitone', interval.semitones), count: targets.length, positions: pluralize('interval.unit.position', targets.length) })}</span>`;
+}
+
+function renderIntervalStage() {
+  renderIntervalTable();
+  renderRuler();
+  renderIntervalRail();
+  renderCharacterList();
+  renderIntervalBoard();
+  renderEarAnswers();
+}
+
+/* ------------------------------------------------------ 03.6  ear training */
+
+// A beginner set: the intervals worth telling apart first. Deliberately not all
+// thirteen — the full drill lives on the quiz page.
+const EAR_SET = ['m2', 'M2', 'm3', 'M3', 'p4', 'p5', 'p8'];
+
+function renderEarAnswers() {
+  $('earAnswers').innerHTML = EAR_SET.map((id) => `
+    <button type="button" class="answer-button" data-ear-answer="${id}">
+      <strong>${intervalShort(id)}</strong><span>${intervalName(id)}</span>
+    </button>`).join('');
+  $('earCorrect').textContent = String(state.ear.correct);
+  $('earWrong').textContent = String(state.ear.wrong);
+}
+
+function newEarQuestion() {
+  const id = EAR_SET[Math.floor(Math.random() * EAR_SET.length)];
+  // A comfortable register rather than wherever the neck happens to be.
+  const root = 48 + Math.floor(Math.random() * 12);
+  state.ear.current = { id, root };
+  state.ear.locked = false;
+  renderEarAnswers();
+}
+
+function playEarQuestion(button = null) {
+  if (!state.ear.current) newEarQuestion();
+  const { id, root } = state.ear.current;
+  return playIntervalByType(root, root + getInterval(id).semitones, 'ascending', button);
+}
+
+function answerEar(button) {
+  if (!state.ear.current || state.ear.locked || button.disabled) return;
+  const chosen = button.dataset.earAnswer;
+  const feedback = $('earFeedback');
+  if (chosen === state.ear.current.id) {
+    state.ear.correct += 1;
+    state.ear.locked = true;
+    button.classList.add('correct');
+    $('earAnswers').querySelectorAll('button').forEach((item) => { item.disabled = true; });
+    feedback.textContent = t('theory.ear.right', { name: intervalName(chosen) });
+    feedback.className = 'quiz-feedback success';
+    $('earCorrect').textContent = String(state.ear.correct);
+    window.setTimeout(() => {
+      newEarQuestion();
+      feedback.textContent = t('theory.ear.next');
+      feedback.className = 'quiz-feedback';
+      void playEarQuestion();
+    }, 1100);
+    return;
+  }
+  state.ear.wrong += 1;
+  button.classList.add('wrong');
+  button.disabled = true;
+  feedback.textContent = t('theory.ear.wrongAnswer', { name: intervalName(chosen) });
+  feedback.className = 'quiz-feedback error';
+  $('earWrong').textContent = String(state.ear.wrong);
+}
+
+/* ---------------------------------------------------------------- rendering */
+
+function renderChromaticStrip() {
+  $('chromaticStrip').innerHTML = PITCH_NAMES.map((name) => `
+    <span class="chromatic-note${name.length > 1 ? ' accidental' : ''}">${name}</span>`).join('');
+}
+
+function renderAll() {
+  renderStageList();
+  renderLessonList();
+  renderChromaticStrip();
+  renderWave();
+  renderNoteRing();
+  renderStringTable();
+  renderOctaveLadder();
+  renderKeyboard();
+  renderStepWalk();
+  renderGapMap();
+  renderNeck();
+  renderIntervalStage();
+}
+
+/* ------------------------------------------------------------------- events */
+
+function bindEvents() {
+  bindWave();
+
+  // One delegated handler for every "listen" button on the page, whatever drew it.
+  document.addEventListener('click', (event) => {
+    const noteButton = event.target.closest('[data-play-midi]');
+    if (noteButton) { void playMidi(Number(noteButton.dataset.playMidi), noteButton); return; }
+    const intervalButton = event.target.closest('[data-play-interval]');
+    if (intervalButton) {
+      const interval = getInterval(intervalButton.dataset.playInterval);
+      void playIntervalByType(45, 45 + interval.semitones, 'ascending', intervalButton);
+    }
+  });
+
+  $('stageList').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-stage-go]');
+    if (button) showStage(button.dataset.stageGo);
+  });
+  document.querySelectorAll('[data-goto]').forEach((button) => {
+    button.addEventListener('click', () => showStage(button.dataset.goto));
+  });
+  $('lessonList').addEventListener('click', (event) => {
+    const link = event.target.closest('[data-lesson-link]');
+    if (!link) return;
+    event.preventDefault();
+    document.getElementById(link.dataset.lessonLink)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.querySelectorAll('[data-scroll-to]').forEach((button) => {
+    button.addEventListener('click', () => {
+      document.getElementById(button.dataset.scrollTo)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  $('noteRing').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-ring]');
+    if (!button) return;
+    state.ringPitchClass = Number(button.dataset.ring);
+    renderNoteRing();
+    void playMidi(60 + state.ringPitchClass);
+  });
+
+  $('stepWalk').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-walk]');
+    if (button) setStepFret(Number(button.dataset.walk));
+  });
+  $('stepUp').addEventListener('click', () => setStepFret(state.stepFret + 1));
+  $('stepDown').addEventListener('click', () => setStepFret(state.stepFret - 1));
+
+  $('neckBoard').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-neck-cell]');
+    if (!button) return;
+    const [stringIndex, fret] = button.dataset.neckCell.split(':').map(Number);
+    state.neckCell = cellAt(stringIndex, fret);
+    state.focusString = stringIndex;
+    renderNeck();
+    renderIntervalBoard();
+    void playMidi(state.neckCell.midi);
+  });
+  $('stringPicker').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-focus-string]');
+    if (!button) return;
+    state.focusString = Number(button.dataset.focusString);
+    renderNeck();
+  });
+  $('runStrip').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-run]');
+    if (!button) return;
+    state.neckCell = cellAt(state.focusString, Number(button.dataset.run));
+    renderNeck();
+    renderIntervalBoard();
+    void playMidi(state.neckCell.midi);
+  });
+  $('showOctaves').addEventListener('click', (event) => {
+    state.showOctaves = !state.showOctaves;
+    event.currentTarget.setAttribute('aria-pressed', String(state.showOctaves));
+    event.currentTarget.classList.toggle('active', state.showOctaves);
+    renderNeck();
+  });
+  $('showMarkers').addEventListener('click', (event) => {
+    state.showMarkers = !state.showMarkers;
+    event.currentTarget.setAttribute('aria-pressed', String(state.showMarkers));
+    event.currentTarget.classList.toggle('active', state.showMarkers);
+    renderNeck();
+  });
+
+  const chooseInterval = (id) => {
+    state.intervalId = getInterval(id).id;
+    renderRuler();
+    renderIntervalRail();
+    renderIntervalBoard();
+  };
+  $('theoryIntervalRail').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-interval]');
+    if (button) chooseInterval(button.dataset.interval);
+  });
+  $('intervalRuler').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-ruler]');
+    if (!button) return;
+    chooseInterval(button.dataset.ruler);
+    $('lesson-onneck').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  $('intervalBoard').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-learn-cell]');
+    if (!button) return;
+    const [stringIndex, fret] = button.dataset.learnCell.split(':').map(Number);
+    state.neckCell = cellAt(stringIndex, fret);
+    renderIntervalBoard();
+    renderNeck();
+    void playMidi(state.neckCell.midi);
+  });
+
+  $('earPlay').addEventListener('click', (event) => { void playEarQuestion(event.currentTarget); });
+  $('earAnswers').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-ear-answer]');
+    if (button) answerEar(button);
+  });
+
+  const flipLabels = { vertical: t('common.boardFlipVertical'), horizontal: t('common.boardFlipHorizontal') };
+  bindOrientationToggle($('neckFlip'), flipLabels);
+  bindOrientationToggle($('intervalFlip'), flipLabels);
+  // Both boards are laid out from the same tuning, so both are redrawn when the
+  // neck turns or the window changes shape.
+  const redraw = () => { renderNeck(); renderIntervalBoard(); };
+  onOrientationChange(redraw);
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(redraw, 160);
+  });
+
+  bindThemeDock('midnight', { bloom: true });
+  bindLocaleDock();
+  window.addEventListener('beforeunload', () => audio?.stop());
+}
+
+onLocaleChange(() => {
+  syncLocaleDock();
+  renderAll();
+});
+
+function initialize() {
+  i18nInit();
+  initOrientation();
+  syncLocaleDock();
+  applyTheme(localStorage.getItem(THEME_KEY), 'midnight');
+  renderAll();
+  newEarQuestion();
+  bindEvents();
+  showStage('basics', { scroll: false });
+  // Warm the samples the first figures are most likely to ask for.
+  audio.prepare([40, 45, 52, 57, 60, 69]).catch(() => {
+    showToast(t('training.toast.samplesLoadFailed'));
+  });
+}
+
+initialize();

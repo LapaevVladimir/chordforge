@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1015" />
+  <meta name="description" content="Guitar music theory from the ground up: sound, notes, the fretboard and intervals" data-i18n-attr='{"content":"meta.theory.description"}' />
+  <title data-i18n="meta.theory.title">ChordForge — Guitar Theory</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b1015'/%3E%3Cpath d='M12 17h40M12 28h40M12 39h40M12 50h40' stroke='%23f4bf69' stroke-width='2'/%3E%3Cpath d='M26 9v46M40 9v46' stroke='%237ce4d1' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/training.css" />
+  <link rel="stylesheet" href="css/theory.css" />
+</head>
+<body class="theory-page site-ready" data-theme="midnight">
+
+  <div class="studio-shell">
+    <aside class="tool-panel card" data-i18n-attr='{"aria-label":"theory.sidebarAria"}' aria-label="Curriculum">
+      <div class="sidebar-header">
+        <a class="brand" href="index.html" data-i18n-attr='{"aria-label":"nav.homeAria"}' aria-label="Go to home page"><span class="mark">♬</span><span data-i18n="common.brand">ChordForge<small>theory</small></span></a>
+      </div>
+
+      <nav class="app-nav" data-i18n-attr='{"aria-label":"nav.appNavAria"}' aria-label="Sections">
+        <a href="index.html" class="nav-home"><i aria-hidden="true">⌂</i><span data-i18n="nav.homeLink">Home</span></a>
+        <a href="tuner.html"><i aria-hidden="true">🎙</i><span data-i18n="nav.tunerLink">Tuner</span></a>
+        <a href="chords.html"><i aria-hidden="true">♯</i><span data-i18n="nav.chordsLink">Chords</span></a>
+        <a href="theory.html" aria-current="page"><i aria-hidden="true">✎</i><span data-i18n="nav.theoryLink">Theory</span></a>
+        <a href="training-learn.html"><i aria-hidden="true">◎</i><span data-i18n="nav.learnLink">Lessons</span></a>
+        <a href="training-quiz.html"><i aria-hidden="true">▶</i><span data-i18n="nav.quizLink">Quiz</span></a>
+      </nav>
+
+      <div class="sidebar-scroll">
+        <section class="tool-section">
+          <div class="section-kicker"><span data-i18n="theory.curriculumLabel">Curriculum</span><span class="pill" id="stageCounter">1 / 3</span></div>
+          <ol class="stage-list" id="stageList" role="tablist" data-i18n-attr='{"aria-label":"theory.stageListAria"}' aria-label="Theory stages"></ol>
+        </section>
+
+        <section class="tool-section">
+          <div class="section-kicker" data-i18n="theory.contentsLabel">In this stage</div>
+          <ul class="lesson-list" id="lessonList"></ul>
+        </section>
+
+        <section class="tool-section">
+          <div class="section-kicker" data-i18n="theory.referenceLabel">Quick reference</div>
+          <p class="theory-note" data-i18n="theory.referenceHint">The twelve notes, in order. Every step is one fret.</p>
+          <div class="chromatic-strip" id="chromaticStrip" data-i18n-attr='{"aria-label":"theory.chromaticAria"}' aria-label="The twelve notes"></div>
+        </section>
+      </div>
+    </aside>
+
+    <main class="workspace">
+
+      <!-- ============================ 01 — Basics ============================ -->
+      <section class="work card theory-stage" data-stage="basics" role="tabpanel" data-i18n-attr='{"aria-label":"theory.basics.title"}' aria-label="01 — Basics">
+        <div class="work-top">
+          <div>
+            <span class="eyebrow" data-i18n="theory.basics.eyebrow">01 — Basics</span>
+            <h1 data-i18n="theory.basics.title">The building blocks</h1>
+            <p class="sub" data-i18n="theory.basics.subtitle">Understand the building blocks of music before applying them to the guitar.</p>
+          </div>
+          <div class="work-header-actions">
+            <span class="pill" data-i18n="theory.basics.badge">6 lessons</span>
+          </div>
+        </div>
+
+        <div class="theory-body">
+
+          <article class="lesson" id="lesson-sound">
+            <h2><span class="lesson-index">1</span><span data-i18n="theory.sound.title">What is sound?</span></h2>
+            <p data-i18n="theory.sound.p1">A sound is something moving back and forth in the air. Pluck a string and it swings from side to side, pushing the air around it into waves that reach your ear. Nothing travels down the string to you — the string just shakes, and the air carries the shaking.</p>
+            <p data-i18n-html="theory.sound.p2"><b>Frequency</b> is how many times per second it swings, measured in hertz (Hz). <b>Amplitude</b> is how far it swings. Frequency is what you hear as <b>pitch</b>: faster shaking sounds higher. Amplitude is what you hear as loudness — a harder pluck is louder, not higher.</p>
+            <figure class="theory-figure">
+              <div class="wave-frame">
+                <svg id="waveCanvas" viewBox="0 0 640 150" preserveAspectRatio="none" role="img" data-i18n-attr='{"aria-label":"theory.sound.waveAria"}' aria-label="A wave, drawn from the chosen frequency and amplitude">
+                  <line x1="0" y1="75" x2="640" y2="75" class="wave-axis" />
+                  <path id="wavePath" class="wave-line" d="" />
+                </svg>
+              </div>
+              <div class="figure-controls">
+                <label class="control-row">
+                  <span data-i18n="theory.sound.frequencyLabel">Frequency</span>
+                  <input type="range" id="waveFrequency" min="55" max="880" step="1" value="220" />
+                  <output id="waveFrequencyValue">220 Hz</output>
+                </label>
+                <label class="control-row">
+                  <span data-i18n="theory.sound.amplitudeLabel">Amplitude</span>
+                  <input type="range" id="waveAmplitude" min="8" max="64" step="1" value="40" />
+                  <output id="waveAmplitudeValue">40%</output>
+                </label>
+                <div class="figure-readout">
+                  <span data-i18n="theory.sound.nearestLabel">Nearest note</span>
+                  <strong id="waveNote">A3</strong>
+                  <button type="button" class="ghost-button" id="wavePlay" data-i18n="theory.listen">Listen</button>
+                </div>
+              </div>
+              <figcaption data-i18n="theory.sound.caption">Drag the first slider and the wave gets tighter — that is higher pitch. Drag the second and it gets taller — that is louder. Only the first one changes the note.</figcaption>
+            </figure>
+          </article>
+
+          <article class="lesson" id="lesson-notes">
+            <h2><span class="lesson-index">2</span><span data-i18n="theory.notes.title">The twelve notes</span></h2>
+            <p data-i18n="theory.notes.p1">Western music uses twelve notes. After the twelfth you are back where you started, one octave higher, and the names begin again. On a guitar each of those twelve steps is exactly one fret.</p>
+            <figure class="theory-figure">
+              <div class="note-ring" id="noteRing" role="group" data-i18n-attr='{"aria-label":"theory.notes.ringAria"}' aria-label="The twelve notes"></div>
+              <div class="figure-readout wide">
+                <span data-i18n="theory.notes.selectedLabel">Selected</span>
+                <strong id="ringSharp">C</strong>
+                <span class="equals">=</span>
+                <strong id="ringFlat">C</strong>
+                <span class="theory-note" id="ringExplain" data-i18n="theory.notes.natural">A natural note — it has only one name.</span>
+              </div>
+              <figcaption data-i18n="theory.notes.caption">Seven notes have plain letter names. The five in between have two names each, one sharp and one flat, and both mean the same fret.</figcaption>
+            </figure>
+            <p data-i18n-html="theory.notes.p2"><b>Enharmonic equivalents</b> are two names for one pitch: C♯ and D♭ are the same fret, played the same way, and which name is used depends on the key the music is written in. This site writes sharps, so you will see C♯ rather than D♭.</p>
+          </article>
+
+          <article class="lesson" id="lesson-pitch">
+            <h2><span class="lesson-index">3</span><span data-i18n="theory.pitch.title">Pitch</span></h2>
+            <p data-i18n-html="theory.pitch.p1">Pitch is how high or low a note sounds, and it comes straight from frequency: higher frequency, higher pitch. To name pitches everyone has to agree on one reference, and the common one is <b>A4 = 440 Hz</b> — the A above middle C. Every other note is worked out from it.</p>
+            <p data-i18n="theory.pitch.p2">Other references exist — some orchestras tune to 442 or 443 Hz, and older music is often played at 415 — but 440 is what a guitar tuner means unless it says otherwise. The tuner on this site measures against 440.</p>
+            <figure class="theory-figure">
+              <table class="theory-table" id="stringTable">
+                <caption data-i18n="theory.pitch.tableCaption">The six open strings in standard tuning</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" data-i18n="theory.pitch.colString">String</th>
+                    <th scope="col" data-i18n="theory.pitch.colNote">Note</th>
+                    <th scope="col" data-i18n="theory.pitch.colFrequency">Frequency</th>
+                    <th scope="col"><span class="visually-hidden" data-i18n="theory.listen">Listen</span></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+              <figcaption data-i18n="theory.pitch.caption">The thickest string is the lowest. Its frequency is the smallest number on the list, and every string above it shakes faster.</figcaption>
+            </figure>
+          </article>
+
+          <article class="lesson" id="lesson-octaves">
+            <h2><span class="lesson-index">4</span><span data-i18n="theory.octaves.title">Octaves</span></h2>
+            <p data-i18n="theory.octaves.p1">An octave is the same note higher or lower. Play an A, then play the next A up: it sounds like the same note, just further up — which is why both are called A.</p>
+            <p data-i18n-html="theory.octaves.p2">The reason is arithmetic. Going up an octave <b>doubles</b> the frequency; going down <b>halves</b> it. If A4 is 440 Hz then A5 is 880 Hz and A3 is 220 Hz. That doubling is what the ear recognises as "the same note", and it is written as a ratio of 2:1.</p>
+            <figure class="theory-figure">
+              <div class="octave-ladder" id="octaveLadder" role="group" data-i18n-attr='{"aria-label":"theory.octaves.ladderAria"}' aria-label="Octaves of A"></div>
+              <figcaption data-i18n="theory.octaves.caption">Each step up the ladder doubles the number. On the guitar that same step is twelve frets.</figcaption>
+            </figure>
+          </article>
+
+          <article class="lesson" id="lesson-accidentals">
+            <h2><span class="lesson-index">5</span><span data-i18n="theory.accidentals.title">Sharps and flats</span></h2>
+            <p data-i18n-html="theory.accidentals.p1">A <b>sharp</b> (♯) raises a note by one semitone — one fret up. A <b>flat</b> (♭) lowers it by one semitone — one fret down. So C♯ is one fret above C, and D♭ is one fret below D. Those are the same fret, which is why the note has two names.</p>
+            <p data-i18n-html="theory.accidentals.p2">But two pairs of letters are already only one semitone apart, with nothing between them: <b>E to F</b>, and <b>B to C</b>. There is no E♯ fret to find, because F is already there. This single fact is what makes the fretboard confusing until you know it — and obvious afterwards.</p>
+            <figure class="theory-figure">
+              <div class="keys-frame">
+                <div class="keys" id="keyboardStrip" role="group" data-i18n-attr='{"aria-label":"theory.accidentals.keysAria"}' aria-label="One octave of keys"></div>
+              </div>
+              <figcaption data-i18n="theory.accidentals.caption">The gaps are the point: everywhere a black key is missing, two letters sit one semitone apart. Press a key to hear it.</figcaption>
+            </figure>
+          </article>
+
+          <article class="lesson" id="lesson-steps">
+            <h2><span class="lesson-index">6</span><span data-i18n="theory.steps.title">Semitones and whole tones</span></h2>
+            <p data-i18n-html="theory.steps.p1">A <b>semitone</b> is the smallest step in this system: one fret. A <b>whole tone</b> is two semitones: two frets. Scales and chords are built by counting these steps, so it is worth being able to do it without thinking.</p>
+            <p data-i18n="theory.steps.p2">Walk up the low E string and you can see it. E to F is a semitone — one fret, because of the rule above. F to G is a whole tone — two frets, with F♯ in between.</p>
+            <figure class="theory-figure">
+              <div class="step-walk" id="stepWalk" role="group" data-i18n-attr='{"aria-label":"theory.steps.walkAria"}' aria-label="Walking up the low E string"></div>
+              <div class="figure-controls inline">
+                <button type="button" class="ghost-button" id="stepDown" data-i18n="theory.steps.back">◂ One fret back</button>
+                <span class="figure-readout compact"><strong id="stepNote">E2</strong><span id="stepGap" data-i18n="theory.steps.openString">open string</span></span>
+                <button type="button" class="ghost-button" id="stepUp" data-i18n="theory.steps.forward">One fret on ▸</button>
+              </div>
+              <figcaption data-i18n="theory.steps.caption">Step along the string and watch where the gaps fall. Between E and F, and between B and C, there is no fret in between.</figcaption>
+            </figure>
+          </article>
+
+        </div>
+
+        <nav class="stage-pager" data-i18n-attr='{"aria-label":"theory.pagerAria"}' aria-label="Stage navigation">
+          <span></span>
+          <button type="button" class="pager-button next" data-goto="fretboard"><span data-i18n="theory.next">Next</span><b data-i18n="theory.fretboard.eyebrowShort">Guitar Fretboard</b><i aria-hidden="true">→</i></button>
+        </nav>
+      </section>
+
+      <!-- ======================= 02 — The Guitar Fretboard ======================= -->
+      <section class="work card theory-stage" data-stage="fretboard" role="tabpanel" hidden data-i18n-attr='{"aria-label":"theory.fretboard.title"}' aria-label="02 — The Guitar Fretboard">
+        <div class="work-top">
+          <div>
+            <span class="eyebrow" data-i18n="theory.fretboard.eyebrow">02 — The Guitar Fretboard</span>
+            <h1 data-i18n="theory.fretboard.title">Notes on the neck</h1>
+            <p class="sub" data-i18n="theory.fretboard.subtitle">Learn how musical notes are mapped onto the guitar neck.</p>
+          </div>
+          <div class="work-header-actions">
+            <span class="pill" id="neckTuningBadge">E · A · D · G · B · E</span>
+            <button type="button" class="board-flip" id="neckFlip" aria-pressed="false"><i aria-hidden="true">⭯</i><span data-i18n="common.boardFlip">Rotate the neck</span></button>
+          </div>
+        </div>
+
+        <div class="theory-body">
+
+          <article class="lesson" id="lesson-tuning">
+            <h2><span class="lesson-index">1</span><span data-i18n="theory.tuning.title">Standard tuning</span></h2>
+            <p data-i18n-html="theory.tuning.p1">Strings are numbered from the thinnest down: string 1 is the thin E at the bottom of the neck as you look at it, string 6 is the thick E on top. In standard tuning, from thickest to thinnest, they are <b>E A D G B E</b>.</p>
+            <p data-i18n="theory.tuning.p2">The two E strings are two octaves apart — same letter, same name, very different pitch. Everywhere on this site the neck is drawn with string 6 at the bottom and string 1 at the top, the way it looks when the guitar is in your hands.</p>
+          </article>
+
+          <article class="lesson" id="lesson-frets">
+            <h2><span class="lesson-index">2</span><span data-i18n="theory.frets.title">Strings and frets</span></h2>
+            <p data-i18n="theory.frets.p1">Each fret shortens the string a little, which makes it shake faster. One fret up is one semitone up. Twelve frets up is twelve semitones — a whole octave, so the note repeats and the frequency has doubled.</p>
+            <p data-i18n="theory.frets.p2">The board below is the whole neck with every note named. Press any fret to hear it and read it off; the panel underneath tells you the note, where it is, and how fast it shakes.</p>
+
+            <div class="neck-lab">
+              <div class="neck-lab-controls">
+                <div class="control-group">
+                  <span class="control-label" data-i18n="theory.frets.stringLabel">Read one string</span>
+                  <div class="chip-row" id="stringPicker" role="radiogroup" data-i18n-attr='{"aria-label":"theory.frets.stringAria"}' aria-label="String to read"></div>
+                </div>
+                <div class="control-group">
+                  <span class="control-label" data-i18n="theory.frets.showLabel">Show</span>
+                  <div class="chip-row">
+                    <button type="button" class="toggle-chip" id="showOctaves" aria-pressed="false" data-i18n="theory.frets.showOctaves">Octaves of the chosen note</button>
+                    <button type="button" class="toggle-chip" id="showMarkers" aria-pressed="false" data-i18n="theory.frets.showMarkers">Fret markers</button>
+                  </div>
+                </div>
+              </div>
+              <div class="training-board-scroll"><div class="interval-board note-board" id="neckBoard" data-i18n-attr='{"aria-label":"theory.frets.boardAria"}' aria-label="Fretboard with every note named"></div></div>
+              <div class="neck-readout" id="neckReadout" aria-live="polite"></div>
+            </div>
+          </article>
+
+          <article class="lesson" id="lesson-halfsteps">
+            <h2><span class="lesson-index">3</span><span data-i18n="theory.halfsteps.title">Why E–F and B–C are different</span></h2>
+            <p data-i18n="theory.halfsteps.p1">Most neighbouring letters are a whole tone apart: C to D, D to E, F to G, G to A, A to B. Two frets, with a sharp in the middle.</p>
+            <p data-i18n-html="theory.halfsteps.p2">Two are not. <b>E to F</b> is one fret, and <b>B to C</b> is one fret. That is why the first fret of the low E string is F rather than E♯, and why the first fret of the B string is C. Once you expect those two, naming notes along a string stops being guesswork.</p>
+            <figure class="theory-figure">
+              <div class="gap-map" id="gapMap" role="group" data-i18n-attr='{"aria-label":"theory.halfsteps.mapAria"}' aria-label="Distance between neighbouring letters"></div>
+              <figcaption data-i18n="theory.halfsteps.caption">Seven letters, and the distance from each to the next. Only two of them are a single fret.</figcaption>
+            </figure>
+          </article>
+
+          <article class="lesson" id="lesson-finding">
+            <h2><span class="lesson-index">4</span><span data-i18n="theory.finding.title">Finding notes on the neck</span></h2>
+            <p data-i18n-html="theory.finding.p1">There is a method, and it is duller than it is difficult. Learn the six open strings — <b>E A D G B E</b>. Then walk up chromatically from whichever one you need, remembering that E–F and B–C have no fret between them.</p>
+            <p data-i18n="theory.finding.p2">On the A string that gives: open A, 1 = A♯, 2 = B, 3 = C (no gap after B), 4 = C♯, 5 = D. Use the string chooser in the board above to read one string at a time — that is how it actually sticks.</p>
+            <figure class="theory-figure">
+              <div class="run-strip" id="runStrip" role="group" data-i18n-attr='{"aria-label":"theory.finding.runAria"}' aria-label="Notes along the chosen string"></div>
+              <figcaption data-i18n="theory.finding.caption">The chosen string, fret by fret. Underlined steps are the single-fret ones.</figcaption>
+            </figure>
+          </article>
+
+          <article class="lesson" id="lesson-octshapes">
+            <h2><span class="lesson-index">5</span><span data-i18n="theory.octshapes.title">Octaves on the guitar</span></h2>
+            <p data-i18n="theory.octshapes.p1">The same note appears in several places on the neck. Twelve frets up the same string is the obvious one. The useful ones are the shapes across strings: two strings down and two frets up gives the octave on strings 6–4 and 5–3, and three frets up on strings 4–2 and 3–1, because of the way the B string is tuned.</p>
+            <p data-i18n-html="theory.octshapes.p2">Turn on <b>Octaves of the chosen note</b> in the board above and press a fret: every other place that same note lives is marked. Those positions are what lets you move a riff to another part of the neck.</p>
+            <button type="button" class="ghost-button" data-scroll-to="lesson-frets" data-i18n="theory.octshapes.goToBoard">Try it on the board ↑</button>
+          </article>
+
+          <article class="lesson" id="lesson-markers">
+            <h2><span class="lesson-index">6</span><span data-i18n="theory.markers.title">Fret markers</span></h2>
+            <p data-i18n-html="theory.markers.p1">The dots inlaid in the neck are there so your hand knows where it is without looking twice. They sit at frets <b>3, 5, 7, 9</b>, then a double marker at <b>12</b>, then 15, 17, 19, 21 and a double at 24 — the pattern repeats after the twelfth.</p>
+            <p data-i18n="theory.markers.p2">The double marker at 12 is the important one: the twelfth fret is the octave. Every string played there is the open string again, one octave higher, and the second half of the neck repeats the first.</p>
+            <button type="button" class="ghost-button" data-scroll-to="lesson-frets" data-i18n="theory.markers.goToBoard">Show the markers on the board ↑</button>
+          </article>
+
+        </div>
+
+        <nav class="stage-pager" data-i18n-attr='{"aria-label":"theory.pagerAria"}' aria-label="Stage navigation">
+          <button type="button" class="pager-button prev" data-goto="basics"><i aria-hidden="true">←</i><span data-i18n="theory.previous">Back</span><b data-i18n="theory.basics.eyebrowShort">Basics</b></button>
+          <button type="button" class="pager-button next" data-goto="intervals"><span data-i18n="theory.next">Next</span><b data-i18n="theory.intervals.eyebrowShort">Intervals</b><i aria-hidden="true">→</i></button>
+        </nav>
+      </section>
+
+      <!-- =========================== 03 — Intervals =========================== -->
+      <section class="work card theory-stage" data-stage="intervals" role="tabpanel" hidden data-i18n-attr='{"aria-label":"theory.intervals.title"}' aria-label="03 — Intervals">
+        <div class="work-top">
+          <div>
+            <span class="eyebrow" data-i18n="theory.intervals.eyebrow">03 — Intervals</span>
+            <h1 data-i18n="theory.intervals.title">The distance between notes</h1>
+            <p class="sub" data-i18n="theory.intervals.subtitle">Intervals are the distance between two notes. They are the foundation of scales, chords and melodies.</p>
+          </div>
+          <div class="work-header-actions">
+            <span class="pill" id="intervalBadge">Perfect 5th</span>
+            <button type="button" class="board-flip" id="intervalFlip" aria-pressed="false"><i aria-hidden="true">⭯</i><span data-i18n="common.boardFlip">Rotate the neck</span></button>
+          </div>
+        </div>
+
+        <div class="theory-body">
+
+          <article class="lesson" id="lesson-whatis">
+            <h2><span class="lesson-index">1</span><span data-i18n="theory.whatis.title">What is an interval?</span></h2>
+            <p data-i18n="theory.whatis.p1">An interval is the distance between two pitches — nothing more. Because one fret is one semitone, on a guitar that musical distance is also a physical one you can see and count.</p>
+            <p data-i18n="theory.whatis.p2">Play the open A string and the note four frets up on the same string. That distance is four semitones, which is a major third, and it will be a major third wherever on the neck you play it. Intervals are the reason a shape you learn in one place works in every other.</p>
+          </article>
+
+          <article class="lesson" id="lesson-names">
+            <h2><span class="lesson-index">2</span><span data-i18n="theory.names.title">The thirteen names</span></h2>
+            <p data-i18n="theory.names.p1">Counting from a note to itself up to the octave gives thirteen intervals. Each has a name, a short code you will see on charts, and a fixed number of semitones. Press any row to hear it played from the open A string.</p>
+            <figure class="theory-figure">
+              <table class="theory-table interval-table" id="intervalTable">
+                <caption data-i18n="theory.names.tableCaption">Every interval inside one octave</caption>
+                <thead>
+                  <tr>
+                    <th scope="col" data-i18n="theory.names.colName">Interval</th>
+                    <th scope="col" data-i18n="theory.names.colShort">Short</th>
+                    <th scope="col" data-i18n="theory.names.colSemitones">Semitones</th>
+                    <th scope="col" data-i18n="theory.names.colExample">From A</th>
+                    <th scope="col"><span class="visually-hidden" data-i18n="theory.listen">Listen</span></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </figure>
+          </article>
+
+          <article class="lesson" id="lesson-formulas">
+            <h2><span class="lesson-index">3</span><span data-i18n="theory.formulas.title">Interval formulas</span></h2>
+            <p data-i18n="theory.formulas.p1">Written as a number of semitones, the whole set becomes a ruler you can count along the neck: 1 is a minor 2nd, 2 a major 2nd, 3 a minor 3rd, 4 a major 3rd, and so on to 12, the octave.</p>
+            <figure class="theory-figure">
+              <div class="ruler" id="intervalRuler" role="group" data-i18n-attr='{"aria-label":"theory.formulas.rulerAria"}' aria-label="Semitone ruler"></div>
+              <figcaption data-i18n="theory.formulas.caption">Twelve frets, twelve steps. Press a step to select that interval below.</figcaption>
+            </figure>
+          </article>
+
+          <article class="lesson" id="lesson-onneck">
+            <h2><span class="lesson-index">4</span><span data-i18n="theory.onneck.title">Intervals on the neck</span></h2>
+            <p data-i18n="theory.onneck.p1">Pick a note on the board, pick an interval, and every place that interval lands is marked — above and below. This is the same map the Lessons page draws, put here so the theory and the neck stay in one view.</p>
+
+            <div class="neck-lab">
+              <div class="interval-rail" id="theoryIntervalRail" role="radiogroup" data-i18n-attr='{"aria-label":"training.learn.intervalSelectAria"}' aria-label="Interval"></div>
+              <div class="training-board-scroll"><div class="interval-board" id="intervalBoard" data-i18n-attr='{"aria-label":"theory.onneck.boardAria"}' aria-label="Interval positions on the neck"></div></div>
+              <div class="interval-explainer" id="intervalExplainer" aria-live="polite"></div>
+              <div class="board-legend">
+                <span><i class="legend-anchor">1</i> <span data-i18n="training.board.anchorLegend">anchor note</span></span>
+                <span><i class="legend-target">m3</i> <span data-i18n="training.board.targetLegend">matching positions</span></span>
+                <span data-i18n="training.board.hint">Click another note to rebuild the map</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="lesson" id="lesson-character">
+            <h2><span class="lesson-index">5</span><span data-i18n="theory.character.title">How they sound</span></h2>
+            <p data-i18n="theory.character.p1">Intervals have a character, and it is worth having words for it. Treat what follows as a first impression, not a rule: context changes everything. A tritone is harsh on its own and completely ordinary inside a dominant seventh chord.</p>
+            <figure class="theory-figure">
+              <ul class="character-list" id="characterList"></ul>
+            </figure>
+          </article>
+
+          <article class="lesson" id="lesson-ear">
+            <h2><span class="lesson-index">6</span><span data-i18n="theory.ear.title">Train your ear</span></h2>
+            <p data-i18n="theory.ear.p1">Naming an interval by sight is one skill; hearing it is another. Play the pair below and pick what you heard. Nothing is timed, and you can listen as many times as you like.</p>
+            <div class="ear-trainer" id="earTrainer">
+              <div class="ear-head">
+                <button type="button" class="listen-button" id="earPlay"><span aria-hidden="true">▶</span><span data-i18n="theory.ear.play">Play the interval</span></button>
+                <span class="ear-score" aria-live="polite"><span data-i18n="theory.ear.correct">Correct</span> <strong id="earCorrect">0</strong> · <span data-i18n="theory.ear.wrong">Wrong</span> <strong id="earWrong">0</strong></span>
+              </div>
+              <div class="answer-grid" id="earAnswers" data-i18n-attr='{"aria-label":"training.quiz.answerGridAria"}' aria-label="Answer choices"></div>
+              <p class="quiz-feedback" id="earFeedback" aria-live="assertive" data-i18n="theory.ear.hint">Press play, then choose what you heard.</p>
+            </div>
+          </article>
+
+        </div>
+
+        <nav class="stage-pager" data-i18n-attr='{"aria-label":"theory.pagerAria"}' aria-label="Stage navigation">
+          <button type="button" class="pager-button prev" data-goto="fretboard"><i aria-hidden="true">←</i><span data-i18n="theory.previous">Back</span><b data-i18n="theory.fretboard.eyebrowShort">Guitar Fretboard</b></button>
+          <a class="pager-button next" href="training-learn.html"><span data-i18n="theory.keepGoing">Keep going</span><b data-i18n="nav.learnLink">Lessons</b><i aria-hidden="true">→</i></a>
+        </nav>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="locale-dock" id="localeDock" role="group" data-i18n-attr='{"aria-label":"common.localeDockLabel"}' aria-label="Interface language">
+    <button type="button" class="locale-dot" data-locale-option="ru" data-i18n="common.localeName.ru" data-i18n-attr='{"aria-label":"common.localeAria.ru"}' aria-label="Russian">RU</button>
+    <button type="button" class="locale-dot" data-locale-option="en" data-i18n="common.localeName.en" data-i18n-attr='{"aria-label":"common.localeAria.en"}' aria-label="English">EN</button>
+  </div>
+  <div class="theme-dock" id="themeDock" role="group" data-i18n-attr='{"aria-label":"common.themeDockLabel"}' aria-label="Color theme">
+    <span class="theme-dock-icon" aria-hidden="true">✦</span>
+    <button type="button" class="theme-dot midnight" data-theme-option="midnight" data-label="Midnight" data-i18n-attr='{"aria-label":"common.themeLabel.midnight"}' aria-label="Midnight theme" style="--swatch-a:#0b1015;--swatch-b:#72dfcf"></button>
+    <button type="button" class="theme-dot sunset" data-theme-option="sunset" data-label="Sunset" data-i18n-attr='{"aria-label":"common.themeLabel.sunset"}' aria-label="Sunset theme" style="--swatch-a:#6f1d3d;--swatch-b:#ff9b45"></button>
+    <button type="button" class="theme-dot forest" data-theme-option="forest" data-label="Forest" data-i18n-attr='{"aria-label":"common.themeLabel.forest"}' aria-label="Forest theme" style="--swatch-a:#0d2f22;--swatch-b:#7ddd9c"></button>
+    <button type="button" class="theme-dot ultraviolet" data-theme-option="ultraviolet" data-label="Ultraviolet" data-i18n-attr='{"aria-label":"common.themeLabel.ultraviolet"}' aria-label="Ultraviolet theme" style="--swatch-a:#29124f;--swatch-b:#f06dff"></button>
+    <button type="button" class="theme-dot ocean" data-theme-option="ocean" data-label="Deep Ocean" data-i18n-attr='{"aria-label":"common.themeLabel.ocean"}' aria-label="Deep Ocean theme" style="--swatch-a:#061d3b;--swatch-b:#42bfff"></button>
+    <button type="button" class="theme-dot porcelain" data-theme-option="porcelain" data-label="Porcelain" data-i18n-attr='{"aria-label":"common.themeLabel.porcelain"}' aria-label="Porcelain theme" style="--swatch-a:#f2eadf;--swatch-b:#d86e3d"></button>
+  </div>
+
+  <div class="training-toast" id="trainingToast" role="status"></div>
+  <script type="module" src="js/pages/theory/main.js"></script>
+</body>
+</html>
