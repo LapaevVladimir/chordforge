@@ -286,21 +286,26 @@
 .math-legend { display: flex; flex-wrap: wrap; gap: 4px 18px; color: var(--muted); font-size: 0.7rem; }
 
 /* The arrows themselves live on the board, drawn over the real neck. The board is
-   the positioning context so the overlay scrolls — and turns — with it. */
+   the positioning context so the overlay scrolls — and turns — with it, and it
+   sits above the note markers so an arrowhead is never swallowed by one. */
 #shapeBoard { position: relative; }
-.shape-overlay { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
-.shape-halo { stroke: rgba(8, 6, 4, 0.9); stroke-width: 8; stroke-linecap: round; fill: none; }
-.shape-arrow { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; fill: none; }
+.shape-overlay { position: absolute; z-index: 3; top: 0; left: 0; overflow: visible; pointer-events: none; }
+/* Butt caps, not round: a round cap on a 3px line pokes out past the point of
+   the head it is supposed to stop behind. */
+.shape-halo { stroke: rgba(8, 6, 4, 0.92); stroke-width: 9; stroke-linecap: butt; fill: none; }
+.shape-arrow { stroke: var(--accent); stroke-width: 3; stroke-linecap: butt; fill: none; }
 .shape-arrow.odd { stroke: var(--accent-2); }
-.shape-overlay marker path { fill: var(--accent); }
-.shape-overlay marker.odd path { fill: var(--accent-2); }
-.shape-tag rect { fill: rgba(10, 8, 6, 0.9); stroke: var(--accent); stroke-width: 1.5; }
+.shape-head { fill: var(--accent); stroke: rgba(8, 6, 4, 0.92); stroke-width: 4; paint-order: stroke; }
+.shape-head.odd { fill: var(--accent-2); }
+.shape-tag rect { fill: rgba(10, 8, 6, 0.92); stroke: var(--accent); stroke-width: 1.5; }
 .shape-tag text { fill: var(--accent); font-size: 13px; font-weight: 900; }
 .shape-tag.odd rect { stroke: var(--accent-2); }
 .shape-tag.odd text { fill: var(--accent-2); }
 /* Stood upright, the board is a rotated box — so each tag is turned back to
    upright on its own, the way the fret numbers and string labels already are. */
 body.board-vertical .shape-overlay .shape-tag { transform: rotate(-90deg); transform-box: fill-box; transform-origin: center; }
+
+.math-waiting { color: var(--muted); font-size: 0.82rem; }
 
 /* ------------------------------------------------------------------ the pager */
 

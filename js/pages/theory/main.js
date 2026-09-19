@@ -53,7 +53,9 @@ const state = {
   showMarkers: false,
   intervalId: 'M3',
   shapeId: 'octave-two-two',
-  shapeRoot: { stringIndex: 0, fret: 5, midi: OPEN_MIDIS[0] + 5 },
+  // The two notes the shapes stage measures between. `second` is null while the
+  // reader is halfway through choosing them.
+  pair: { first: { stringIndex: 0, fret: 5, midi: OPEN_MIDIS[0] + 5 }, second: null },
   ear: { current: null, correct: 0, wrong: 0, locked: false },
 };
 
@@ -530,7 +532,6 @@ function renderIntervalStage() {
 
 function renderShapeStage() {
   renderStringSteps();
-  settleShapeRoot();
   renderShapePicker();
   renderShapeSum();
   renderShapeBoard();
@@ -612,20 +613,74 @@ function shapePartner(shape, cell) {
   return partner.midi - cell.midi === getInterval(shape.interval).semitones ? partner : null;
 }
 
-// Choosing a shape that does not exist where the reader last tapped would answer
-// with an empty neck, so the first note slides to a string where the shape lives.
-function settleShapeRoot() {
-  const shape = shapeById(state.shapeId);
-  if (shapePartner(shape, state.shapeRoot)) return;
+// Picking a shape sets the pair. If it does not exist from where the reader last
+// tapped, the first note slides to a string where it does.
+function applyShape(id) {
+  const shape = shapeById(id);
   const strings = shapeStrings(shape);
   if (!strings.length) return;
-  const fret = Math.max(Math.max(0, -shape.fretDelta), Math.min(state.shapeRoot.fret, MAX_FRET - Math.max(0, shape.fretDelta)));
-  const stringIndex = strings.includes(state.shapeRoot.stringIndex) ? state.shapeRoot.stringIndex : strings[0];
-  state.shapeRoot = cellAt(stringIndex, fret);
+  let first = state.pair.first;
+  if (!shapePartner(shape, first)) {
+    const fret = Math.max(Math.max(0, -shape.fretDelta), Math.min(first.fret, MAX_FRET - Math.max(0, shape.fretDelta)));
+    const stringIndex = strings.includes(first.stringIndex) ? first.stringIndex : strings[0];
+    first = cellAt(stringIndex, fret);
+  }
+  state.pair = { first, second: shapePartner(shape, first) };
+  state.shapeId = shape.id;
+}
+
+// …and any pair the reader picks by hand is looked up in the same list, so two
+// notes chosen at random can answer "is this one of the shapes?" as well.
+function matchShapeId({ first, second }) {
+  if (!second) return null;
+  const match = NECK_SHAPES.find((shape) => shape.stringDelta === second.stringIndex - first.stringIndex
+    && shape.fretDelta === second.fret - first.fret);
+  return match ? match.id : null;
+}
+
+// The distance between two notes, split the way the neck splits it: what each
+// string crossing is worth, plus the frets slid. Signed throughout, so the sum
+// still holds when the second note is the lower of the two.
+function measurePair(first, second) {
+  const direction = Math.sign(second.stringIndex - first.stringIndex);
+  const steps = [];
+  for (let stringIndex = first.stringIndex; stringIndex !== second.stringIndex; stringIndex += direction) {
+    steps.push(OPEN_MIDIS[stringIndex + direction] - OPEN_MIDIS[stringIndex]);
+  }
+  const stringPart = steps.reduce((sum, step) => sum + step, 0);
+  const fretPart = second.fret - first.fret;
+  return { steps, direction, stringPart, fretPart, total: stringPart + fretPart };
 }
 
 // A minus sign, not a hyphen: these are read as arithmetic.
 const signed = (value) => (value === 0 ? '' : `${value > 0 ? '+' : '−'}${Math.abs(value)}`);
+
+const intervalOf = (semitones) => INTERVALS.find((interval) => interval.semitones === semitones);
+
+// Inside an octave an interval has a name; beyond one it is an octave (or several)
+// plus the rest, which is how players count it too.
+function distanceName(total) {
+  const abs = Math.abs(total);
+  const octaves = Math.floor(abs / 12);
+  const rest = abs % 12;
+  let name;
+  if (abs <= 12) name = intervalName(intervalOf(abs).id);
+  else if (rest === 0) name = t('theory.shapes.math.octavesOnly', { n: octaves, octaves: pluralize('interval.unit.octave', octaves) });
+  else {
+    // Embedded after a plus sign, so it is no longer the start of a phrase.
+    const rested = intervalName(intervalOf(rest).id);
+    const lower = rested.charAt(0).toLowerCase() + rested.slice(1);
+    name = octaves === 1
+      ? t('theory.shapes.math.compoundOne', { name: lower })
+      : t('theory.shapes.math.compound', { n: octaves, octaves: pluralize('interval.unit.octave', octaves), name: lower });
+  }
+  return total < 0 ? t('theory.shapes.math.down', { name }) : name;
+}
+
+function distanceMark(total) {
+  const abs = Math.abs(total);
+  return abs <= 12 ? intervalShort(intervalOf(abs).id) : String(abs);
+}
 
 function renderShapePicker() {
   $('shapePicker').innerHTML = SHAPE_GROUPS.map((group) => {
@@ -643,32 +698,29 @@ function renderShapePicker() {
   }).join('');
 }
 
-// The sum the shape adds up to. Drawn from a string the shape actually exists on,
-// which is not necessarily the one the reader last tapped: the board is allowed
-// to show the shape failing to fit, but a sum that did not add up to its own
-// interval would be teaching the wrong thing.
+// The sum, worked out from the two notes actually on the board.
 function renderShapeSum() {
-  const shape = shapeById(state.shapeId);
-  const valid = shapeStrings(shape);
-  if (!valid.length) return;
-  const fromString = valid.includes(state.shapeRoot.stringIndex) ? state.shapeRoot.stringIndex : valid[0];
-  const steps = stringStepsFrom(fromString, shape.stringDelta);
-  const stringPart = steps.reduce((sum, step) => sum + step, 0);
-  const total = stringPart + shape.fretDelta;
-  const sum = [...steps.map((step) => `+${step}`), signed(shape.fretDelta)].filter(Boolean).join(' ');
+  const { first, second } = state.pair;
+  if (!second) {
+    $('shapeMath').innerHTML = `<div class="math-waiting">${t('theory.shapes.math.pickSecond', { note: midiLabel(first.midi) })}</div>`;
+    $('shapeBadge').textContent = midiLabel(first.midi);
+    return;
+  }
+  const { steps, stringPart, fretPart, total } = measurePair(first, second);
+  const sum = [...steps.map(signed), signed(fretPart)].filter(Boolean).join(' ') || '0';
 
   $('shapeMath').innerHTML = `
     <div class="math-sum">
       <span class="math-terms">${sum}</span>
       <i aria-hidden="true">=</i>
-      <span class="math-total">${t('theory.shapes.math.semitones', { n: total, semitones: pluralize('interval.unit.semitone', total) })}</span>
-      <span class="math-name">${intervalName(shape.interval)}</span>
+      <span class="math-total">${t('theory.shapes.math.semitones', { n: total < 0 ? `−${Math.abs(total)}` : String(total), semitones: pluralize('interval.unit.semitone', Math.abs(total)) })}</span>
+      <span class="math-name">${distanceName(total)}</span>
     </div>
     <div class="math-legend">
-      ${shape.stringDelta ? `<span>${t('theory.shapes.math.stringsLabel', { n: signed(stringPart) })}</span>` : ''}
-      ${shape.fretDelta ? `<span>${t('theory.shapes.math.fretsLabel', { n: signed(shape.fretDelta) })}</span>` : ''}
+      ${steps.length ? `<span>${t('theory.shapes.math.stringsLabel', { n: signed(stringPart) || '0' })}</span>` : ''}
+      ${fretPart ? `<span>${t('theory.shapes.math.fretsLabel', { n: signed(fretPart) })}</span>` : ''}
     </div>`;
-  $('shapeBadge').textContent = `${intervalShort(shape.interval)} · ${total}`;
+  $('shapeBadge').textContent = `${distanceMark(total)} · ${Math.abs(total)}`;
 }
 
 // Where a cell sits inside the board. offsetLeft/offsetTop are layout values, so
@@ -687,13 +739,6 @@ function offsetWithin(board, element) {
   return { x: x + element.offsetWidth / 2, y: y + element.offsetHeight / 2 };
 }
 
-// An arrow drawn along a string is the same shape as the string, so each one gets
-// a dark halo behind it to lift it off the wood.
-function shapeLine(x1, y1, x2, y2, odd) {
-  return `<line class="shape-halo" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />
-    <line class="shape-arrow${odd ? ' odd' : ''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" marker-end="url(#${odd ? 'shapeHeadOdd' : 'shapeHead'})" />`;
-}
-
 function shapeTag(x, y, text, odd) {
   const width = 16 + String(text).length * 9;
   return `<g class="shape-tag${odd ? ' odd' : ''}">
@@ -702,39 +747,61 @@ function shapeTag(x, y, text, odd) {
   </g>`;
 }
 
-// The arithmetic, drawn on the neck the reader is actually looking at: one arrow
-// per string crossed carrying what that crossing costs, one for the fret slide.
-function drawShapeOverlay(board, shape, root, partner) {
-  const cellAt2 = (stringIndex, fret) => board.querySelector(`[data-learn-cell="${stringIndex}:${fret}"]`);
-  const anchorEl = cellAt2(root.stringIndex, root.fret);
-  if (!anchorEl || !board.offsetWidth) return;
-  const steps = stringStepsFrom(root.stringIndex, shape.stringDelta);
-  const startX = offsetWithin(board, anchorEl).x;
+// An arrow, drawn as a line that stops where its head begins and a head that is
+// its own triangle: a marker plus a round cap left a stub poking out past the
+// point. Both carry a dark outline so they read over a wound string.
+const HEAD_LENGTH = 13;
+const HEAD_HALF = 6.5;
+
+function shapeArrow(x1, y1, x2, y2, odd) {
+  const length = Math.hypot(x2 - x1, y2 - y1);
+  if (length < HEAD_LENGTH + 2) return '';
+  const ux = (x2 - x1) / length;
+  const uy = (y2 - y1) / length;
+  const baseX = x2 - ux * HEAD_LENGTH;
+  const baseY = y2 - uy * HEAD_LENGTH;
+  const head = `M${x2},${y2} L${baseX - uy * HEAD_HALF},${baseY + ux * HEAD_HALF} L${baseX + uy * HEAD_HALF},${baseY - ux * HEAD_HALF} Z`;
+  const cls = odd ? ' odd' : '';
+  return `<line class="shape-halo" x1="${x1}" y1="${y1}" x2="${baseX}" y2="${baseY}" />
+    <line class="shape-arrow${cls}" x1="${x1}" y1="${y1}" x2="${baseX}" y2="${baseY}" />
+    <path class="shape-head${cls}" d="${head}" />`;
+}
+
+// How far off a string an arrow running along it sits. On the string it is the
+// same line as the string and disappears into it.
+const LANE = 22;
+const SLIDE_LIFT = 17;
+
+// The arithmetic drawn on the neck the reader is looking at: one arrow per string
+// crossed carrying what that crossing costs, one for the fret slide.
+function drawShapeOverlay(board, first, second) {
+  const cellElement = (cell) => board.querySelector(`[data-learn-cell="${cell.stringIndex}:${cell.fret}"]`);
+  const anchorElement = cellElement(first);
+  if (!anchorElement || !board.offsetWidth) return;
+  const { steps, direction, fretPart } = measurePair(first, second);
+  const startX = offsetWithin(board, anchorElement).x;
   const parts = [];
 
-  for (let step = 0; step < shape.stringDelta; step += 1) {
-    const from = cellAt2(root.stringIndex + step, root.fret);
-    const to = cellAt2(root.stringIndex + step + 1, root.fret);
+  for (let step = 0; step < steps.length; step += 1) {
+    const from = cellElement({ stringIndex: first.stringIndex + step * direction, fret: first.fret });
+    const to = cellElement({ stringIndex: first.stringIndex + (step + 1) * direction, fret: first.fret });
     if (!from || !to) return;
     const fromY = offsetWithin(board, from).y;
     const toY = offsetWithin(board, to).y;
-    const plain = steps[step] === 5;
-    // Beside the notes rather than through them: a note marker is 34px across and
-    // the strings are 58px apart, so an arrow drawn down the middle of the column
-    // would be a stub between two circles.
-    const laneX = startX + 22;
-    parts.push(shapeLine(laneX, fromY - 2, laneX, toY + 12, !plain));
-    parts.push(shapeTag(startX - 14, (fromY + toY) / 2, `+${steps[step]}`, !plain));
+    const plain = Math.abs(steps[step]) === 5;
+    const lean = Math.sign(toY - fromY);
+    parts.push(shapeArrow(startX + LANE, fromY + lean * 4, startX + LANE, toY - lean * 6, !plain));
+    parts.push(shapeTag(startX - 14, (fromY + toY) / 2, signed(steps[step]), !plain));
   }
 
-  if (shape.fretDelta !== 0) {
-    const partnerEl = cellAt2(partner.stringIndex, partner.fret);
-    if (!partnerEl) return;
-    const rowY = offsetWithin(board, partnerEl).y;
-    const endX = offsetWithin(board, partnerEl).x;
-    const back = shape.fretDelta > 0 ? -22 : 22;
-    parts.push(shapeLine(startX + (shape.fretDelta > 0 ? 20 : -20), rowY, endX + back, rowY, false));
-    parts.push(shapeTag((startX + endX) / 2, rowY - 30, signed(shape.fretDelta), false));
+  if (fretPart !== 0) {
+    const partnerElement = cellElement(second);
+    if (!partnerElement) return;
+    const { x: endX, y: rowY } = offsetWithin(board, partnerElement);
+    // Lifted clear of the string, which otherwise swallows a line drawn along it.
+    const lineY = rowY - SLIDE_LIFT;
+    parts.push(shapeArrow(startX, lineY, endX, lineY, false));
+    parts.push(shapeTag((startX + endX) / 2, lineY - 22, signed(fretPart), false));
   }
 
   const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -743,22 +810,19 @@ function drawShapeOverlay(board, shape, root, partner) {
   overlay.setAttribute('height', board.offsetHeight);
   overlay.setAttribute('viewBox', `0 0 ${board.offsetWidth} ${board.offsetHeight}`);
   overlay.setAttribute('aria-hidden', 'true');
-  overlay.innerHTML = `<defs>
-      <marker id="shapeHead" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 Z" /></marker>
-      <marker id="shapeHeadOdd" class="odd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" refX="10" refY="5.5" orient="auto"><path d="M0,0 L11,5.5 L0,11 Z" /></marker>
-    </defs>${parts.join('')}`;
+  overlay.innerHTML = parts.join('');
   board.appendChild(overlay);
 }
 
 // Both ends of a shape are the point of looking at it, and the neck is wider than
-// the frame — so a shape that lands off the right edge is scrolled into view.
-// Only sideways, and only while the neck is lying down: stood upright it is a
-// rotated box, and its scroller no longer means what this arithmetic assumes.
-function revealShape(board, root, partner) {
+// the frame — so a pair that lands off the right edge is scrolled into view. Only
+// sideways, and only while the neck is lying down: stood upright it is a rotated
+// box, and its scroller no longer means what this arithmetic assumes.
+function revealShape(board, first, second) {
   const scroller = board.closest('.training-board-scroll');
   if (!scroller || document.body.classList.contains('board-vertical')) return;
   if (scroller.scrollWidth <= scroller.clientWidth) return;
-  const xs = [root, partner]
+  const xs = [first, second]
     .map((cell) => board.querySelector(`[data-learn-cell="${cell.stringIndex}:${cell.fret}"]`))
     .filter(Boolean)
     .map((element) => offsetWithin(board, element).x);
@@ -771,28 +835,34 @@ function revealShape(board, root, partner) {
 }
 
 function renderShapeBoard() {
-  const shape = shapeById(state.shapeId);
-  const partner = shapePartner(shape, state.shapeRoot);
+  const { first, second } = state.pair;
   const board = $('shapeBoard');
+  const total = second ? measurePair(first, second).total : 0;
   renderBoard(board, {
-    anchor: state.shapeRoot,
-    targets: partner ? [partner] : [],
+    anchor: first,
+    targets: second ? [second] : [],
     interactive: true,
-    targetMarker: intervalShort(shape.interval),
+    targetMarker: second ? distanceMark(total) : '',
   });
-  if (partner) {
-    drawShapeOverlay(board, shape, state.shapeRoot, partner);
-    revealShape(board, state.shapeRoot, partner);
+  if (second) {
+    drawShapeOverlay(board, first, second);
+    revealShape(board, first, second);
   }
-  $('shapeReadout').innerHTML = partner
-    ? `<span class="readout-note">${midiLabel(state.shapeRoot.midi)} → ${midiLabel(partner.midi)}</span>
-       <span class="readout-facts">
-         <span>${intervalName(shape.interval)}</span>
-         <span>${shapeWhere(shape)}</span>
-       </span>
-       <button type="button" class="ghost-button" data-play-pair="${state.shapeRoot.midi}:${partner.midi}"
-         aria-label="${t('theory.playIntervalAria', { name: intervalName(shape.interval) })}">${t('theory.listen')}</button>`
-    : `<span class="readout-facts"><span>${t('theory.shapes.notHere', { where: shapeWhere(shape) })}</span></span>`;
+
+  if (!second) {
+    $('shapeReadout').innerHTML = `<span class="readout-note">${midiLabel(first.midi)}</span>
+      <span class="readout-facts"><span>${t('theory.shapes.math.pickSecondShort')}</span></span>`;
+    return;
+  }
+  const shape = state.shapeId ? shapeById(state.shapeId) : null;
+  $('shapeReadout').innerHTML = `
+    <span class="readout-note">${midiLabel(first.midi)} → ${midiLabel(second.midi)}</span>
+    <span class="readout-facts">
+      <span>${distanceName(total)}</span>
+      <span>${shape ? shapeWhere(shape) : t('theory.shapes.noShape')}</span>
+    </span>
+    <button type="button" class="ghost-button" data-play-pair="${first.midi}:${second.midi}"
+      aria-label="${t('theory.playIntervalAria', { name: distanceName(total) })}">${t('theory.listen')}</button>`;
 }
 
 /* ------------------------------------------------------ 03.6  ear training */
@@ -1001,20 +1071,29 @@ function bindEvents() {
   $('shapePicker').addEventListener('click', (event) => {
     const button = event.target.closest('[data-shape]');
     if (!button) return;
-    state.shapeId = shapeById(button.dataset.shape).id;
-    settleShapeRoot();
+    applyShape(button.dataset.shape);
     renderShapePicker();
     renderShapeSum();
     renderShapeBoard();
   });
+  // Two taps make a measurement: the first note, then the second. A third starts
+  // again, so the board never needs a reset button.
   $('shapeBoard').addEventListener('click', (event) => {
     const button = event.target.closest('[data-learn-cell]');
     if (!button) return;
     const [stringIndex, fret] = button.dataset.learnCell.split(':').map(Number);
-    state.shapeRoot = cellAt(stringIndex, fret);
+    const cell = cellAt(stringIndex, fret);
+    if (!state.pair.second) {
+      if (cellKey(cell) === cellKey(state.pair.first)) return;
+      state.pair = { first: state.pair.first, second: cell };
+    } else {
+      state.pair = { first: cell, second: null };
+    }
+    state.shapeId = matchShapeId(state.pair);
+    renderShapePicker();
     renderShapeSum();
     renderShapeBoard();
-    void playMidi(state.shapeRoot.midi);
+    void playMidi(cell.midi);
   });
 
   $('earPlay').addEventListener('click', (event) => { void playEarQuestion(event.currentTarget); });
@@ -1052,6 +1131,7 @@ function initialize() {
   initOrientation();
   syncLocaleDock();
   applyTheme(localStorage.getItem(THEME_KEY), 'midnight');
+  applyShape(state.shapeId);
   renderAll();
   newEarQuestion();
   bindEvents();
