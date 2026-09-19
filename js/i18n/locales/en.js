@@ -411,7 +411,7 @@ export default {
       micOn: 'Turn the microphone on',
       micOff: 'Turn the microphone off',
       micIdle: 'Microphone is off',
-      micWaiting: 'Listening — play the second note',
+      micWaiting: 'Listening for your note',
       micHearing: 'Hearing the guitar',
       givenNote: 'Given',
       yourNote: 'Your note',

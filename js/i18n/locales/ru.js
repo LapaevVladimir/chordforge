@@ -411,7 +411,7 @@ export default {
       micOn: 'Включить микрофон',
       micOff: 'Выключить микрофон',
       micIdle: 'Микрофон выключен',
-      micWaiting: 'Слушаю — сыграйте вторую ноту',
+      micWaiting: 'Слушаю вашу ноту',
       micHearing: 'Слышу гитару',
       givenNote: 'Дана',
       yourNote: 'Ваша нота',

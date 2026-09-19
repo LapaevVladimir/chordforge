@@ -165,11 +165,16 @@ button.interval-cell { cursor: pointer; }
 /* Quiz: "play it back" mode */
 .play-question[hidden] { display: none; }
 .play-question { display: grid; justify-items: center; gap: 15px; margin: 4px auto 0; }
-.play-mic { display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 10px 14px; }
-.play-mic-button { display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; color: var(--text); border: 1px solid var(--line-strong); border-radius: 99px; background: var(--panel-3); font-size: 0.8rem; font-weight: 760; cursor: pointer; transition: 0.16s ease; }
+/* Fixed columns, not a centred flex row. Both the button's label and the status
+   beside it change while you play — on/off, waiting, hearing — and a centred row
+   re-centres on every one of them, so the whole strip slid left and right under
+   the reader's eyes. The columns now hold their width and only the words inside
+   them change. */
+.play-mic { display: grid; grid-template-columns: 13.5rem minmax(0, 1fr) auto auto; align-items: center; gap: 10px 14px; width: min(100%, 41rem); }
+.play-mic-button { display: inline-flex; width: 100%; align-items: center; justify-content: center; gap: 8px; padding: 9px 15px; color: var(--text); border: 1px solid var(--line-strong); border-radius: 99px; background: var(--panel-3); font-size: 0.8rem; font-weight: 760; cursor: pointer; transition: 0.16s ease; }
 .play-mic-button:hover { border-color: rgba(var(--accent-rgb), 0.55); }
 .play-mic-button.listening { color: var(--clip-text); border-color: transparent; background: var(--accent); }
-.play-mic-status { color: var(--muted); font-size: 0.76rem; }
+.play-mic-status { min-width: 0; min-height: 2.2em; display: flex; align-items: center; color: var(--muted); font-size: 0.76rem; line-height: 1.35; }
 /* The note under the microphone is what the tuner hears right now — it is the
    fastest way to tell that the mic is picking the guitar up at all. */
 .play-live-note { min-width: 52px; padding: 4px 9px; text-align: center; color: var(--accent-2); border: 1px solid var(--line); border-radius: 8px; background: var(--panel-3); font-size: 0.82rem; font-weight: 850; }
@@ -234,7 +239,10 @@ button.interval-cell { cursor: pointer; }
 .answer-grid button.correct { color: var(--clip-text); border-color: var(--accent); background: var(--accent); }
 .answer-grid button.wrong span,
 .answer-grid button.correct span { color: inherit; }
-.quiz-feedback { min-height: 23px; margin: 10px 0 0; color: var(--muted); font-size: 0.78rem; text-align: center; }
+.quiz-feedback { min-height: 23px; margin: 10px 0 0; color: var(--muted); font-size: 0.78rem; line-height: 1.5; text-align: center; }
+/* Two lines are reserved where the feedback is a whole sentence, so a longer one
+   does not push the panel around when it wraps. */
+.play-question:not([hidden]) ~ .quiz-feedback { min-height: 2.4em; }
 .quiz-feedback.error { color: var(--danger); }
 .quiz-feedback.success { color: var(--accent); }
 .summary-mark { color: var(--clip-text); background: var(--accent); }
@@ -261,6 +269,9 @@ button.interval-cell { cursor: pointer; }
   .interval-explainer { grid-template-columns: auto 1fr; margin: 14px 16px; }
   .played-slots { gap: 8px; }
   .played-slot { min-width: 88px; padding: 8px 10px; }
+  .play-mic { grid-template-columns: minmax(0, 1fr) auto; }
+  .play-mic-button { grid-column: 1 / -1; }
+  .play-mic-level { grid-column: 1 / -1; width: 100%; }
   .interval-rail { margin: 0 16px 4px; }
   .interval-chip { flex: 0 0 auto; }
   .interval-explainer.scale-explainer { grid-template-columns: auto 1fr; }
