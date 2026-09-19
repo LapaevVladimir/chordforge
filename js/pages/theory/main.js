@@ -52,6 +52,10 @@ const state = {
   showOctaves: false,
   showMarkers: false,
   intervalId: 'M3',
+  // 02.7 — which note the neck is being searched for, as a pitch class.
+  findPitchClass: 0,
+  // 03.8 — the interval the inversion figure is currently showing.
+  inversionId: 'M3',
   shapeId: 'octave-two-two',
   // The two notes the shapes stage measures between. `second` is null while the
   // reader is halfway through choosing them.
@@ -119,7 +123,7 @@ function showStage(stage, { scroll = true } = {}) {
   renderLessonList();
   // A board laid out while its panel was hidden has no width to measure, so
   // whichever one just came on screen is drawn again.
-  if (stage === 'fretboard') renderNeck();
+  if (stage === 'fretboard') renderFretboardStage();
   if (stage === 'intervals') renderIntervalStage();
   if (stage === 'shapes') renderShapeStage();
   if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -167,7 +171,24 @@ function bindWave() {
   });
 }
 
-/* ------------------------------------------------------- 01.2  the twelve notes */
+/* ---------------------------------------------------- 01.2  the alphabet */
+
+// A3 up to G4: the seven letters in order, ending where they started. The eighth
+// button is the A they wrap round to, which is the whole point of the figure —
+// seven names, then the same names an octave higher.
+const ALPHABET_MIDIS = [57, 59, 60, 62, 64, 65, 67];
+
+function renderAlphabet() {
+  const letter = (midi, repeat) => `<button type="button" class="alphabet-letter${repeat ? ' repeat' : ''}"
+    data-play-midi="${midi}" aria-label="${t('theory.playAria', { note: midiLabel(midi) })}">
+    <strong>${midiNoteName(midi)}</strong><small>${midiLabel(midi)}</small>
+  </button>`;
+  $('alphabetStrip').innerHTML = ALPHABET_MIDIS.map((midi) => letter(midi, false)).join('')
+    + `<span class="alphabet-wrap"><i aria-hidden="true">↻</i><small>${t('theory.alphabet.wrap')}</small></span>`
+    + letter(ALPHABET_MIDIS[0] + 12, true);
+}
+
+/* ------------------------------------------------------- 01.3  the twelve notes */
 
 function renderNoteRing() {
   $('noteRing').innerHTML = PITCH_NAMES.map((name, pitchClass) => {
@@ -294,6 +315,35 @@ function renderKeyboard() {
   }).join('');
 
   $('keyboardStrip').innerHTML = `<div class="piano-whites">${keys}</div><div class="piano-blacks">${overlay}</div>`;
+}
+
+// The same pitch under two names. The five between the letters are the pairs
+// every player meets; the four below them are the ones that catch people out,
+// because the second name is a letter that already exists. Both lists are real
+// spellings — the point of the figure is that none of them is a trick.
+const THEORETICAL_ENHARMONICS = [
+  { name: 'E♯', same: 'F', midi: 65 },
+  { name: 'B♯', same: 'C', midi: 72 },
+  { name: 'C♭', same: 'B', midi: 59 },
+  { name: 'F♭', same: 'E', midi: 64 },
+];
+
+function enharmonicCard(left, right, midi, theoretical) {
+  return `<button type="button" class="enharmonic-card${theoretical ? ' theoretical' : ''}" data-play-midi="${midi}"
+    aria-label="${t('theory.playAria', { note: midiLabel(midi) })}">
+    <strong>${left}</strong><i aria-hidden="true">=</i><strong>${right}</strong>
+  </button>`;
+}
+
+function renderEnharmonics() {
+  $('enharmonicPairs').innerHTML = SHARP_NAMES
+    .map((name, pitchClass) => ({ name, pitchClass }))
+    .filter((entry) => entry.name.length > 1)
+    .map((entry) => enharmonicCard(entry.name, FLAT_NAMES[entry.pitchClass], 60 + entry.pitchClass, false))
+    .join('');
+  $('enharmonicTheoretical').innerHTML = THEORETICAL_ENHARMONICS
+    .map((entry) => enharmonicCard(entry.name, entry.same, entry.midi, true))
+    .join('');
 }
 
 /* --------------------------------------------- 01.6  semitones and whole tones */
@@ -453,6 +503,68 @@ function renderGapMap() {
   }).join('');
 }
 
+/* ------------------------------------------------------ 02.6  the twelfth fret */
+
+// One row per string: the open note, and the same note twelve frets up. Pressing
+// a row plays both in turn, which is the only way the claim "it is the same note"
+// can actually be checked.
+function renderTwelfth() {
+  $('twelfthPairs').innerHTML = OPEN_MIDIS.map((midi, stringIndex) => {
+    const stringNumber = OPEN_MIDIS.length - stringIndex;
+    return `<button type="button" class="octave-pair" data-play-octave="${midi}"
+      aria-label="${t('theory.playIntervalAria', { name: intervalName('p8') })}">
+      <small>${t('theory.twelfth.stringN', { n: stringNumber })}</small>
+      <span class="octave-pair-notes">
+        <b>${midiLabel(midi)}</b><i aria-hidden="true">→</i><b>${midiLabel(midi + 12)}</b>
+      </span>
+      <span class="octave-pair-where">
+        <span>${t('theory.twelfth.openLabel')}</span><span>${t('theory.twelfth.fretLabel')}</span>
+      </span>
+      <span class="mono">${formatHz(midiToFrequency(midi))} → ${formatHz(midiToFrequency(midi + 12))}</span>
+    </button>`;
+  }).reverse().join('');
+}
+
+/* ------------------------------------------------------ 02.7  find every note */
+
+// Every place one pitch class sits on the neck, found by filtering the board the
+// rest of the site is built from rather than by a rule about where notes repeat —
+// so the count stays true if the tuning or the number of frets ever changes.
+function findPositions() {
+  return boardCells.filter((cell) => mod12(cell.midi) === state.findPitchClass);
+}
+
+function renderFindPicker() {
+  $('findPicker').innerHTML = PITCH_NAMES.map((name, pitchClass) => {
+    const active = pitchClass === state.findPitchClass;
+    return `<button type="button" role="radio" class="toggle-chip find-chip${active ? ' active' : ''}"
+      aria-checked="${active}" data-find-note="${pitchClass}"><strong>${name}</strong></button>`;
+  }).join('');
+}
+
+function renderFindBoard() {
+  const positions = findPositions();
+  const name = PITCH_NAMES[state.findPitchClass];
+  renderNoteBoard($('findBoard'), { interactive: true, highlight: positions, cellAttr: 'data-find-cell' });
+  $('findReadout').innerHTML = `
+    <span class="readout-note">${name}</span>
+    <span class="readout-facts">
+      <span>${t('theory.everynote.count', {
+        note: name,
+        n: positions.length,
+        times: pluralize('theory.everynote.times', positions.length),
+        frets: MAX_FRET,
+      })}</span>
+      <span>${t('theory.everynote.hint')}</span>
+    </span>`;
+}
+
+function renderFretboardStage() {
+  renderNeck();
+  renderFindPicker();
+  renderFindBoard();
+}
+
 /* ----------------------------------------------------------- 03  intervals */
 
 function renderIntervalTable() {
@@ -495,6 +607,125 @@ function renderIntervalRail() {
   }).join('');
 }
 
+/* --------------------------------------- 03.4  perfect, major and minor */
+
+// Every example is measured up from C, so the two columns can be read side by
+// side. The note the interval lands on is spelled the way its own name implies:
+// a minor interval reaches a flat, a major one a natural or a sharp.
+const QUALITY_ROOT = 60; // C4
+const QUALITY_PERFECT = ['p1', 'p4', 'p5', 'p8'];
+const QUALITY_PAIRED = ['m2', 'M2', 'm3', 'M3', 'm6', 'M6', 'm7', 'M7'];
+
+function qualityRow(id) {
+  const { semitones } = getInterval(id);
+  const target = midiNoteName(QUALITY_ROOT + semitones, id.startsWith('m'));
+  return `<button type="button" class="quality-row" data-play-pair="${QUALITY_ROOT}:${QUALITY_ROOT + semitones}"
+    aria-label="${t('theory.playIntervalAria', { name: intervalName(id) })}">
+    <span class="character-mark ${intervalFamily(id)}">${intervalShort(id)}</span>
+    <span class="quality-copy"><strong>${intervalName(id)}</strong><small>${midiNoteName(QUALITY_ROOT)} → ${target}</small></span>
+    <span class="quality-count mono">${semitones}</span>
+  </button>`;
+}
+
+function renderQualitySplit() {
+  const column = (titleKey, noteKey, ids) => `<div class="quality-card">
+    <span class="control-label">${t(titleKey)}</span>
+    <div class="quality-rows">${ids.map(qualityRow).join('')}</div>
+    <p class="theory-note">${t(noteKey)}</p>
+  </div>`;
+  $('qualitySplit').innerHTML = column('theory.quality.perfectTitle', 'theory.quality.perfectNote', QUALITY_PERFECT)
+    + column('theory.quality.pairedTitle', 'theory.quality.pairedNote', QUALITY_PAIRED);
+}
+
+/* ------------------------------------- 03.5  augmented and diminished */
+
+// Five spellings that are one semitone off a known interval. `same` is what the
+// distance is more usually called — for the two tritone rows that is each other,
+// which is exactly the point being made.
+const ALTERED = [
+  { key: 'aug2', semitones: 3, target: 'D♯', same: () => intervalName('m3') },
+  { key: 'aug4', semitones: 6, target: 'F♯', same: () => t('theory.altered.dim5') },
+  { key: 'dim5', semitones: 6, target: 'G♭', same: () => t('theory.altered.aug4') },
+  { key: 'aug5', semitones: 8, target: 'G♯', same: () => intervalName('m6') },
+  { key: 'dim7', semitones: 9, target: 'B♭♭', same: () => intervalName('M6') },
+];
+
+function renderAlteredTable() {
+  $('alteredTable').querySelector('tbody').innerHTML = ALTERED.map((row) => {
+    const name = t(`theory.altered.${row.key}`);
+    return `<tr>
+      <th scope="row">${name}</th>
+      <td class="mono">${midiNoteName(QUALITY_ROOT)} → ${row.target}</td>
+      <td class="mono">${row.semitones}</td>
+      <td>${row.same()}</td>
+      <td><button type="button" class="ghost-button tiny" data-play-pair="${QUALITY_ROOT}:${QUALITY_ROOT + row.semitones}"
+        aria-label="${t('theory.playIntervalAria', { name })}">${t('theory.listen')}</button></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ------------------------------------------------------ 03.6  the tritone */
+
+function renderTritonePair() {
+  $('tritonePair').innerHTML = [['aug4', 'F♯'], ['dim5', 'G♭']].map(([key, target]) => {
+    const name = t(`theory.altered.${key}`);
+    return `<button type="button" class="tritone-card" data-play-pair="${QUALITY_ROOT}:${QUALITY_ROOT + 6}"
+      aria-label="${t('theory.playIntervalAria', { name })}">
+      <strong>${midiNoteName(QUALITY_ROOT)} → ${target}</strong>
+      <span>${name}</span>
+      <small class="mono">${t('theory.shapes.math.semitones', { n: 6, semitones: pluralize('interval.unit.semitone', 6) })}</small>
+    </button>`;
+  }).join('');
+}
+
+/* ------------------------------------------------ 03.8  interval inversion */
+
+// Turning an interval over is the same sum every time: what is left of an octave.
+// Both sides are worked out from that rather than from a table of pairs, so the
+// figure and the table below it cannot disagree.
+const INVERSION_ROOT = 60; // C4
+const INVERSION_ROWS = ['p1', 'm2', 'M2', 'm3', 'M3', 'p4', 'tt'];
+
+function invertId(id) {
+  const semitones = 12 - getInterval(id).semitones;
+  return INTERVALS.find((interval) => interval.semitones === semitones).id;
+}
+
+// The note in the middle is spelled by the quality of the interval that reaches
+// it — a minor interval lands on a flat — and it keeps that spelling on the way
+// back up. Anything else would contradict the two lessons above.
+function inversionSide(id, from, to, fromLabel, toLabel) {
+  const { semitones } = getInterval(id);
+  return `<div class="inversion-side">
+    <span class="inversion-notes">${fromLabel} → ${toLabel}</span>
+    <strong>${intervalName(id)}</strong>
+    <span class="inversion-count mono">${t('theory.shapes.math.semitones', { n: semitones, semitones: pluralize('interval.unit.semitone', semitones) })}</span>
+    <button type="button" class="ghost-button tiny" data-play-pair="${from}:${to}"
+      aria-label="${t('theory.playIntervalAria', { name: intervalName(id) })}">${t('theory.listen')}</button>
+  </div>`;
+}
+
+function renderInversion() {
+  const id = state.inversionId;
+  const other = invertId(id);
+  const middle = INVERSION_ROOT + getInterval(id).semitones;
+  const middleLabel = midiLabel(middle, id.startsWith('m'));
+  $('inversionLab').innerHTML = inversionSide(id, INVERSION_ROOT, middle, midiLabel(INVERSION_ROOT), middleLabel)
+    + `<button type="button" class="ghost-button invert-button" data-invert>${t('theory.inversion.invert')}</button>`
+    + inversionSide(other, middle, INVERSION_ROOT + 12, middleLabel, midiLabel(INVERSION_ROOT + 12))
+    + `<div class="inversion-sum">${t('theory.inversion.sum', { a: getInterval(id).semitones, b: getInterval(other).semitones })}</div>`;
+
+  $('inversionTable').querySelector('tbody').innerHTML = INVERSION_ROWS.map((rowId) => {
+    const pair = invertId(rowId);
+    const active = rowId === id || pair === id;
+    return `<tr class="${active ? 'inversion-active' : ''}">
+      <th scope="row"><button type="button" class="link-button" data-invert-pick="${rowId}">${intervalName(rowId)}</button></th>
+      <td>${intervalName(pair)}</td>
+      <td class="mono">${getInterval(rowId).semitones} + ${getInterval(pair).semitones} = 12</td>
+    </tr>`;
+  }).join('');
+}
+
 function renderCharacterList() {
   $('characterList').innerHTML = INTERVALS.map((interval) => `
     <li>
@@ -534,7 +765,11 @@ function renderIntervalBoard() {
 function renderIntervalStage() {
   renderIntervalTable();
   renderRuler();
+  renderQualitySplit();
+  renderAlteredTable();
+  renderTritonePair();
   renderIntervalRail();
+  renderInversion();
   renderCharacterList();
   renderIntervalBoard();
   renderEarAnswers();
@@ -958,16 +1193,19 @@ function renderAll() {
   renderLessonList();
   renderChromaticStrip();
   renderWave();
+  renderAlphabet();
   renderNoteRing();
   renderStringTable();
   renderOctaveLadder();
   renderOctaveTable();
   renderOctaveBorder();
   renderKeyboard();
+  renderEnharmonics();
   renderStepWalk();
   renderGapMap();
   renderTuningChain();
-  renderNeck();
+  renderFretboardStage();
+  renderTwelfth();
   renderIntervalStage();
   renderShapeStage();
 }
@@ -991,6 +1229,12 @@ function bindEvents() {
     if (pairButton) {
       const [low, high] = pairButton.dataset.playPair.split(':').map(Number);
       void playIntervalByType(low, high, 'ascending', pairButton);
+      return;
+    }
+    const octaveButton = event.target.closest('[data-play-octave]');
+    if (octaveButton) {
+      const open = Number(octaveButton.dataset.playOctave);
+      void playIntervalByType(open, open + 12, 'ascending', octaveButton);
     }
   });
 
@@ -1052,6 +1296,20 @@ function bindEvents() {
     renderIntervalBoard();
     void playMidi(state.neckCell.midi);
   });
+  $('findPicker').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-find-note]');
+    if (!button) return;
+    state.findPitchClass = Number(button.dataset.findNote);
+    renderFindPicker();
+    renderFindBoard();
+  });
+  $('findBoard').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-find-cell]');
+    if (!button) return;
+    const [stringIndex, fret] = button.dataset.findCell.split(':').map(Number);
+    void playMidi(OPEN_MIDIS[stringIndex] + fret);
+  });
+
   $('showOctaves').addEventListener('click', (event) => {
     state.showOctaves = !state.showOctaves;
     event.currentTarget.setAttribute('aria-pressed', String(state.showOctaves));
@@ -1089,6 +1347,18 @@ function bindEvents() {
     renderIntervalBoard();
     renderNeck();
     void playMidi(state.neckCell.midi);
+  });
+
+  const chooseInversion = (id) => {
+    state.inversionId = getInterval(id).id;
+    renderInversion();
+  };
+  $('inversionLab').addEventListener('click', (event) => {
+    if (event.target.closest('[data-invert]')) chooseInversion(invertId(state.inversionId));
+  });
+  $('inversionTable').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-invert-pick]');
+    if (button) chooseInversion(button.dataset.invertPick);
   });
 
   $('shapePicker').addEventListener('click', (event) => {
@@ -1131,7 +1401,7 @@ function bindEvents() {
   bindOrientationToggle($('shapeFlip'), flipLabels);
   // Both boards are laid out from the same tuning, so both are redrawn when the
   // neck turns or the window changes shape.
-  const redraw = () => { renderNeck(); renderIntervalBoard(); renderShapeBoard(); };
+  const redraw = () => { renderFretboardStage(); renderIntervalBoard(); renderShapeBoard(); };
   onOrientationChange(redraw);
   let resizeTimer = 0;
   window.addEventListener('resize', () => {

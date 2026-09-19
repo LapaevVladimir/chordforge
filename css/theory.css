@@ -81,7 +81,24 @@
 .wave-axis { stroke: var(--line-strong); stroke-width: 1; }
 .wave-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; }
 
-/* --------------------------------------------------------- 01.2  the notes */
+/* ------------------------------------------------------ 01.2  the alphabet */
+
+.alphabet-strip { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.alphabet-letter {
+  display: grid; justify-items: center; gap: 2px; padding: 8px 13px; cursor: pointer;
+  color: var(--text); border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3); transition: 0.14s ease;
+}
+.alphabet-letter strong { font-size: 0.95rem; font-weight: 850; }
+.alphabet-letter small { color: var(--muted); font-size: 0.57rem; font-variant-numeric: tabular-nums; }
+.alphabet-letter:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+/* The eighth button is the first letter again, an octave up — drawn as a repeat
+   rather than as an eighth letter, because that is exactly what it is. */
+.alphabet-letter.repeat { border-style: dashed; border-color: rgba(var(--accent-rgb), 0.45); background: rgba(var(--accent-rgb), 0.08); }
+.alphabet-wrap { display: grid; justify-items: center; gap: 1px; padding: 0 5px; }
+.alphabet-wrap i { color: var(--accent); font-size: 0.95rem; font-style: normal; }
+.alphabet-wrap small { color: var(--muted); font-size: 0.53rem; font-weight: 740; letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* --------------------------------------------------------- 01.3  the notes */
 
 .note-ring { display: flex; flex-wrap: wrap; gap: 6px; }
 .ring-note {
@@ -189,6 +206,23 @@
   content: ""; position: absolute; top: 46%; right: 24%; left: 24%; height: 2px; border-radius: 2px;
   background: color-mix(in srgb, var(--accent-2) 80%, transparent);
 }
+
+/* ------------------------------------------------ 01.7  the same pitch twice */
+
+.enharmonic-block { display: grid; gap: 7px; }
+.enharmonic-block + .enharmonic-block { margin-top: 13px; }
+.enharmonic-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(98px, 1fr)); gap: 6px; }
+.enharmonic-card {
+  display: flex; align-items: baseline; justify-content: center; gap: 7px; padding: 9px 8px; cursor: pointer;
+  color: var(--text); border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3); transition: 0.14s ease;
+}
+.enharmonic-card strong { font-size: 0.86rem; font-weight: 840; }
+.enharmonic-card i { color: var(--muted); font-size: 0.74rem; font-style: normal; }
+.enharmonic-card:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+/* Spellings a player meets less often. Dashed rather than dimmed: they are
+   unusual, not lesser. */
+.enharmonic-card.theoretical { border-style: dashed; border-color: color-mix(in srgb, var(--accent-2) 45%, transparent); }
+.enharmonic-card.theoretical strong:first-child { color: var(--accent-2); }
 
 /* ---------------------------------------------------- 01.6  walking a string */
 
@@ -300,6 +334,37 @@
 .run-step:hover { border-color: rgba(var(--accent-rgb), 0.5); }
 .run-step.tight strong { color: var(--accent-2); text-decoration: underline; text-underline-offset: 3px; }
 
+/* ------------------------------------------------------ 02.6  the twelfth fret */
+
+.octave-pairs { display: grid; grid-template-columns: repeat(auto-fit, minmax(186px, 1fr)); gap: 6px; }
+.octave-pair {
+  display: grid; gap: 3px; padding: 9px 12px; cursor: pointer; text-align: left;
+  color: var(--text); border: 1px solid var(--line); border-radius: 10px; background: var(--panel-3); transition: 0.14s ease;
+}
+.octave-pair:hover { border-color: rgba(var(--accent-rgb), 0.5); }
+.octave-pair > small { color: var(--muted); font-size: 0.56rem; font-weight: 760; letter-spacing: 0.05em; text-transform: uppercase; }
+.octave-pair-notes { display: flex; align-items: baseline; gap: 7px; }
+.octave-pair-notes b { font-size: 0.92rem; font-weight: 860; }
+.octave-pair-notes i { color: var(--accent); font-size: 0.82rem; font-style: normal; }
+.octave-pair-where { display: flex; gap: 6px; color: var(--muted); font-size: 0.58rem; }
+.octave-pair-where span + span::before { content: "\00b7"; margin-right: 6px; }
+.octave-pair .mono { color: var(--accent-2); font-size: 0.62rem; font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------ 02.7  find every note */
+
+/* One note at a time is the whole exercise, so everything that is not it steps
+   back far enough for the pattern the matches make to read on its own. */
+.find-board .interval-cell:not(.note-map-marked) .interval-note { opacity: 0.2; }
+.find-board .interval-cell.note-map-marked .interval-note {
+  color: var(--clip-text); background: var(--accent-2);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 30%, transparent), 0 6px 13px rgba(0, 0, 0, 0.45);
+}
+/* The plain note map is not clickable and so does not lift on hover; this one is. */
+.find-board .interval-cell.note-map-marked:hover .interval-note {
+  color: var(--clip-text); background: var(--accent-2); transform: scale(1.08);
+}
+.find-chip strong { font-variant-numeric: tabular-nums; }
+
 /* ------------------------------------------------------- 03.3  the ruler */
 
 .ruler { display: grid; grid-template-columns: repeat(auto-fit, minmax(46px, 1fr)); gap: 4px; }
@@ -313,6 +378,55 @@
 .ruler-step:hover { border-color: rgba(var(--accent-rgb), 0.5); }
 .ruler-step.active { color: var(--clip-text); border-color: transparent; background: var(--accent); }
 .ruler-step.active small { color: color-mix(in srgb, var(--clip-text) 72%, transparent); }
+
+/* --------------------------------------------- 03.4  perfect, major, minor */
+
+.quality-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(248px, 1fr)); gap: 11px; }
+.quality-card { display: grid; align-content: start; gap: 7px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-3); }
+.quality-card .theory-note { margin: 3px 0 0; }
+.quality-rows { display: grid; gap: 4px; }
+.quality-row {
+  display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 10px;
+  padding: 6px 8px; cursor: pointer; text-align: left; color: var(--text);
+  border: 1px solid transparent; border-radius: 9px; background: var(--panel-2); transition: 0.14s ease;
+}
+.quality-row:hover { border-color: rgba(var(--accent-rgb), 0.45); }
+.quality-copy { display: grid; gap: 1px; min-width: 0; }
+.quality-copy strong { font-size: 0.76rem; }
+.quality-copy small { color: var(--muted); font-size: 0.66rem; }
+.quality-count { color: var(--accent-2); font-size: 0.74rem; font-weight: 840; font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------- 03.6  the tritone */
+
+.tritone-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(196px, 1fr)); gap: 8px; }
+.tritone-card {
+  display: grid; gap: 3px; padding: 11px 13px; cursor: pointer; text-align: left; color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--danger) 32%, var(--line)); border-radius: 11px;
+  background: var(--panel-3); transition: 0.14s ease;
+}
+.tritone-card:hover { border-color: color-mix(in srgb, var(--danger) 58%, transparent); }
+.tritone-card strong { font-size: 0.95rem; font-weight: 860; }
+.tritone-card > span { color: var(--accent-2); font-size: 0.73rem; font-weight: 760; }
+.tritone-card small { color: var(--muted); font-size: 0.64rem; font-variant-numeric: tabular-nums; }
+
+/* -------------------------------------------------- 03.8  interval inversion */
+
+.inversion-lab { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: 10px; margin-bottom: 15px; }
+.inversion-side { display: grid; align-content: start; justify-items: start; gap: 3px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-3); }
+.inversion-notes { color: var(--accent-2); font-size: 0.95rem; font-weight: 870; }
+.inversion-side strong { font-size: 0.78rem; }
+.inversion-count { color: var(--muted); font-size: 0.66rem; font-variant-numeric: tabular-nums; }
+.inversion-side .ghost-button { margin-top: 5px; }
+.invert-button { align-self: center; white-space: nowrap; }
+.inversion-sum { grid-column: 1 / -1; color: var(--accent); font-size: 0.84rem; font-weight: 840; font-variant-numeric: tabular-nums; text-align: center; }
+.inversion-active th, .inversion-active td { background: rgba(var(--accent-rgb), 0.1); }
+/* A table cell that selects something, without dressing up as a button: the row
+   is already the thing being pointed at. */
+.link-button {
+  padding: 0; color: var(--text); font: inherit; font-weight: 760; text-align: left; cursor: pointer;
+  background: none; border: 0; border-bottom: 1px dashed rgba(var(--accent-rgb), 0.55);
+}
+.link-button:hover { color: var(--accent); }
 
 /* ------------------------------------------------------ 03.5  how they sound */
 
@@ -426,6 +540,11 @@ body.board-vertical .shape-overlay .shape-tag { transform: rotate(-90deg); trans
   .character-list li { grid-template-columns: 40px minmax(0, 1fr); row-gap: 8px; }
   .character-list li .ghost-button { grid-column: 1 / -1; justify-self: start; }
   .neck-lab-controls { gap: 12px; }
+  /* Two sides and a button will not sit in a row on a phone: stack them, and let
+     the button run the full width between the pair it turns over. */
+  .inversion-lab { grid-template-columns: minmax(0, 1fr); }
+  .invert-button { justify-self: center; }
+  .quality-row { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 8px; }
 }
 
 @media (max-width: 650px) {
