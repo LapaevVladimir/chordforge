@@ -112,12 +112,20 @@ body.site-ready .interval-board { animation: training-board-in 0.82s 0.42s cubic
    context, but recede far enough that the shape reads on its own. */
 .interval-cell.scale-outside .interval-note { color: rgba(255, 248, 232, 0.6); background: rgba(255, 248, 232, 0.075); box-shadow: inset 0 0 0 1px rgba(255, 248, 232, 0.16); }
 .interval-cell.scale-rest { color: rgba(255, 248, 232, 0.2); }
-/* The note map. Naturals are what gives the neck its shape, so they read first;
-   sharps stay legible but step back. Nothing here is clickable, so the hover
-   response the other boards use would only promise something that never happens. */
-.interval-cell.note-map-natural { color: rgba(255, 248, 232, 0.94); font-weight: 820; }
-.interval-cell.note-map-accidental { color: rgba(255, 248, 232, 0.34); }
-.note-board .interval-cell:hover .interval-note { color: inherit; background: transparent; transform: none; }
+/* The note map. Every fret carries a chip rather than bare lettering: the board
+   is a photograph of rosewood, and a letter laid straight onto it reads at some
+   frets and disappears at others. A filled chip is legible over any of it.
+   Naturals take the accent fill, since they are what gives the neck its shape;
+   accidentals get a dark chip of the same size, so they are still read at a
+   glance without competing. */
+.interval-cell.note-map .interval-note { min-width: 27px; height: 27px; border-radius: 8px; font-size: 0.68rem; font-weight: 880; }
+.interval-cell.note-map-natural .interval-note { color: var(--clip-text); background: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15), 0 5px 11px rgba(0, 0, 0, 0.5); }
+.interval-cell.note-map-accidental .interval-note { color: rgba(255, 248, 232, 0.78); background: rgba(16, 14, 12, 0.86); box-shadow: inset 0 0 0 1px rgba(255, 248, 232, 0.16), 0 4px 9px rgba(0, 0, 0, 0.45); }
+/* Nothing here is clickable, so the lift the other boards give on hover would
+   promise something that never happens — but the chip itself has to stay put. */
+.note-board .interval-cell:hover .interval-note { transform: none; }
+.note-board .interval-cell.note-map-natural:hover .interval-note { color: var(--clip-text); background: var(--accent); }
+.note-board .interval-cell.note-map-accidental:hover .interval-note { color: rgba(255, 248, 232, 0.78); background: rgba(16, 14, 12, 0.86); }
 
 .interval-explainer.scale-explainer { grid-template-columns: auto minmax(0, 1fr) auto auto; }
 .scale-formula { display: flex; gap: 5px; }
