@@ -13,11 +13,13 @@ import { renderScales, bindScaleEvents, currentScaleLabel } from './scales.js';
 
 // Which part of the page is on screen. All three are drawn from the same tuning
 // and the same board module; only their panels are swapped.
-const SECTIONS = ['intervals', 'scales', 'notes'];
-let section = 'intervals';
+// In the order they build on each other: you read the neck, then hear distances
+// across it, then play those distances as shapes.
+const SECTIONS = ['notes', 'intervals', 'scales'];
+let section = SECTIONS[0];
 
 function applySection(next) {
-  section = SECTIONS.includes(next) ? next : 'intervals';
+  section = SECTIONS.includes(next) ? next : SECTIONS[0];
   elements.sectionPanels.forEach((panel) => {
     panel.hidden = panel.dataset.learnPanel !== section;
   });
@@ -110,7 +112,7 @@ function initialize() {
   initOrientation();
   syncLocaleDock();
   renderAll();
-  applySection('intervals');
+  applySection(SECTIONS[0]);
   bindEvents();
   applyTheme(localStorage.getItem(THEME_KEY), 'sunset');
   window.setTimeout(() => {
