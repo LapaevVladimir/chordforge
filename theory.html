@@ -92,7 +92,7 @@
                   <button type="button" class="ghost-button" id="wavePlay" data-i18n="theory.listen">Listen</button>
                 </div>
               </div>
-              <figcaption data-i18n="theory.sound.caption">Drag the first slider and the wave gets tighter — that is higher pitch. Drag the second and it gets taller — that is louder. Only the first one changes the note.</figcaption>
+              <figcaption data-i18n="theory.sound.caption">Drag the first slider and the wave gets tighter — that is higher pitch. Drag the second and it gets taller — that is louder. Press Listen at each end of the second slider and you will hear the difference; the note stays the same.</figcaption>
             </figure>
           </article>
 
@@ -108,7 +108,7 @@
 
           <article class="lesson" id="lesson-notes">
             <h2><span class="lesson-index">3</span><span data-i18n="theory.notes.title">The twelve pitch classes</span></h2>
-            <p data-i18n-html="theory.notes.p1">The chromatic system divides the octave into <b>12 pitch classes</b>: twelve named pitches, after which the names begin again one octave higher. A pitch class is the name without the octave — every C anywhere on the instrument belongs to pitch class C. On a guitar each step from one pitch class to the next is exactly one fret.</p>
+            <p data-i18n-html="theory.notes.p1">The chromatic system divides the octave into <b>12 pitch classes</b>: twelve named pitches, after which the names begin again one octave higher. A pitch class is the name without the octave — every C anywhere on the instrument belongs to pitch class C. A guitar is built to equal temperament, which spaces those twelve evenly: one fret raises the pitch by exactly one step.</p>
             <figure class="theory-figure">
               <div class="note-ring" id="noteRing" role="group" data-i18n-attr='{"aria-label":"theory.notes.ringAria"}' aria-label="The twelve notes"></div>
               <div class="figure-readout wide">
@@ -147,7 +147,7 @@
           <article class="lesson" id="lesson-octaves">
             <h2><span class="lesson-index">5</span><span data-i18n="theory.octaves.title">Octaves</span></h2>
             <p data-i18n="theory.octaves.p1">An octave is the same note higher or lower. Play an A, then play the next A up: it sounds like the same note, just further up — which is why both are called A.</p>
-            <p data-i18n-html="theory.octaves.p2">The reason is arithmetic. Going up an octave <b>doubles</b> the frequency; going down <b>halves</b> it. If A4 is 440 Hz then A5 is 880 Hz and A3 is 220 Hz. That doubling is what the ear recognises as "the same note", and it is written as a ratio of 2:1.</p>
+            <p data-i18n-html="theory.octaves.p2">The reason is arithmetic. Going up an octave <b>doubles</b> the frequency; going down <b>halves</b> it. If A4 is 440 Hz then A5 is 880 Hz and A3 is 220 Hz. That doubling is what the ear recognises as “the same note”, and it is written as a ratio of 2:1.</p>
             <figure class="theory-figure">
               <div class="octave-ladder" id="octaveLadder" role="group" data-i18n-attr='{"aria-label":"theory.octaves.ladderAria"}' aria-label="Octaves of A"></div>
               <figcaption data-i18n="theory.octaves.caption">Each step up the ladder doubles the number. On the guitar that same step is twelve frets.</figcaption>
@@ -156,11 +156,11 @@
 
           <article class="lesson" id="lesson-octavenames">
             <h2><span class="lesson-index">6</span><span data-i18n="theory.octavenames.title">Naming the octaves</span></h2>
-            <p data-i18n-html="theory.octavenames.p1">The number after a note name says which octave it is in. <b>A4</b> is the A at 440 Hz; <b>A3</b> is the A below it, <b>A5</b> the A above. Same letter, different floor of the building.</p>
-            <p data-i18n-html="theory.octavenames.p2">The floors are counted from the bottom of hearing upwards, and every octave also has an older name — the one a piano teacher is more likely to use. Both name the same eight floors.</p>
+            <p data-i18n-html="theory.octavenames.p1">The number after a note name says which octave it is in. <b>A4</b> is the A at 440 Hz; <b>A3</b> is the A below it, <b>A5</b> the A above. Same note, different floor of the building.</p>
+            <p data-i18n-html="theory.octavenames.p2">The floors are counted from the bottom of hearing upwards, and every octave also has an older name — the one a piano teacher is more likely to use. They are two ways of saying the same thing.</p>
             <figure class="theory-figure">
               <div class="table-scroll"><table class="theory-table" id="octaveTable">
-                <caption data-i18n="theory.octavenames.tableCaption">The octaves, and where the guitar lives</caption>
+                <caption data-i18n="theory.octavenames.tableCaption">The octaves, and where the guitar sits among them</caption>
                 <thead>
                   <tr>
                     <th scope="col" data-i18n="theory.octavenames.colNumber">Number</th>
@@ -172,9 +172,9 @@
                 </thead>
                 <tbody></tbody>
               </table></div>
-              <figcaption data-i18n="theory.octavenames.caption">The guitar takes up about four of them. Press a row to hear that octave's C.</figcaption>
+              <figcaption data-i18n="theory.octavenames.caption">The guitar covers about four of them. Press Listen to hear that octave’s C.</figcaption>
             </figure>
-            <p data-i18n-html="theory.octavenames.p3">One trap: the number changes at <b>C</b>, not at A. So B3 and C4 are neighbours — one fret apart — even though the number jumps between them. The open B string is B3 and the open thin E string is E4.</p>
+            <p data-i18n-html="theory.octavenames.p3">One thing to watch: the number changes at <b>C</b>, not at A. So B3 and C4 are neighbours, one fret apart, even though the number jumps between them. The open B string is B3 and the open thin E string is E4.</p>
             <figure class="theory-figure">
               <div class="border-walk" id="octaveBorder" role="group" data-i18n-attr='{"aria-label":"theory.octavenames.borderAria"}' aria-label="Where the octave number changes"></div>
               <figcaption data-i18n="theory.octavenames.borderCaption">Notes in a row. The number ticks over at C, in the middle of nothing special.</figcaption>
@@ -184,12 +184,12 @@
           <article class="lesson" id="lesson-accidentals">
             <h2><span class="lesson-index">7</span><span data-i18n="theory.accidentals.title">Sharps and flats</span></h2>
             <p data-i18n-html="theory.accidentals.p1">A <b>sharp</b> (♯) raises a note by one semitone — one fret up. A <b>flat</b> (♭) lowers it by one semitone — one fret down. So C♯ is one fret above C, and D♭ is one fret below D. Those are the same fret, which is why the note has two names.</p>
-            <p data-i18n-html="theory.accidentals.p2">But two pairs of letters are already only one semitone apart, with nothing between them: <b>E to F</b>, and <b>B to C</b>. There is no E♯ fret to find, because F is already there. This single fact is what makes the fretboard confusing until you know it — and obvious afterwards.</p>
+            <p data-i18n-html="theory.accidentals.p2">But two pairs of letters are already only one semitone apart, with nothing between them: <b>E to F</b>, and <b>B to C</b>. E♯ is a perfectly real note name — it means the pitch a semitone above E, which is the pitch normally called F, so on a guitar the two are one and the same fret. B♯ and C work the same way. This single fact is what makes the fretboard confusing until you know it — and obvious afterwards.</p>
             <figure class="theory-figure">
               <div class="keys-frame">
                 <div class="piano" id="keyboardStrip" role="group" data-i18n-attr='{"aria-label":"theory.accidentals.keysAria"}' aria-label="One octave of keys"></div>
               </div>
-              <figcaption data-i18n="theory.accidentals.caption">The gaps are the point: everywhere a black key is missing, two letters sit one semitone apart. Press a key to hear it.</figcaption>
+              <figcaption data-i18n="theory.accidentals.caption">The two places with no black key are outlined: E–F and B–C. Those pairs are marked along the foot of the white keys. Press any key to hear it.</figcaption>
             </figure>
             <figure class="theory-figure">
               <div class="enharmonic-block">
@@ -247,12 +247,12 @@
             <h2><span class="lesson-index">1</span><span data-i18n="theory.tuning.title">Standard tuning</span></h2>
             <p data-i18n-html="theory.tuning.p1">Strings are numbered from the thinnest down: string 1 is the thin E at the bottom of the neck as you look at it, string 6 is the thick E on top. In standard tuning, from thickest to thinnest, they are <b>E A D G B E</b>.</p>
             <p data-i18n="theory.tuning.p2">The two E strings are two octaves apart — same letter, same name, very different pitch. Everywhere on this site the neck is drawn with string 6 at the bottom and string 1 at the top, the way it looks when the guitar is in your hands.</p>
-            <p data-i18n-html="theory.tuning.p3">Those six notes are not a random pick. Tuning starts from <b>E2</b> on the thickest string, and every string after it is a <b>perfect fourth</b> — five frets — above the one before. Every string but one: from string 3 to string 2, G to B, the step is a <b>major third</b>, four frets.</p>
+            <p data-i18n-html="theory.tuning.p3">Those six notes are not a random pick. Tuning starts from <b>E2</b> on the thickest string, and most strings after it are a <b>perfect fourth</b> — five frets — above the one before. One is not: from string 3 to string 2, G to B, the step is a <b>major third</b>, four frets.</p>
             <figure class="theory-figure">
               <div class="tuning-chain" id="tuningChain" role="group" data-i18n-attr='{"aria-label":"theory.tuning.chainAria"}' aria-label="How the strings are tuned from each other"></div>
-              <figcaption data-i18n="theory.tuning.chainCaption">Five steps from the thickest string to the thinnest. Four of them are the same size; the odd one out is marked.</figcaption>
+              <figcaption data-i18n="theory.tuning.chainCaption">Five steps from the thickest string to the thinnest. Four are the same size; the odd one out is marked.</figcaption>
             </figure>
-            <p data-i18n="theory.tuning.p4">That one odd step is worth remembering, because almost every oddity of the guitar comes from it: it is why the same chord shape changes on the top two strings, and why the octave shapes further on shift by a fret once they cross the B string. In exchange, chords stay inside a four-fret reach instead of demanding a sixth finger.</p>
+            <p data-i18n="theory.tuning.p4">That one odd step is worth remembering: it is why chord shapes change on the top two strings, and why the octave shapes shift by a fret once they cross the B string. In exchange, chords stay inside a four-finger reach instead of demanding a fifth.</p>
           </article>
 
           <article class="lesson" id="lesson-frets">
@@ -282,7 +282,7 @@
           <article class="lesson" id="lesson-halfsteps">
             <h2><span class="lesson-index">3</span><span data-i18n="theory.halfsteps.title">Why E–F and B–C are different</span></h2>
             <p data-i18n="theory.halfsteps.p1">Most neighbouring letters are a whole tone apart: C to D, D to E, F to G, G to A, A to B. Two frets, with a sharp in the middle.</p>
-            <p data-i18n-html="theory.halfsteps.p2">Two are not. <b>E to F</b> is one fret, and <b>B to C</b> is one fret. That is why the first fret of the low E string is F rather than E♯, and why the first fret of the B string is C. Once you expect those two, naming notes along a string stops being guesswork.</p>
+            <p data-i18n-html="theory.halfsteps.p2">Two are not. <b>E to F</b> is one fret, and <b>B to C</b> is one fret. That is why the first fret of the low E string is normally called F: E♯ and F are enharmonic equivalents — the same pitch, the same fret — and F is the name that fits almost every key you will meet. The first fret of the B string is C for the same reason. Once you expect those two, naming notes along a string stops being guesswork.</p>
             <figure class="theory-figure">
               <div class="gap-map" id="gapMap" role="group" data-i18n-attr='{"aria-label":"theory.halfsteps.mapAria"}' aria-label="Distance between neighbouring letters"></div>
               <figcaption data-i18n="theory.halfsteps.caption">Seven letters, and the distance from each to the next. Only two of them are a single fret.</figcaption>
@@ -309,7 +309,7 @@
 
           <article class="lesson" id="lesson-twelfth">
             <h2><span class="lesson-index">6</span><span data-i18n="theory.twelfth.title">The twelfth fret</span></h2>
-            <p data-i18n="theory.twelfth.p1">Twelve frets is twelve semitones, and twelve semitones is an octave. So the twelfth fret of any string is that string's open note again, one octave higher, at exactly double the frequency.</p>
+            <p data-i18n="theory.twelfth.p1">Twelve frets is twelve semitones, and twelve semitones is an octave. So the twelfth fret of any string is that string’s open note again, one octave higher, at exactly double the frequency.</p>
             <p data-i18n="theory.twelfth.p2">That is what the double marker is telling you, and it is why the neck above the twelfth fret repeats the neck below it: fret 13 is fret 1 an octave up, fret 14 is fret 2, and so on to the end of the board.</p>
             <figure class="theory-figure">
               <div class="octave-pairs" id="twelfthPairs" role="group" data-i18n-attr='{"aria-label":"theory.twelfth.pairsAria"}' aria-label="Open string and twelfth fret, for each string"></div>
@@ -361,7 +361,8 @@
           <article class="lesson" id="lesson-whatis">
             <h2><span class="lesson-index">1</span><span data-i18n="theory.whatis.title">What is an interval?</span></h2>
             <p data-i18n="theory.whatis.p1">An interval is the distance between two pitches — nothing more. Because one fret is one semitone, on a guitar that musical distance is also a physical one you can see and count.</p>
-            <p data-i18n="theory.whatis.p2">Play the open A string and the note four frets up on the same string. That distance is four semitones, which is a major third, and it will be a major third wherever on the neck you play it. Intervals are the reason a shape you learn in one place works in every other.</p>
+            <p data-i18n="theory.whatis.p2">Play the open A string and the note four frets up on the same string. That distance is four semitones, which is a major third. On a single string that holds anywhere on the neck: four frets are always a major third.</p>
+            <p data-i18n-html="theory.whatis.p3">Across two strings the interval is still whatever the two pitches say it is — but the <b>shape</b> your hand makes to get it depends on how the instrument is tuned, and on a guitar it changes when the move crosses from string 3 to string 2. That is why stage 04 works the shapes out from the tuning rather than listing them.</p>
           </article>
 
           <article class="lesson" id="lesson-names">
@@ -510,7 +511,7 @@
           <div>
             <span class="eyebrow" data-i18n="theory.shapes.eyebrow">04 — Fretboard Shapes</span>
             <h1 data-i18n="theory.shapes.title">The shapes that repeat</h1>
-            <p class="sub" data-i18n="theory.shapes.subtitle">Why an interval between two strings is always the same shape, and how to work any of them out.</p>
+            <p class="sub" data-i18n="theory.shapes.subtitle">How interval shapes are built out of the guitar’s tuning, why they repeat across the neck, and how to work any of them out.</p>
           </div>
           <div class="work-header-actions">
             <span class="pill" id="shapeBadge">Octave</span>
@@ -521,19 +522,19 @@
         <div class="theory-body">
 
           <article class="lesson" id="lesson-stringstep">
-            <h2><span class="lesson-index">1</span><span data-i18n="theory.shapes.why.title">One string is five frets</span></h2>
-            <p data-i18n-html="theory.shapes.why.p1">Every string is tuned a perfect fourth above the one below it, and a perfect fourth is five semitones. So <b>stepping across to the next string is the same move as sliding five frets up the string you are on</b>. That single sentence is where every shape on this page comes from.</p>
-            <p data-i18n-html="theory.shapes.why.p2">With one exception, the one from stage 02: from string 3 to string 2 the step is a major third, so that crossing is worth <b>four</b> frets, not five. Every shape that crosses the B string shifts by a fret because of it.</p>
+            <h2><span class="lesson-index">1</span><span data-i18n="theory.shapes.why.title">What a string crossing is worth</span></h2>
+            <p data-i18n-html="theory.shapes.why.p1">Most neighbouring strings are tuned a perfect fourth apart — five semitones. For those pairs <b>stepping across to the next string is the same move as sliding five frets up the string you are on</b>, and every shape on this page comes out of that one sentence.</p>
+            <p data-i18n-html="theory.shapes.why.p2">The exception is <b>G to B</b>, string 3 to string 2: that step is a major third, four semitones, so the crossing is worth <b>four</b> frets rather than five. Every shape that reaches across the B string shifts by a fret because of it.</p>
             <p data-i18n="theory.shapes.why.p3">That is why the list below holds two octave shapes rather than one. They are the same octave: the second is the first, moved a fret along to pay for the B string. The same happens to every other shape that reaches across it.</p>
             <figure class="theory-figure">
               <div class="string-steps" id="stringSteps" role="group" data-i18n-attr='{"aria-label":"theory.shapes.why.stepsAria"}' aria-label="What each string crossing is worth"></div>
-              <figcaption data-i18n="theory.shapes.why.caption">What each crossing is worth in frets. Five every time, except the one marked.</figcaption>
+              <figcaption data-i18n="theory.shapes.why.caption">What each crossing is worth. Five every time, except the one marked.</figcaption>
             </figure>
           </article>
 
           <article class="lesson" id="lesson-shapemath">
             <h2><span class="lesson-index">2</span><span data-i18n="theory.shapes.math.title">Where a shape comes from</span></h2>
-            <p data-i18n="theory.shapes.math.p1">Now any shape is just addition. Count what the string crossings are worth, add the frets you slide, and the total is the distance in semitones — which is the interval, by name.</p>
+            <p data-i18n="theory.shapes.math.p1">From there it is addition. Count what the string crossings are worth, add the frets you slide, and you have the distance in semitones — and a distance in semitones is an interval.</p>
             <p data-i18n="theory.shapes.math.p2">The shape you pick is drawn straight onto the neck: an arrow for every string crossed, carrying what that crossing costs, and an arrow for the fret slide.</p>
             <p data-i18n="theory.shapes.math.p3">It works the other way round too: press any note on the neck, then a second one, and the distance between them is counted out the same way. If that pair is one of the shapes in the list, it lights up. A third press starts again.</p>
 
