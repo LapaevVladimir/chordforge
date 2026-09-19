@@ -779,17 +779,26 @@ function shapeArrow(x1, y1, x2, y2, odd) {
 
 // How far off a string an arrow running along it sits. On the string it is the
 // same line as the string and disappears into it.
-const LANE = 22;
-const SLIDE_LIFT = 17;
+// Half a note marker, plus a breath. Arrows run down the middle of the notes they
+// join, so they are trimmed by this much wherever a marker actually sits — at the
+// note the move starts from, and at the one it ends on.
+const MARKER_CLEAR = 20;
 
 // The arithmetic drawn on the neck the reader is looking at: one arrow per string
-// crossed carrying what that crossing costs, one for the fret slide.
+// crossed carrying what that crossing costs, one for the fret slide. The chain
+// runs centre to centre, so the last string hop and the fret slide meet exactly
+// at the corner between them.
 function drawShapeOverlay(board, first, second) {
   const cellElement = (cell) => board.querySelector(`[data-learn-cell="${cell.stringIndex}:${cell.fret}"]`);
   const anchorElement = cellElement(first);
-  if (!anchorElement || !board.offsetWidth) return;
+  const partnerElement = cellElement(second);
+  if (!anchorElement || !partnerElement || !board.offsetWidth) return;
   const { steps, direction, fretPart } = measurePair(first, second);
   const startX = offsetWithin(board, anchorElement).x;
+  const { x: endX, y: rowY } = offsetWithin(board, partnerElement);
+  // Beside the line, and on whichever side has room: at the nut there is none to
+  // the left, and above the top string none overhead.
+  const tagX = startX < 150 ? startX + 30 : startX - 30;
   const parts = [];
 
   for (let step = 0; step < steps.length; step += 1) {
@@ -798,20 +807,24 @@ function drawShapeOverlay(board, first, second) {
     if (!from || !to) return;
     const fromY = offsetWithin(board, from).y;
     const toY = offsetWithin(board, to).y;
-    const plain = Math.abs(steps[step]) === 5;
     const lean = Math.sign(toY - fromY);
-    parts.push(shapeArrow(startX + LANE, fromY + lean * 4, startX + LANE, toY - lean * 6, !plain));
-    parts.push(shapeTag(startX - 14, (fromY + toY) / 2, signed(steps[step]), !plain));
+    // Only the ends of the whole move have a marker to clear; the cells passed
+    // through on the way carry an ordinary note, which the arrow crosses.
+    const fromTrim = step === 0 ? MARKER_CLEAR : 0;
+    const toTrim = step === steps.length - 1 && fretPart === 0 ? MARKER_CLEAR : 0;
+    const plain = Math.abs(steps[step]) === 5;
+    parts.push(shapeArrow(startX, fromY + lean * fromTrim, startX, toY - lean * toTrim, !plain));
+    parts.push(shapeTag(tagX, (fromY + toY) / 2, signed(steps[step]), !plain));
   }
 
   if (fretPart !== 0) {
-    const partnerElement = cellElement(second);
-    if (!partnerElement) return;
-    const { x: endX, y: rowY } = offsetWithin(board, partnerElement);
-    // Lifted clear of the string, which otherwise swallows a line drawn along it.
-    const lineY = rowY - SLIDE_LIFT;
-    parts.push(shapeArrow(startX, lineY, endX, lineY, false));
-    parts.push(shapeTag((startX + endX) / 2, lineY - 22, signed(fretPart), false));
+    const lean = Math.sign(fretPart);
+    // With a string hop before it the slide starts where that hop landed, which is
+    // an ordinary cell; on its own it starts at the note the move began from.
+    const fromX = steps.length ? startX : startX + lean * MARKER_CLEAR;
+    parts.push(shapeArrow(fromX, rowY, endX - lean * MARKER_CLEAR, rowY, false));
+    const labelY = rowY < 76 ? rowY + 26 : rowY - 26;
+    parts.push(shapeTag((startX + endX) / 2, labelY, signed(fretPart), false));
   }
 
   const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
