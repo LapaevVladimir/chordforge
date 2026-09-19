@@ -237,6 +237,9 @@ export default {
     instrument: {
       heading: 'Инструмент',
       preset: 'Пресет',
+      presetGroup: 'Пресеты',
+      savedGroup: 'Свои строи',
+      customPreset: 'Свой строй',
       stringCount: 'Струны',
       fretCount: 'Лады',
       capo: 'Каподастр',
@@ -274,6 +277,10 @@ export default {
       lowerAria: 'Понизить струну {n} на полтона',
       bassDescriptor: 'бас',
       firstDescriptor: 'первая',
+      namePlaceholder: 'Название строя',
+      nameAria: 'Название для этого строя',
+      save: 'Сохранить',
+      forget: 'Удалить',
     },
     work: {
       eyebrow: 'Инструмент',
@@ -363,6 +370,11 @@ export default {
       shapeSaved: 'Схема сохранена на этом устройстве',
       linkCopied: 'Ссылка скопирована',
       linkInAddressBar: 'Ссылка добавлена в адресную строку',
+      tuningSaved: 'Строй сохранён как «{name}»',
+      tuningUpdated: '«{name}» обновлён',
+      tuningForgotten: '«{name}» удалён',
+      tuningNeedsName: 'Сначала дайте строю название',
+      tuningLimit: 'Место есть для {n} строёв — удалите один',
     },
   },
 

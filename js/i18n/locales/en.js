@@ -237,6 +237,9 @@ export default {
     instrument: {
       heading: 'Instrument',
       preset: 'Preset',
+      presetGroup: 'Presets',
+      savedGroup: 'Saved tunings',
+      customPreset: 'Custom tuning',
       stringCount: 'Strings',
       fretCount: 'Frets',
       capo: 'Capo',
@@ -274,6 +277,10 @@ export default {
       lowerAria: 'Lower string {n} by a semitone',
       bassDescriptor: 'bass',
       firstDescriptor: 'first',
+      namePlaceholder: 'Name this tuning',
+      nameAria: 'Name for this tuning',
+      save: 'Save',
+      forget: 'Forget',
     },
     work: {
       eyebrow: 'Instrument',
@@ -363,6 +370,11 @@ export default {
       shapeSaved: 'Shape saved on this device',
       linkCopied: 'Link copied',
       linkInAddressBar: 'Link added to the address bar',
+      tuningSaved: 'Tuning saved as \u201c{name}\u201d',
+      tuningUpdated: '\u201c{name}\u201d updated',
+      tuningForgotten: '\u201c{name}\u201d forgotten',
+      tuningNeedsName: 'Give the tuning a name first',
+      tuningLimit: 'Room for {n} saved tunings — forget one first',
     },
   },
 

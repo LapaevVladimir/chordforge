@@ -294,6 +294,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); }
 .tune-step { display: grid; place-items: center; width: 20px; height: 13px; padding: 0; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; background: transparent; font-size: 0.5rem; }
 .tune-step:hover { color: var(--accent); border-color: rgba(var(--accent-rgb), 0.45); }
 .tuning-actions { display: flex; align-items: center; gap: 5px; }
+.tuning-save { display: flex; align-items: center; gap: 8px; margin-top: 9px; }
+.tuning-save input { flex: 1; min-width: 0; padding: 7px 9px; font-size: 0.72rem; }
+.text-button.danger { color: var(--danger); }
 .tuning-shift { display: grid; place-items: center; width: 24px; height: 22px; padding: 0; color: var(--accent); border: 1px solid var(--line); border-radius: 6px; background: var(--panel-3); font-size: 0.75rem; }
 .tuning-shift:hover { border-color: rgba(var(--accent-rgb), 0.55); transform: translateY(-1px); }
 .text-button { padding: 0; color: var(--accent); border: 0; background: transparent; font-size: 0.7rem; font-weight: 740; }

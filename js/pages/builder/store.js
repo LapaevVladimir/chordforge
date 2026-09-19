@@ -58,6 +58,84 @@ export function tuningFor(count, base = STANDARD) {
   return tuning;
 }
 
+// Which preset, if any, the instrument currently *is* — matched on the tuning
+// itself rather than on a remembered label. The label went stale the moment
+// anything set `preset: 'custom'`, which every fret click does, so picking DADGAD
+// and then pressing a fret left the menu claiming standard tuning.
+export function matchPreset(state) {
+  const found = Object.entries(PRESETS).find(([, preset]) => sameInstrument(preset, state));
+  return found ? found[0] : null;
+}
+
+function sameInstrument(a, b) {
+  return a.strings === b.strings
+    && (a.register || 'guitar') === (b.register || 'guitar')
+    && Array.isArray(b.tuning)
+    && a.tuning.length === b.tuning.length
+    && a.tuning.every((pitch, index) => pitch === b.tuning[index]);
+}
+
+export const TUNINGS_KEY = 'chordforge-tunings-v1';
+// Enough room to keep the ones worth keeping, few enough that the menu stays readable.
+export const MAX_SAVED_TUNINGS = 12;
+
+export function readSavedTunings() {
+  const saved = readJson(TUNINGS_KEY, []);
+  if (!Array.isArray(saved)) return [];
+  return saved
+    .filter((entry) => entry && typeof entry.name === 'string' && Array.isArray(entry.tuning) && entry.tuning.length >= 4)
+    .map((entry) => ({
+      id: typeof entry.id === 'string' ? entry.id : uid('tuning'),
+      name: entry.name.slice(0, 24),
+      strings: clamp(Number(entry.strings) || entry.tuning.length, 4, 12),
+      register: entry.register === 'bass' ? 'bass' : 'guitar',
+      tuning: entry.tuning.map((pitch) => Engine.mod12(Number(pitch) || 0)),
+    }))
+    .slice(0, MAX_SAVED_TUNINGS);
+}
+
+function writeSavedTunings(entries) {
+  localStorage.setItem(TUNINGS_KEY, JSON.stringify(entries));
+  return entries;
+}
+
+// Saves the instrument as it stands. A name already in the list is overwritten
+// rather than duplicated, so re-saving is how you update a tuning you tweaked.
+export function saveTuning(name, state = store.state) {
+  const trimmed = name.trim().slice(0, 24);
+  if (!trimmed) return { ok: false, reason: 'name' };
+  const entry = {
+    id: uid('tuning'),
+    name: trimmed,
+    strings: state.strings,
+    register: state.register,
+    tuning: [...state.tuning],
+  };
+  const entries = readSavedTunings();
+  const existing = entries.findIndex((saved) => saved.name.toLowerCase() === trimmed.toLowerCase());
+  if (existing >= 0) {
+    entry.id = entries[existing].id;
+    entries[existing] = entry;
+  } else {
+    if (entries.length >= MAX_SAVED_TUNINGS) return { ok: false, reason: 'full' };
+    entries.push(entry);
+  }
+  writeSavedTunings(entries);
+  return { ok: true, entry, replaced: existing >= 0 };
+}
+
+export function deleteTuning(id) {
+  const entries = readSavedTunings();
+  const found = entries.find((entry) => entry.id === id);
+  if (!found) return null;
+  writeSavedTunings(entries.filter((entry) => entry.id !== id));
+  return found;
+}
+
+export function matchSavedTuning(state = store.state) {
+  return readSavedTunings().find((entry) => sameInstrument(entry, state)) || null;
+}
+
 export function normalizeState() {
   const state = store.state;
   state.strings = clamp(Number(state.strings) || 6, 4, 12);

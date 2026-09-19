@@ -2,7 +2,10 @@ import * as Engine from '../../core/chord-engine.js';
 import * as Audio from '../../core/guitar-audio.js';
 import { escapeHtml } from '../../core/utils.js';
 import { t, pluralize } from '../../i18n/i18n.js';
-import { store, PITCHES, PRESETS, normalizeState, currentAnalysis, persistState } from './store.js';
+import {
+  store, PITCHES, PRESETS, normalizeState, currentAnalysis, persistState,
+  matchPreset, matchSavedTuning, readSavedTunings,
+} from './store.js';
 import { layoutRotatedBoard, isVertical } from '../../core/board-orientation.js';
 import { strumActionName, strumCountLabels, renderStrumSteps } from './strum.js';
 import { audio, stopPlayback, showToast, updateSampleStatus, playString } from './playback.js';
@@ -270,6 +273,35 @@ export function findShape(input) {
   openVoicingModal(parsed, shapes);
 }
 
+// Fills the instrument menu and selects what the instrument actually is.
+//
+// The menu used to show whatever `state.preset` last said, and every fret click
+// sets that to 'custom' — a value with no option behind it, so the menu fell back
+// to "standard" while the neck was plainly in DADGAD. It now matches on the tuning
+// itself, so the menu cannot drift away from the instrument.
+//
+// The saved-tunings group and the "custom" entry exist only on the chord
+// identifier; where the page has neither, this keeps the previous behaviour.
+function renderPresetChoice() {
+  const state = store.state;
+  const select = document.getElementById('preset');
+  const savedGroup = document.getElementById('savedTuningGroup');
+  if (savedGroup) {
+    const saved = readSavedTunings();
+    savedGroup.hidden = !saved.length;
+    savedGroup.innerHTML = saved
+      .map((entry) => `<option value="saved:${entry.id}">${escapeHtml(entry.name)}</option>`)
+      .join('');
+  }
+  const preset = matchPreset(state);
+  const savedMatch = preset ? null : (savedGroup ? matchSavedTuning(state) : null);
+  const desired = preset || (savedMatch ? `saved:${savedMatch.id}` : 'custom');
+  const offered = [...select.options].some((option) => option.value === desired);
+  select.value = offered ? desired : (PRESETS[state.preset] ? state.preset : 'standard');
+  const forget = document.getElementById('forgetTuning');
+  if (forget) forget.hidden = !select.value.startsWith('saved:');
+}
+
 export function render() {
   normalizeState();
   const state = store.state;
@@ -293,7 +325,7 @@ export function render() {
     document.getElementById('chordReleaseValue').textContent = t('common.template.seconds', { n: state.release.toFixed(2) });
   }
   document.getElementById('capoBadge').textContent = state.capo ? t('builder.capoBadge.at', { n: state.capo }) : t('builder.capoBadge.none');
-  document.getElementById('preset').value = PRESETS[state.preset] ? state.preset : 'standard';
+  renderPresetChoice();
   renderStrumEditor();
   renderTuning();
   renderBoard();

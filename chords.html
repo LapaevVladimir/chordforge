@@ -64,12 +64,16 @@
           <div class="group">
             <div class="label-row"><label for="preset" data-i18n="builder.instrument.preset">Preset</label></div>
             <select id="preset">
-              <option value="standard" data-i18n="builder.presetOptions.standard">Guitar — standard</option>
-              <option value="dropd" data-i18n="builder.presetOptions.dropd">Guitar — Drop D</option>
-              <option value="dadgad" data-i18n="builder.presetOptions.dadgad">Guitar — DADGAD</option>
-              <option value="openg" data-i18n="builder.presetOptions.openg">Guitar — Open G</option>
-              <option value="bass" data-i18n="builder.presetOptions.bass">Bass — 4 strings</option>
-              <option value="seven" data-i18n="builder.presetOptions.seven">Guitar — 7 strings</option>
+              <optgroup data-i18n-attr='{"label":"builder.instrument.presetGroup"}' label="Presets">
+                <option value="standard" data-i18n="builder.presetOptions.standard">Guitar — standard</option>
+                <option value="dropd" data-i18n="builder.presetOptions.dropd">Guitar — Drop D</option>
+                <option value="dadgad" data-i18n="builder.presetOptions.dadgad">Guitar — DADGAD</option>
+                <option value="openg" data-i18n="builder.presetOptions.openg">Guitar — Open G</option>
+                <option value="bass" data-i18n="builder.presetOptions.bass">Bass — 4 strings</option>
+                <option value="seven" data-i18n="builder.presetOptions.seven">Guitar — 7 strings</option>
+              </optgroup>
+              <optgroup id="savedTuningGroup" data-i18n-attr='{"label":"builder.instrument.savedGroup"}' label="Saved tunings" hidden></optgroup>
+              <option value="custom" data-i18n="builder.instrument.customPreset" disabled>Custom tuning</option>
             </select>
           </div>
           <div class="compact-settings">
@@ -89,6 +93,11 @@
           <div class="group tuning-group">
             <div class="label-row"><span data-i18n="builder.tuning.heading">Tuning</span><span class="tuning-actions"><button class="tuning-shift" id="tuningDown" type="button" data-i18n-attr='{"aria-label":"builder.tuning.downAria"}' aria-label="Tune the whole instrument down a semitone">↓</button><button class="tuning-shift" id="tuningUp" type="button" data-i18n-attr='{"aria-label":"builder.tuning.upAria"}' aria-label="Tune the whole instrument up a semitone">↑</button><button class="text-button" id="resetTuning" data-i18n="common.reset">Reset</button></span></div>
             <div class="tuning" id="tuning"></div>
+            <div class="tuning-save">
+              <input id="tuningName" maxlength="24" autocomplete="off" data-i18n-attr='{"aria-label":"builder.tuning.nameAria","placeholder":"builder.tuning.namePlaceholder"}' aria-label="Name for this tuning" placeholder="Name this tuning" />
+              <button class="text-button" id="saveTuning" type="button" data-i18n="builder.tuning.save">Save</button>
+              <button class="text-button danger" id="forgetTuning" type="button" data-i18n="builder.tuning.forget" hidden>Forget</button>
+            </div>
           </div>
         </section>
       </div>
