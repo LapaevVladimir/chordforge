@@ -85,11 +85,11 @@ function renderGrid(container, { interactive = false, cellAttr = '', decorate })
     html += `<div class="interval-string-label"><span>${stringNumber}</span><small>${noteName(OPEN_MIDIS[stringIndex])}</small></div>`;
     for (let fret = 0; fret <= MAX_FRET; fret += 1) {
       const cell = { stringIndex, fret, midi: OPEN_MIDIS[stringIndex] + fret, stringNumber };
-      const { marker, classes = [], label } = decorate(cell);
+      const { marker, classes = [], label, disabled = false } = decorate(cell);
       const allClasses = ['interval-cell', ...(stringNumber >= 4 ? ['wound'] : []), ...classes];
       const attrs = `class="${allClasses.join(' ')}" style="--training-string:${stringThickness}px" aria-label="${label}"`;
       html += interactive
-        ? `<button ${attrs} type="button" ${cellAttr}="${cellKey(cell)}"><span class="interval-note"><b>${marker}</b></span></button>`
+        ? `<button ${attrs} type="button" ${disabled ? 'disabled' : ''} ${cellAttr}="${cellKey(cell)}"><span class="interval-note"><b>${marker}</b></span></button>`
         : `<div ${attrs} role="img"><span class="interval-note"><b>${marker}</b></span></div>`;
     }
     html += '</div>';
@@ -156,6 +156,51 @@ export function renderBoard(container, { anchor = null, targets = [], quizPair =
   // map the matches can span the whole neck, and centring on all of them would
   // leave the note you actually chose off the edge.
   revealMarks(container, '.quiz-first, .quiz-second, .anchor');
+}
+
+// The note quiz. Two shapes of the same board:
+//
+//   "name the note" marks one cell with a question mark and leaves the rest of
+//   the neck silent — the whole point is that nothing tells you where you are;
+//   "find the note" names the note in the question instead and makes the neck
+//   itself the answer sheet, with everything outside the chosen strings and
+//   frets put out of reach rather than merely discouraged.
+//
+// Cells already tried carry the note they really are, right or wrong, because a
+// miss you cannot read teaches nothing.
+export function renderNoteQuizBoard(container, { target = null, interactive = false, marks = new Map(), inRange = null } = {}) {
+  const targetKey = target ? cellKey(target) : '';
+
+  renderGrid(container, {
+    interactive,
+    cellAttr: 'data-note-cell',
+    decorate: (cell) => {
+      const key = cellKey(cell);
+      const mark = marks.get(key);
+      const reachable = !interactive || !inRange || inRange(cell);
+      const classes = [];
+      let marker = '';
+      if (mark) {
+        classes.push(mark === 'hit' ? 'note-hit' : 'note-miss');
+        marker = PITCH_NAMES[mod12(cell.midi)];
+      } else if (key === targetKey) {
+        classes.push('note-asked');
+        marker = '?';
+      } else if (!reachable) {
+        classes.push('note-out');
+      }
+      return {
+        marker,
+        classes,
+        disabled: !reachable,
+        // The note is deliberately left out of the label: a screen reader would
+        // otherwise read out the answer the question is asking for.
+        label: t('training.noteQuiz.cellAria', { string: cell.stringNumber, fretLabel: fretLabel(cell.fret) }),
+      };
+    },
+  });
+
+  revealMarks(container, '.note-asked, .note-hit, .note-miss');
 }
 
 // The plain neck: every fret says which note it is, and nothing is marked,

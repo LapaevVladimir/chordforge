@@ -218,6 +218,30 @@ body.board-vertical .interval-string-label { flex-direction: column; justify-con
 .quiz-board .interval-string { grid-template-columns: 56px repeat(16, minmax(44px, 1fr)); }
 .quiz-board .interval-string { min-height: 43px; }
 .quiz-board .interval-note { color: transparent; }
+/* The note quiz. The asked fret carries a question mark and nothing else; frets
+   already tried carry the note they really hold, in green or red, because a miss
+   you cannot read teaches nothing. Out-of-range frets are visibly out of reach
+   rather than merely unresponsive. */
+.interval-cell.note-asked .interval-note { min-width: 32px; height: 32px; color: var(--clip-text); border-radius: 10px; background: var(--accent-2); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-2) 22%, transparent), 0 8px 16px rgba(0, 0, 0, 0.52); font-size: 0.92rem; font-weight: 950; }
+.interval-cell.note-hit .interval-note,
+.interval-cell.note-miss .interval-note { min-width: 30px; height: 30px; color: var(--clip-text); border-radius: 9px; font-size: 0.72rem; font-weight: 900; }
+.interval-cell.note-hit .interval-note { background: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.2), 0 6px 13px rgba(0, 0, 0, 0.5); }
+.interval-cell.note-miss .interval-note { color: #fff; background: var(--danger); box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 22%, transparent), 0 6px 13px rgba(0, 0, 0, 0.5); animation: answer-shake 0.25s ease; }
+/* Every fret you may press wears a faint marker. Without one the chosen strings
+   and frets were indistinguishable from the rest of an empty neck: dimming the
+   others says nothing when there is nothing there to dim. */
+.quiz-board button.interval-cell:not(:disabled) { cursor: pointer; }
+.quiz-board button.interval-cell:not(:disabled):not(.note-hit):not(.note-miss) .interval-note { min-width: 22px; height: 22px; border-radius: 7px; background: rgba(255, 248, 232, 0.09); box-shadow: inset 0 0 0 1px rgba(255, 248, 232, 0.14); }
+.quiz-board button.interval-cell:not(:disabled):not(.note-hit):not(.note-miss):hover .interval-note { background: rgba(var(--accent-rgb), 0.3); box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.6); }
+.interval-cell.note-out { opacity: 0.25; }
+.quiz-board button.interval-cell:disabled { cursor: default; }
+/* A three-way choice of fret range reads better in a row than as stacked cards. */
+.mode-choice.compact-choice { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.mode-choice.compact-choice label > span { grid-template-columns: minmax(0, 1fr); padding: 9px 7px; text-align: center; }
+.mode-choice.compact-choice label strong { font-size: 0.72rem; }
+.mode-choice.compact-choice label small { font-size: 0.6rem; }
+.note-checks { grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)); }
+.string-checks { grid-template-columns: repeat(auto-fit, minmax(54px, 1fr)); }
 .ear-question { display: grid; min-height: 320px; place-items: center; align-content: center; text-align: center; }
 .ear-question strong { margin-top: 18px; font-size: 1.08rem; }
 .ear-question p { margin: 5px 0 0; color: var(--muted); font-size: 0.82rem; }

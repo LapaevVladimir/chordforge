@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b1015" />
-  <meta name="description" content="Drill recognizing musical intervals by ear and on the fretboard" data-i18n-attr='{"content":"meta.trainingQuiz.description"}' />
-  <title data-i18n="meta.trainingQuiz.title">ChordForge Learn — Interval Trainer</title>
+  <meta name="description" content="Drill the notes of the fretboard and recognizing intervals by ear and by sight" data-i18n-attr='{"content":"meta.trainingQuiz.description"}' />
+  <title data-i18n="meta.trainingQuiz.title">ChordForge Learn — Fretboard Trainer</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b1015'/%3E%3Cpath d='M12 17h40M12 28h40M12 39h40M12 50h40' stroke='%23f4bf69' stroke-width='2'/%3E%3Cpath d='M26 9v46M40 9v46' stroke='%237ce4d1' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/training.css" />
@@ -42,12 +42,14 @@
         <section class="tool-section">
           <div class="section-kicker" data-i18n="training.trainer.modeLegend">Mode</div>
           <fieldset class="mode-choice">
-            <label><input type="radio" name="trainingMode" value="visual" checked /><span><b aria-hidden="true">◉</b><strong data-i18n="training.trainer.modeVisual">Interval on the neck</strong><small data-i18n="training.trainer.modeVisualHint">Guess it from the two marked positions</small></span></label>
-            <label><input type="radio" name="trainingMode" value="ear" /><span><b aria-hidden="true">♪</b><strong data-i18n="training.trainer.modeEar">Interval by ear</strong><small data-i18n="training.trainer.modeEarHint">Guess it from the sound alone</small></span></label>
+            <label><input type="radio" name="trainingMode" value="noteName" checked /><span><b aria-hidden="true">♪</b><strong data-i18n="training.trainer.modeNoteName">Name the note</strong><small data-i18n="training.trainer.modeNoteNameHint">One fret is marked — say what it is</small></span></label>
+            <label><input type="radio" name="trainingMode" value="noteFind" /><span><b aria-hidden="true">⌖</b><strong data-i18n="training.trainer.modeNoteFind">Find the note</strong><small data-i18n="training.trainer.modeNoteFindHint">A note is named — press it on the neck</small></span></label>
+            <label><input type="radio" name="trainingMode" value="visual" /><span><b aria-hidden="true">◉</b><strong data-i18n="training.trainer.modeVisual">Interval on the neck</strong><small data-i18n="training.trainer.modeVisualHint">Guess it from the two marked positions</small></span></label>
+            <label><input type="radio" name="trainingMode" value="ear" /><span><b aria-hidden="true">♫</b><strong data-i18n="training.trainer.modeEar">Interval by ear</strong><small data-i18n="training.trainer.modeEarHint">Guess it from the sound alone</small></span></label>
           </fieldset>
         </section>
 
-        <section class="tool-section">
+        <section class="tool-section" data-quiz-panel="intervals" hidden>
           <fieldset class="mode-choice">
             <legend data-i18n="training.intervalType.legend">Interval type</legend>
             <label><input type="radio" name="quizIntervalType" value="ascending" checked /><span><b aria-hidden="true">↗</b><strong data-i18n="training.intervalType.ascending">Ascending</strong><small data-i18n="training.intervalType.ascendingHint">low → high</small></span></label>
@@ -56,7 +58,42 @@
           </fieldset>
         </section>
 
-        <section class="tool-section">
+        <section class="tool-section" data-quiz-panel="notes">
+          <fieldset class="interval-filter">
+            <div class="filter-head">
+              <legend data-i18n="training.noteQuiz.noteFilterLegend">Notes in the quiz</legend>
+              <span>
+                <button id="selectAllNotes" type="button" data-i18n="training.trainer.selectAll">All</button>
+                <button id="clearNotes" type="button" data-i18n="training.trainer.clearAll">None</button>
+              </span>
+            </div>
+            <div class="interval-checks note-checks" id="noteChecks"></div>
+          </fieldset>
+        </section>
+
+        <section class="tool-section" data-quiz-panel="notes">
+          <fieldset class="interval-filter">
+            <div class="filter-head">
+              <legend data-i18n="training.noteQuiz.stringFilterLegend">Strings</legend>
+              <span>
+                <button id="selectAllStrings" type="button" data-i18n="training.trainer.selectAll">All</button>
+                <button id="clearStrings" type="button" data-i18n="training.trainer.clearAll">None</button>
+              </span>
+            </div>
+            <div class="interval-checks string-checks" id="stringChecks"></div>
+          </fieldset>
+        </section>
+
+        <section class="tool-section" data-quiz-panel="notes">
+          <fieldset class="mode-choice compact-choice">
+            <legend data-i18n="training.noteQuiz.fretRangeLegend">Frets</legend>
+            <label><input type="radio" name="quizFretRange" value="first" /><span><strong data-i18n="training.noteQuiz.fretRangeFirst">First position</strong><small data-i18n="training.noteQuiz.fretRangeFirstHint">frets 0–5</small></span></label>
+            <label><input type="radio" name="quizFretRange" value="half" checked /><span><strong data-i18n="training.noteQuiz.fretRangeHalf">To the 12th</strong><small data-i18n="training.noteQuiz.fretRangeHalfHint">frets 0–12</small></span></label>
+            <label><input type="radio" name="quizFretRange" value="whole" /><span><strong data-i18n="training.noteQuiz.fretRangeWhole">Whole neck</strong><small data-i18n="training.noteQuiz.fretRangeWholeHint">frets 0–15</small></span></label>
+          </fieldset>
+        </section>
+
+        <section class="tool-section" data-quiz-panel="intervals" hidden>
           <fieldset class="interval-filter">
             <div class="filter-head">
               <legend data-i18n="training.trainer.intervalFilterLegend">Intervals in the quiz</legend>
@@ -66,9 +103,10 @@
               </span>
             </div>
             <div class="interval-checks" id="intervalChecks"></div>
-            <p class="settings-error" id="settingsError" role="alert"></p>
           </fieldset>
         </section>
+
+        <p class="settings-error" id="settingsError" role="alert" hidden></p>
       </div>
 
       <div class="sidebar-footer">
@@ -79,7 +117,7 @@
     <main class="workspace">
       <section class="work card">
         <div class="work-top">
-          <div><span class="eyebrow" data-i18n="training.trainer.eyebrow">Practice</span><h1 data-i18n="training.trainer.title">Interval trainer</h1><p class="sub" data-i18n="training.trainer.subtitle">Set up the quiz, press “Start” and answer with no time limit.</p></div>
+          <div><span class="eyebrow" data-i18n="training.trainer.eyebrow">Practice</span><h1 data-i18n="training.trainer.title">Fretboard trainer</h1><p class="sub" data-i18n="training.trainer.subtitle">Set up the quiz, press “Start” and answer with no time limit.</p></div>
           <div class="work-header-actions">
             <div class="session-stats" aria-live="polite">
               <span><span data-i18n="training.trainer.correctLabel">Correct</span> <strong id="correctCount">0</strong></span>
@@ -90,7 +128,7 @@
         </div>
 
         <div class="quiz-stage" id="quizStage">
-          <div class="quiz-idle" id="quizIdle"><span class="idle-symbol" aria-hidden="true">↗</span><h3 data-i18n="training.quiz.idleTitle">Choose a mode and intervals</h3><p data-i18n="training.quiz.idleHint">Your first question will appear here after you start.</p></div>
+          <div class="quiz-idle" id="quizIdle"><span class="idle-symbol" aria-hidden="true">↗</span><h3 data-i18n="training.quiz.idleTitle">Choose a mode and set it up</h3><p data-i18n="training.quiz.idleHint">Your first question will appear here after you start.</p></div>
           <div class="quiz-active" id="quizActive" hidden>
             <div class="question-head"><div><span id="questionNumber" data-i18n="training.quiz.questionInitial">Question 1</span><h3 id="questionTitle" data-i18n="training.quiz.questionPlaceholder">Which interval is shown?</h3></div><button class="replay-button" id="replayQuestion" type="button"><span aria-hidden="true">▶</span> <span data-i18n="training.quiz.replayButton">Listen</span></button></div>
             <div class="visual-question" id="visualQuestion"><div class="training-board-scroll"><div class="interval-board quiz-board" id="quizFretboard" data-i18n-attr='{"aria-label":"training.quiz.boardAriaLabel"}' aria-label="Interval to identify"></div></div></div>
@@ -101,7 +139,7 @@
           <div class="quiz-summary" id="quizSummary" hidden>
             <span class="summary-mark" aria-hidden="true">✓</span><h3 data-i18n="training.summary.title">Practice complete</h3>
             <div class="summary-numbers"><span><strong id="summaryCorrect">0</strong><span data-i18n="training.summary.correctLabel">correct</span></span><span><strong id="summaryErrors">0</strong><span data-i18n="training.summary.errorsLabel">errors</span></span><span><strong id="summaryAccuracy">0%</strong><span data-i18n="training.summary.accuracyLabel">accuracy</span></span></div>
-            <p data-i18n="training.summary.hint">Change the interval set or start another attempt.</p>
+            <p data-i18n="training.summary.hint">Change the settings, or start another attempt.</p>
           </div>
         </div>
       </section>
